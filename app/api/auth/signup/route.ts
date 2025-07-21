@@ -67,6 +67,24 @@ export async function POST(req: Request) {
           { status: 500 }
         );
       }
+
+      // If the new user is a client, create a free in-person package with 1 session
+      if (role === "client") {
+        const { error: packageError } = await supabase.from("packages").insert([
+          {
+            client_id: data.user.id,
+            package_type: "In-Person Training",
+            sessions_included: 1,
+            original_sessions: 1,
+            status: "active",
+            purchase_date: new Date().toISOString().split("T")[0],
+          },
+        ]);
+        if (packageError) {
+          console.error("Failed to create free in-person package:", packageError);
+          // Not fatal, but you may want to notify admin or log this
+        }
+      }
     }
 
     return new Response(

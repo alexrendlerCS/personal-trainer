@@ -245,13 +245,10 @@ export default function LoginPage() {
         full_name: "",
       });
 
-      // Switch to login tab
-      setIsLogin(true);
-
-      // Show success message
+      // Show signup welcome message (leave isLogin as false)
       setStatusMessage({
         type: "success",
-        message: `Please sign in as ${userType === "trainer" ? "Trainer" : "Client"} to continue.`,
+        message: "", // leave blank to use the new welcome message
       });
 
       // Pre-fill the login email
@@ -540,7 +537,13 @@ export default function LoginPage() {
       {/* Status Dialog */}
       <Dialog
         open={statusMessage.type !== null}
-        onOpenChange={() => setStatusMessage({ type: null, message: "" })}
+        onOpenChange={(open) => {
+          setStatusMessage({ type: null, message: "" });
+          // If this was a successful signup (not login), redirect to client login
+          if (!isLogin && statusMessage.type === "success" && !open) {
+            window.location.href = "/login?tab=client";
+          }
+        }}
       >
         <DialogContent>
           <DialogHeader>
@@ -548,10 +551,20 @@ export default function LoginPage() {
               {statusMessage.type === "success" && isLogin
                 ? "Welcome Back!"
                 : statusMessage.type === "success"
-                  ? "Account Created!"
+                  ? `Welcome${formData.full_name ? `, ${formData.full_name.split(" ")[0]}!` : "!"}`
                   : "Error"}
             </DialogTitle>
-            <DialogDescription>{statusMessage.message}</DialogDescription>
+            <DialogDescription>
+              {statusMessage.type === "success" && !isLogin ? (
+                <>
+                  Thank you for signing up for Coach Kilday's fitness scheduling platform.<br /><br />
+                  As a welcome gift, you have been given <b>1 complimentary In-Person Training session</b> to get started! 🎉<br /><br />
+                  You can use this free session to book your first training appointment with your coach.
+                </>
+              ) : (
+                statusMessage.message
+              )}
+            </DialogDescription>
           </DialogHeader>
           {statusMessage.type === "error" && (
             <Button
