@@ -1,11 +1,10 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Footer } from "@/components/ui/footer";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Fitness Training Platform",
@@ -27,8 +26,15 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>{`
+          html {
+            font-family: ${GeistSans.style.fontFamily};
+            --font-sans: ${GeistSans.variable};
+            --font-mono: ${GeistMono.variable};
+          }
+        `}</style>
       </head>
-      <body className={`${inter.className} flex min-h-screen flex-col`}>
+      <body className={`${GeistSans.className} flex min-h-screen flex-col`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

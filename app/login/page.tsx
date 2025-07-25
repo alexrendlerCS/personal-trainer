@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dumbbell, Mail, Lock, User, CheckCircle } from "lucide-react";
+import { Dumbbell, Mail, Lock, User, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -280,8 +280,96 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl border-0">
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-500 to-red-700 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Top-right decorative circle */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full"></div>
+        <div className="absolute top-40 -right-10 w-20 h-20 bg-white/5 rounded-full"></div>
+        
+        {/* Bottom-left decorative elements */}
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-white/10 rounded-full"></div>
+        <div className="absolute bottom-20 left-20 w-16 h-16 bg-white/5 rounded-full"></div>
+        
+        {/* Center decorative elements */}
+        <div className="absolute top-1/4 left-1/4 w-8 h-8 bg-white/20 rounded-full"></div>
+        <div className="absolute top-3/4 right-1/3 w-12 h-12 bg-white/10 rounded-full"></div>
+        
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+            backgroundSize: '40px 40px'
+          }}></div>
+        </div>
+      </div>
+
+      {/* Back Button - Fixed to top left of page */}
+      <div className="absolute top-6 left-6 z-20">
+        <Button
+          size="sm"
+          onClick={() => router.push("/")}
+          className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 hover:border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 group"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
+          <span className="font-medium">Back to Home</span>
+        </Button>
+      </div>
+
+      {/* Main Content Container */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+        {/* Left side decorative content */}
+        <div className="hidden lg:block absolute left-8 top-1/2 transform -translate-y-1/2 w-80">
+          <div className="space-y-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-red-100">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <h3 className="text-lg font-semibold text-gray-800">Google Calendar Integration</h3>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Seamlessly sync your training sessions with Google Calendar for effortless scheduling and automatic reminders.
+              </p>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-red-100">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <h3 className="text-lg font-semibold text-gray-800">Integrated Payments</h3>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Secure payment processing built right into the platform for hassle-free transactions and package purchases.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right side decorative content */}
+        <div className="hidden xl:block absolute right-8 top-1/2 transform -translate-y-1/2 w-80">
+          <div className="space-y-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-red-100">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <h3 className="text-lg font-semibold text-gray-800">Multiple Training Options</h3>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Choose from virtual sessions, in-person training, or partner workouts to fit your lifestyle and preferences.
+              </p>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-red-100">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <h3 className="text-lg font-semibold text-gray-800">Session Tracking</h3>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Easy scheduling and comprehensive session tracking to monitor your progress and manage your fitness journey.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Center Login Card */}
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white">
         <CardHeader className="text-center space-y-4">
           <div className="flex flex-col items-center">
             <Image
@@ -293,7 +381,7 @@ export default function LoginPage() {
               priority
             />
             <h1 className="text-3xl font-bold text-gray-900">
-              Fitness Training
+                Coach Kilday
             </h1>
             <CardDescription className="text-gray-600 text-lg">
               Professional fitness coaching platform
@@ -537,13 +625,13 @@ export default function LoginPage() {
       {/* Status Dialog */}
       <Dialog
         open={statusMessage.type !== null}
-        onOpenChange={(open) => {
-          setStatusMessage({ type: null, message: "" });
-          // If this was a successful signup (not login), redirect to client login
-          if (!isLogin && statusMessage.type === "success" && !open) {
-            window.location.href = "/login?tab=client";
-          }
-        }}
+          onOpenChange={(open) => {
+            setStatusMessage({ type: null, message: "" });
+            // If this was a successful signup (not login), redirect to client login
+            if (!isLogin && statusMessage.type === "success" && !open) {
+              window.location.href = "/login?tab=client";
+            }
+          }}
       >
         <DialogContent>
           <DialogHeader>
@@ -551,20 +639,20 @@ export default function LoginPage() {
               {statusMessage.type === "success" && isLogin
                 ? "Welcome Back!"
                 : statusMessage.type === "success"
-                  ? `Welcome${formData.full_name ? `, ${formData.full_name.split(" ")[0]}!` : "!"}`
+                    ? `Welcome${formData.full_name ? `, ${formData.full_name.split(" ")[0]}!` : "!"}`
                   : "Error"}
             </DialogTitle>
-            <DialogDescription>
-              {statusMessage.type === "success" && !isLogin ? (
-                <>
-                  Thank you for signing up for Coach Kilday's fitness scheduling platform.<br /><br />
-                  As a welcome gift, you have been given <b>1 complimentary In-Person Training session</b> to get started! 🎉<br /><br />
-                  You can use this free session to book your first training appointment with your coach.
-                </>
-              ) : (
-                statusMessage.message
-              )}
-            </DialogDescription>
+              <DialogDescription>
+                {statusMessage.type === "success" && !isLogin ? (
+                  <>
+                    Thank you for signing up for Coach Kilday's fitness scheduling platform.<br /><br />
+                    As a welcome gift, you have been given <b>1 complimentary In-Person Training session</b> to get started! 🎉<br /><br />
+                    You can use this free session to book your first training appointment with your coach.
+                  </>
+                ) : (
+                  statusMessage.message
+                )}
+              </DialogDescription>
           </DialogHeader>
           {statusMessage.type === "error" && (
             <Button
@@ -582,6 +670,7 @@ export default function LoginPage() {
         open={showForgotPassword}
         onOpenChange={setShowForgotPassword}
       />
+      </div>
     </div>
   );
 }

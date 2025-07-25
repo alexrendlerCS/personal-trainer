@@ -505,7 +505,7 @@ export function TrainerSidebar() {
         <div className="flex items-center space-x-3 px-2 py-2">
           <Image
             src="/logo.jpg"
-            alt="Fitness Trainer Logo"
+            alt="Coach Kilday Logo"
             width={36}
             height={36}
             className="rounded-full shadow"
@@ -513,7 +513,7 @@ export function TrainerSidebar() {
           />
           <div>
             <h2 className="font-bold text-sidebar-foreground">
-              Fitness Trainer
+              Coach Kilday
             </h2>
               <p className="text-xs text-sidebar-foreground/70">
                 Trainer Portal
@@ -535,7 +535,7 @@ export function TrainerSidebar() {
                     className="w-full"
                   >
                     <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-4 w-4 text-red-600" />
                       <span>{item.title}</span>
                         {item.badge && (
                           <span className="ml-2 text-xs text-gray-500">
@@ -560,7 +560,7 @@ export function TrainerSidebar() {
                     isActive={pathname === "/trainer/referral"}
                   >
                     <Link href="/trainer/referral">
-                      <Gift className="h-4 w-4" />
+                      <Gift className="h-4 w-4 text-red-600" />
                       <span>Referral Program</span>
                     </Link>
                   </SidebarMenuButton>
@@ -571,7 +571,7 @@ export function TrainerSidebar() {
                   isActive={pathname === "/trainer/settings"}
                 >
                   <Link href="/trainer/settings">
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-4 w-4 text-red-600" />
                     <span>Settings</span>
                   </Link>
                 </SidebarMenuButton>
@@ -615,7 +615,7 @@ export function TrainerSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={handleSignOut}>
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4 text-red-600" />
               <span>Sign Out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
