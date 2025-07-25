@@ -33,7 +33,7 @@ const videos = [
 
 export default function VideoGallerySection() {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, threshold: 0.2 })
+  const isInView = useInView(ref, { once: true })
   const [activeVideo, setActiveVideo] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
