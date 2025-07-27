@@ -5,10 +5,52 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Footer } from "@/components/ui/footer";
+import Script from "next/script";
 
 export const metadata = {
-  title: "Fitness Training Platform",
-  description: "Book and manage your personal training sessions",
+  title: "Coach Kilday - Personal Training | Westminster, CO",
+  description:
+    "Transform your fitness journey with Coach Kilday. Personal training in Westminster, Colorado. Book sessions, track progress, and achieve your fitness goals.",
+  keywords:
+    "personal training, fitness coach, Westminster Colorado, Coach Kilday, personal trainer, fitness training, workout coach, strength training, weight loss, muscle building",
+  openGraph: {
+    title: "Coach Kilday - Personal Training | Westminster, CO",
+    description:
+      "Transform your fitness journey with Coach Kilday. Personal training in Westminster, Colorado. Book sessions, track progress, and achieve your fitness goals.",
+    url: "https://www.coachkilday.com",
+    siteName: "Coach Kilday",
+    images: [
+      {
+        url: "/logo.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Coach Kilday Personal Training",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Coach Kilday - Personal Training | Westminster, CO",
+    description:
+      "Transform your fitness journey with Coach Kilday. Personal training in Westminster, Colorado.",
+    images: ["/logo.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code", // Replace with actual verification code
+  },
   icons: {
     icon: "/logo.jpg",
     shortcut: "/logo.jpg",
