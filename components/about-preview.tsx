@@ -3,8 +3,11 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, useInView, useAnimation } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
-export default function AboutSection() {
+export default function AboutPreview() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const controls = useAnimation();
@@ -18,10 +21,6 @@ export default function AboutSection() {
   return (
     <section id="about" className="py-20 bg-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-          ABOUT <span className="text-red-600">HALEY KILDAY</span>
-        </h2>
-
         <div
           ref={ref}
           className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
@@ -57,7 +56,10 @@ export default function AboutSection() {
             }}
             className="space-y-6"
           >
-            <h3 className="text-2xl md:text-3xl font-bold">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Meet Coach Haley Kilday
+            </h2>
+            <h3 className="text-xl md:text-2xl font-semibold text-red-600">
               Personal Trainer in Westminster, Colorado
             </h3>
             <p className="text-lg text-gray-700">
@@ -71,12 +73,6 @@ export default function AboutSection() {
               Haley developed a unique training methodology that combines
               strength training, mobility work, and personalized nutrition
               guidance.
-            </p>
-            <p className="text-lg text-gray-700">
-              Her approach isn't about quick fixes—it's about sustainable
-              results through science-backed methods and unwavering
-              accountability. Located at Life Time Westminster, she provides
-              personal training services to help you achieve your fitness goals.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <div className="bg-gray-100 rounded-lg px-4 py-2 flex items-center">
@@ -94,6 +90,12 @@ export default function AboutSection() {
                 <span className="text-sm">Certifications</span>
               </div>
             </div>
+            <Link href="/about">
+              <Button className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-3">
+                Learn More About Coach Kilday{" "}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </div>

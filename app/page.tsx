@@ -1,10 +1,11 @@
-import Header from "@/components/header"
-import HeroSection from "@/components/hero-section"
-import AboutSection from "@/components/about-section"
-import ServicesSection from "@/components/services-section"
-import TestimonialsSection from "@/components/testimonials-section"
-import VideoGallerySection from "@/components/video-gallery-section"
-import CtaSection from "@/components/cta-section"
+import Header from "@/components/header";
+import HeroSection from "@/components/hero-section";
+import AboutPreview from "@/components/about-preview";
+import ServicesPreview from "@/components/services-preview";
+import TestimonialsSection from "@/components/testimonials-section";
+import VideoGallerySection from "@/components/video-gallery-section";
+import ContactPreview from "@/components/contact-preview";
+import CtaSection from "@/components/cta-section";
 
 export default function Home() {
   return (
@@ -12,12 +13,13 @@ export default function Home() {
       <Header />
       <main>
         <HeroSection />
-        <AboutSection />
-        <ServicesSection />
+        <AboutPreview />
+        <ServicesPreview />
         <TestimonialsSection />
         <VideoGallerySection />
+        <ContactPreview />
         <CtaSection />
       </main>
     </div>
-  )
+  );
 }

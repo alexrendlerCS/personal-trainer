@@ -75,6 +75,75 @@ export default function RootLayout({
             --font-mono: ${GeistMono.variable};
           }
         `}</style>
+        <Script
+          id="structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              name: "Coach Kilday",
+              description:
+                "Personal training and fitness coaching in Westminster, Colorado",
+              url: "https://www.coachkilday.com",
+              telephone: "+1-720-979-2808",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "397 W 148th Ave",
+                addressLocality: "Westminster",
+                addressRegion: "CO",
+                postalCode: "80023",
+                addressCountry: "US",
+              },
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: 39.8822,
+                longitude: -104.9816,
+              },
+              openingHours: "Mo-Su 11:00-21:00",
+              priceRange: "$$",
+              currenciesAccepted: "USD",
+              paymentAccepted: "Cash, Credit Card",
+              areaServed: {
+                "@type": "City",
+                name: "Westminster, Colorado",
+              },
+              serviceArea: {
+                "@type": "GeoCircle",
+                geoMidpoint: {
+                  "@type": "GeoCoordinates",
+                  latitude: 39.8822,
+                  longitude: -104.9816,
+                },
+                geoRadius: "50000",
+              },
+              hasOfferCatalog: {
+                "@type": "OfferCatalog",
+                name: "Personal Training Services",
+                itemListElement: [
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "Personal Training Session",
+                      description: "One-on-one personal training session",
+                    },
+                  },
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "Fitness Coaching",
+                      description:
+                        "Comprehensive fitness coaching and lifestyle guidance",
+                    },
+                  },
+                ],
+              },
+              sameAs: ["https://www.instagram.com/coachkilday"],
+            }),
+          }}
+        />
       </head>
       <body className={`${GeistSans.className} flex min-h-screen flex-col`}>
         <ThemeProvider

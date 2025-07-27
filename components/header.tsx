@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Menu, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const router = useRouter()
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
-        setIsScrolled(true)
+        setIsScrolled(true);
       } else {
-        setIsScrolled(false)
+        setIsScrolled(false);
       }
-    }
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLoginSignup = () => {
-    router.push("/login")
-  }
+    router.push("/login");
+  };
 
   return (
     <header
@@ -35,9 +35,9 @@ export default function Header() {
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
-        <a 
-          href="https://www.instagram.com/coachkilday/?hl=en" 
-          target="_blank" 
+        <a
+          href="https://www.instagram.com/coachkilday/?hl=en"
+          target="_blank"
           rel="noopener noreferrer"
           className="flex items-center"
         >
@@ -46,37 +46,39 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link href="/" className={`font-medium hover:text-red-600 transition-colors ${
-            isScrolled ? "text-gray-800" : "text-white"
-          }`}>
+          <Link
+            href="/"
+            className={`font-medium hover:text-red-600 transition-colors ${
+              isScrolled ? "text-gray-800" : "text-white"
+            }`}
+          >
             Home
           </Link>
-          <Link href="#about" className={`font-medium hover:text-red-600 transition-colors ${
-            isScrolled ? "text-gray-800" : "text-white"
-          }`}>
+          <Link
+            href="/about"
+            className={`font-medium hover:text-red-600 transition-colors ${
+              isScrolled ? "text-gray-800" : "text-white"
+            }`}
+          >
             About
           </Link>
-          <Link href="#services" className={`font-medium hover:text-red-600 transition-colors ${
-            isScrolled ? "text-gray-800" : "text-white"
-          }`}>
+          <Link
+            href="/services"
+            className={`font-medium hover:text-red-600 transition-colors ${
+              isScrolled ? "text-gray-800" : "text-white"
+            }`}
+          >
             Services
           </Link>
-          <Link href="#results" className={`font-medium hover:text-red-600 transition-colors ${
-            isScrolled ? "text-gray-800" : "text-white"
-          }`}>
-            Results
+          <Link
+            href="/contact"
+            className={`font-medium hover:text-red-600 transition-colors ${
+              isScrolled ? "text-gray-800" : "text-white"
+            }`}
+          >
+            Contact
           </Link>
-          <Link href="#videos" className={`font-medium hover:text-red-600 transition-colors ${
-            isScrolled ? "text-gray-800" : "text-white"
-          }`}>
-            Videos
-          </Link>
-          <Link href="/rebalance" className={`font-medium hover:text-red-600 transition-colors ${
-            isScrolled ? "text-gray-800" : "text-white"
-          }`}>
-            Rebalance
-          </Link>
-          <Button 
+          <Button
             onClick={handleLoginSignup}
             className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6"
           >
@@ -85,9 +87,12 @@ export default function Header() {
         </nav>
 
         {/* Mobile Menu Button */}
-        <button className={`md:hidden transition-colors duration-300 ${
-          isScrolled ? "text-gray-800" : "text-white"
-        }`} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <button
+          className={`md:hidden transition-colors duration-300 ${
+            isScrolled ? "text-gray-800" : "text-white"
+          }`}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -104,44 +109,30 @@ export default function Header() {
               Home
             </Link>
             <Link
-              href="#about"
+              href="/about"
               className="font-medium py-2 text-gray-800 hover:text-red-600 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               About
             </Link>
             <Link
-              href="#services"
+              href="/services"
               className="font-medium py-2 text-gray-800 hover:text-red-600 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Services
             </Link>
             <Link
-              href="#results"
+              href="/contact"
               className="font-medium py-2 text-gray-800 hover:text-red-600 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Results
-            </Link>
-            <Link
-              href="#videos"
-              className="font-medium py-2 text-gray-800 hover:text-red-600 transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Videos
-            </Link>
-            <Link
-              href="/rebalance"
-              className="font-medium py-2 text-gray-800 hover:text-red-600 transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Rebalance
+              Contact
             </Link>
             <Button
               onClick={() => {
-                handleLoginSignup()
-                setMobileMenuOpen(false)
+                handleLoginSignup();
+                setMobileMenuOpen(false);
               }}
               className="bg-red-600 hover:bg-red-700 text-white rounded-full w-full"
             >
@@ -151,5 +142,5 @@ export default function Header() {
         </div>
       )}
     </header>
-  )
+  );
 }
