@@ -226,23 +226,33 @@ export default function AboutPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 bg-red-600 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Start Your Transformation?
-            </h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Book your first session with Coach Kilday and take the first step
-              towards your fitness goals
-            </p>
-            <Link href="/client/booking">
-              <Button
-                size="lg"
-                className="bg-white text-red-600 hover:bg-gray-100"
-              >
-                Book Your First Session
-              </Button>
-            </Link>
+        <section className="py-20 bg-red-600 text-white relative overflow-hidden">
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "url(/back.JPG)" }}
+          >
+            <div className="absolute inset-0 bg-red-600/80"></div>
+          </div>
+
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">
+                READY TO START YOUR TRANSFORMATION?
+              </h2>
+              <p className="text-xl mb-8 text-white/90">
+                Book your first session with Coach Kilday and take the first
+                step towards your fitness goals
+              </p>
+              <Link href="/client/booking">
+                <Button
+                  size="lg"
+                  className="bg-white text-red-600 hover:bg-gray-100 rounded-full px-8 py-6 text-lg"
+                >
+                  Book Your First Session
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
       </main>

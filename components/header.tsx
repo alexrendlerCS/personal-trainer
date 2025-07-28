@@ -78,6 +78,14 @@ export default function Header() {
           >
             Contact
           </Link>
+          <Link
+            href="/rebalance"
+            className={`font-medium hover:text-red-600 transition-colors ${
+              isScrolled ? "text-gray-800" : "text-white"
+            }`}
+          >
+            Rebalance
+          </Link>
           <Button
             onClick={handleLoginSignup}
             className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6"
@@ -128,6 +136,13 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact
+            </Link>
+            <Link
+              href="/rebalance"
+              className="font-medium py-2 text-gray-800 hover:text-red-600 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Rebalance
             </Link>
             <Button
               onClick={() => {
