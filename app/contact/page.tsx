@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Calendar, Instagram, Mail } from "lucide-react";
 import Link from "next/link";
+import { AnimatedHero } from "@/components/animated-hero";
 
 export const metadata = {
   title: "Contact Coach Kilday | Personal Trainer Westminster, CO",
@@ -18,15 +19,29 @@ export default function ContactPage() {
       <Header />
       <main>
         {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-br from-red-600 to-red-800 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Contact Coach Kilday
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              Ready to start your fitness transformation? Get in touch with
-              Coach Kilday for personal training in Westminster, Colorado.
-            </p>
+        <section className="relative h-screen flex items-center justify-center overflow-hidden">
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "url(/deadlift.JPG)" }}
+          >
+            <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+          </div>
+
+          {/* Content */}
+          <div className="container mx-auto px-4 z-10 text-center">
+            <AnimatedHero delay={0.2}>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+                CONTACT <span className="text-red-600">COACH KILDAY</span>
+              </h1>
+            </AnimatedHero>
+
+            <AnimatedHero delay={0.4}>
+              <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
+                Ready to start your fitness transformation? Get in touch with
+                Coach Kilday for personal training in Westminster, Colorado.
+              </p>
+            </AnimatedHero>
           </div>
         </section>
 
@@ -283,37 +298,6 @@ export default function ContactPage() {
                   </p>
                 </CardContent>
               </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-red-600 text-white relative overflow-hidden">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url(/back.JPG)" }}
-          >
-            <div className="absolute inset-0 bg-red-600/80"></div>
-          </div>
-
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">
-                READY TO START YOUR TRANSFORMATION?
-              </h2>
-              <p className="text-xl mb-8 text-white/90">
-                Book your first session with Coach Kilday and take the first
-                step towards your fitness goals
-              </p>
-              <Link href="/client/booking">
-                <Button
-                  size="lg"
-                  className="bg-white text-red-600 hover:bg-gray-100 rounded-full px-8 py-6 text-lg"
-                >
-                  Book Your First Session
-                </Button>
-              </Link>
             </div>
           </div>
         </section>

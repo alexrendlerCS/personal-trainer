@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Dumbbell, Heart, Target, Users } from "lucide-react";
 import Link from "next/link";
+import { AnimatedHero } from "@/components/animated-hero";
 
 export const metadata = {
   title: "Personal Training Services | Coach Kilday - Westminster, CO",
@@ -75,23 +76,40 @@ export default function ServicesPage() {
       <Header />
       <main>
         {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-br from-red-600 to-red-800 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Personal Training Services
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              Transform your fitness journey with Coach Kilday's comprehensive
-              personal training services in Westminster, Colorado
-            </p>
-            <Link href="/client/packages">
-              <Button
-                size="lg"
-                className="bg-white text-red-600 hover:bg-gray-100"
-              >
-                View Packages <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+        <section className="relative h-screen flex items-center justify-center overflow-hidden">
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "url(/deadlift.JPG)" }}
+          >
+            <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+          </div>
+
+                    {/* Content */}
+          <div className="container mx-auto px-4 z-10 text-center">
+            <AnimatedHero delay={0.2}>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+                PERSONAL <span className="text-red-600">TRAINING SERVICES</span>
+              </h1>
+            </AnimatedHero>
+            
+            <AnimatedHero delay={0.4}>
+              <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
+                Transform your fitness journey with Coach Kilday's comprehensive
+                personal training services in Westminster, Colorado
+              </p>
+            </AnimatedHero>
+            
+            <AnimatedHero delay={0.6}>
+              <Link href="/client/packages">
+                <Button
+                  size="lg"
+                  className="bg-red-600 hover:bg-red-700 text-white text-lg rounded-full px-8 py-6"
+                >
+                  View Packages <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </AnimatedHero>
           </div>
         </section>
 
@@ -168,43 +186,29 @@ export default function ServicesPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 bg-red-600 text-white relative overflow-hidden">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url(/back.JPG)" }}
-          >
-            <div className="absolute inset-0 bg-red-600/80"></div>
-          </div>
-
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">
-                READY TO START YOUR TRANSFORMATION?
-              </h2>
-              <p className="text-xl mb-8 text-white/90">
-                Book your first session with Coach Kilday and take the first
-                step towards your fitness goals
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/client/packages">
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    className="rounded-full px-8 py-6 text-lg"
-                  >
-                    View Training Packages
-                  </Button>
-                </Link>
-                <Link href="/client/booking">
-                  <Button
-                    size="lg"
-                    className="bg-white text-red-600 hover:bg-gray-100 rounded-full px-8 py-6 text-lg"
-                  >
-                    Book a Session
-                  </Button>
-                </Link>
-              </div>
+        <section className="py-20 bg-red-600 text-white">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Ready to Start Your Transformation?
+            </h2>
+            <p className="text-xl mb-8 max-w-2xl mx-auto">
+              Book your first session with Coach Kilday and take the first step
+              towards your fitness goals
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/client/packages">
+                <Button size="lg" variant="secondary">
+                  View Training Packages
+                </Button>
+              </Link>
+              <Link href="/client/booking">
+                <Button
+                  size="lg"
+                  className="bg-white text-red-600 hover:bg-gray-100"
+                >
+                  Book a Session
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
