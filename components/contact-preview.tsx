@@ -15,7 +15,7 @@ export default function ContactPreview() {
           </h2>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto">
             Ready to start your fitness transformation? Contact Coach Kilday for
-            personal training in Westminster, Colorado.
+            personal training in Thornton, Colorado.
           </p>
         </div>
 
@@ -26,9 +26,7 @@ export default function ContactPreview() {
               <CardTitle>Location</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Life Time Westminster</p>
-              <p className="text-gray-600">397 W 148th Ave</p>
-              <p className="text-gray-600">Westminster, CO 80023</p>
+              <p className="text-gray-600">Life Time Thornton</p>
             </CardContent>
           </Card>
 
@@ -49,7 +47,6 @@ export default function ContactPreview() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">By Appointment</p>
-              <p className="text-gray-600">Flexible Scheduling</p>
             </CardContent>
           </Card>
 

@@ -58,12 +58,12 @@ export default function AboutSection() {
             className="space-y-6"
           >
             <h3 className="text-2xl md:text-3xl font-bold">
-              Personal Trainer in Westminster, Colorado
+              Personal Trainer in Thornton, Colorado
             </h3>
             <p className="text-lg text-gray-700">
               With over a decade of experience transforming bodies and lives,
               Coach Haley Kilday brings elite-level training techniques to
-              clients of all fitness levels in Westminster, Colorado and the
+              clients of all fitness levels in Thornton, Colorado and the
               surrounding Denver metro area.
             </p>
             <p className="text-lg text-gray-700">
@@ -75,7 +75,7 @@ export default function AboutSection() {
             <p className="text-lg text-gray-700">
               Her approach isn't about quick fixes—it's about sustainable
               results through science-backed methods and unwavering
-              accountability. Located at Life Time Westminster, she provides
+              accountability. Located at Life Time Thornton, she provides
               personal training services to help you achieve your fitness goals.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">

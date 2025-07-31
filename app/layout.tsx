@@ -8,15 +8,15 @@ import { Footer } from "@/components/ui/footer";
 import Script from "next/script";
 
 export const metadata = {
-  title: "Coach Kilday - Personal Training | Westminster, CO",
+  title: "Coach Kilday - Personal Training | Thornton, CO",
   description:
-    "Transform your fitness journey with Coach Kilday. Personal training in Westminster, Colorado. Book sessions, track progress, and achieve your fitness goals.",
+    "Transform your fitness journey with Coach Kilday. Personal training in Thornton, Colorado. Book sessions, track progress, and achieve your fitness goals.",
   keywords:
-    "personal training, fitness coach, Westminster Colorado, Coach Kilday, personal trainer, fitness training, workout coach, strength training, weight loss, muscle building",
+    "personal training, fitness coach, Thornton Colorado, Coach Kilday, personal trainer, fitness training, workout coach, strength training, weight loss, muscle building",
   openGraph: {
-    title: "Coach Kilday - Personal Training | Westminster, CO",
+    title: "Coach Kilday - Personal Training | Thornton, CO",
     description:
-      "Transform your fitness journey with Coach Kilday. Personal training in Westminster, Colorado. Book sessions, track progress, and achieve your fitness goals.",
+      "Transform your fitness journey with Coach Kilday. Personal training in Thornton, Colorado. Book sessions, track progress, and achieve your fitness goals.",
     url: "https://www.coachkilday.com",
     siteName: "Coach Kilday",
     images: [
@@ -32,9 +32,9 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Coach Kilday - Personal Training | Westminster, CO",
+    title: "Coach Kilday - Personal Training | Thornton, CO",
     description:
-      "Transform your fitness journey with Coach Kilday. Personal training in Westminster, Colorado.",
+      "Transform your fitness journey with Coach Kilday. Personal training in Thornton, Colorado.",
     images: ["/logo.jpg"],
   },
   robots: {
@@ -84,13 +84,13 @@ export default function RootLayout({
               "@type": "LocalBusiness",
               name: "Coach Kilday",
               description:
-                "Personal training and fitness coaching in Westminster, Colorado",
+                "Personal training and fitness coaching in Thornton, Colorado",
               url: "https://www.coachkilday.com",
               telephone: "+1-720-979-2808",
               address: {
                 "@type": "PostalAddress",
                 streetAddress: "397 W 148th Ave",
-                addressLocality: "Westminster",
+                addressLocality: "Thornton",
                 addressRegion: "CO",
                 postalCode: "80023",
                 addressCountry: "US",
@@ -106,7 +106,7 @@ export default function RootLayout({
               paymentAccepted: "Cash, Credit Card",
               areaServed: {
                 "@type": "City",
-                name: "Westminster, Colorado",
+                name: "Thornton, Colorado",
               },
               serviceArea: {
                 "@type": "GeoCircle",

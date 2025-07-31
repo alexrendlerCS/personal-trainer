@@ -7,11 +7,11 @@ import Link from "next/link";
 import { AnimatedHero } from "@/components/animated-hero";
 
 export const metadata = {
-  title: "About Coach Haley Kilday | Personal Trainer Westminster, CO",
+  title: "About Coach Haley Kilday | Personal Trainer Thornton, CO",
   description:
-    "Learn about Coach Haley Kilday, certified personal trainer in Westminster, Colorado. 10+ years experience transforming lives through fitness coaching and strength training.",
+    "Learn about Coach Haley Kilday, certified personal trainer in Thornton, Colorado. 10+ years experience transforming lives through fitness coaching and strength training.",
   keywords:
-    "Coach Haley Kilday, personal trainer Westminster, fitness coach Colorado, strength training specialist, certified personal trainer",
+    "Coach Haley Kilday, personal trainer Thornton, fitness coach Colorado, strength training specialist, certified personal trainer",
 };
 
 export default function AboutPage() {
@@ -55,13 +55,13 @@ export default function AboutPage() {
 
             <AnimatedHero delay={0.4}>
               <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl mx-auto">
-                Certified Personal Trainer in Westminster, Colorado
+                Certified Personal Trainer in Thornton, Colorado
               </p>
             </AnimatedHero>
 
             <AnimatedHero delay={0.6}>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/client/packages">
+                <Link href="/services">
                   <Button
                     size="lg"
                     className="bg-red-600 hover:bg-red-700 text-white text-lg rounded-full px-8 py-6"
@@ -69,7 +69,7 @@ export default function AboutPage() {
                     View Training Packages
                   </Button>
                 </Link>
-                <Link href="/client/booking">
+                <Link href="/login">
                   <Button
                     size="lg"
                     variant="outline"
@@ -106,7 +106,7 @@ export default function AboutPage() {
                 <p className="text-lg text-gray-700">
                   My approach isn't about quick fixes—it's about sustainable
                   results through science-backed methods and unwavering
-                  accountability. Located at Life Time Westminster, I provide
+                  accountability. Located at Life Time Thornton, I provide
                   personal training services to help you achieve your fitness
                   goals.
                 </p>
@@ -181,9 +181,7 @@ export default function AboutPage() {
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">Life Time Westminster</p>
-                  <p className="text-gray-600">397 W 148th Ave</p>
-                  <p className="text-gray-600">Westminster, CO 80023</p>
+                  <p className="text-gray-600">Life Time Thornton</p>
                 </CardContent>
               </Card>
               <Card className="text-center">
@@ -202,7 +200,6 @@ export default function AboutPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">By Appointment</p>
-                  <p className="text-gray-600">Flexible Scheduling</p>
                 </CardContent>
               </Card>
               <Card className="text-center">
@@ -235,7 +232,7 @@ export default function AboutPage() {
               Book your first session with Coach Kilday and take the first step
               towards your fitness goals
             </p>
-            <Link href="/client/booking">
+            <Link href="/login">
               <Button
                 size="lg"
                 className="bg-white text-red-600 hover:bg-gray-100"

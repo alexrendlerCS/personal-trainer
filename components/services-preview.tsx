@@ -1,8 +1,15 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Dumbbell, Users, Calendar, ChefHat } from "lucide-react";
+import {
+  Dumbbell,
+  Users,
+  Calendar,
+  Video,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -10,42 +17,92 @@ import Link from "next/link";
 const services = [
   {
     icon: <Dumbbell className="h-10 w-10 text-red-600" />,
-    title: "Strength Training",
+    title: "In-Person Training",
     description:
-      "Custom strength programs designed to build muscle, increase power, and improve overall athletic performance.",
+      "One-on-one personal training sessions at Life Time Thornton with hands-on coaching, form correction, and real-time feedback.",
     color: "bg-red-50",
+  },
+  {
+    icon: <Video className="h-10 w-10 text-red-600" />,
+    title: "Virtual Training",
+    description:
+      "Remote coaching sessions via video call with personalized workout plans, progress tracking, and ongoing support from anywhere.",
+    color: "bg-gray-50",
   },
   {
     icon: <Users className="h-10 w-10 text-red-600" />,
-    title: "Group Sessions",
+    title: "Partner Training",
     description:
-      "High-energy small group training sessions that combine strength work with metabolic conditioning.",
-    color: "bg-gray-50",
-  },
-  {
-    icon: <Calendar className="h-10 w-10 text-red-600" />,
-    title: "Personalized Programs",
-    description:
-      "Fully customized training and nutrition plans based on your goals, lifestyle, and assessment results.",
+      "Small group sessions with a partner for motivation, accountability, and shared fitness goals while maintaining personalized attention.",
     color: "bg-red-50",
-  },
-  {
-    icon: <ChefHat className="h-10 w-10 text-red-600" />,
-    title: "Nutrition Coaching",
-    description:
-      "Science-based nutrition guidance to fuel performance, recovery, and body composition goals.",
-    color: "bg-gray-50",
   },
 ];
 
 export default function ServicesPreview() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"],
   });
 
   const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
+
+  const scrollToService = (direction: "prev" | "next") => {
+    if (!containerRef.current) return;
+
+    const container = containerRef.current;
+    const cards = container.querySelectorAll("[data-card]");
+
+    if (direction === "next" && currentIndex < services.length - 1) {
+      const nextCard = cards[currentIndex + 1] as HTMLElement;
+      if (nextCard) {
+        nextCard.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+        setCurrentIndex(currentIndex + 1);
+      }
+    } else if (direction === "prev" && currentIndex > 0) {
+      const prevCard = cards[currentIndex - 1] as HTMLElement;
+      if (prevCard) {
+        prevCard.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+        setCurrentIndex(currentIndex - 1);
+      }
+    }
+  };
+
+  // Update current index when user scrolls manually
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+
+    const container = containerRef.current;
+    const cards = container.querySelectorAll("[data-card]");
+
+    // Find which card is most centered in the viewport
+    let mostCenteredIndex = 0;
+    let minDistance = Infinity;
+
+    cards.forEach((card, index) => {
+      const cardRect = card.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      const containerCenter = containerRect.left + containerRect.width / 2;
+      const distance = Math.abs(cardCenter - containerCenter);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        mostCenteredIndex = index;
+      }
+    });
+
+    setCurrentIndex(mostCenteredIndex);
+  };
 
   return (
     <section id="services" className="py-20 bg-gray-50">
@@ -60,16 +117,36 @@ export default function ServicesPreview() {
           </p>
         </div>
 
-        <div ref={containerRef} className="relative overflow-hidden">
+        <div className="relative overflow-hidden">
+          {/* Navigation Arrows */}
+          <button
+            onClick={() => scrollToService("prev")}
+            disabled={currentIndex === 0}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white hover:bg-gray-50 text-gray-600 hover:text-red-600 disabled:text-gray-300 disabled:cursor-not-allowed rounded-full p-3 shadow-lg border border-gray-200 transition-all duration-300 hover:scale-110"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+
+          <button
+            onClick={() => scrollToService("next")}
+            disabled={currentIndex === services.length - 1}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white hover:bg-gray-50 text-gray-600 hover:text-red-600 disabled:text-gray-300 disabled:cursor-not-allowed rounded-full p-3 shadow-lg border border-gray-200 transition-all duration-300 hover:scale-110"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+
           <motion.div
+            ref={containerRef}
             style={{ y }}
-            className="flex flex-nowrap overflow-x-auto pb-8 snap-x snap-mandatory hide-scrollbar"
+            className="flex flex-nowrap overflow-x-auto pb-8 hide-scrollbar px-16 snap-x snap-mandatory"
+            onScroll={handleScroll}
           >
             <div className="flex gap-6">
               {services.map((service, index) => (
                 <div
                   key={index}
-                  className="snap-center min-w-[300px] md:min-w-[350px] flex-shrink-0"
+                  data-card
+                  className="min-w-[300px] md:min-w-[350px] flex-shrink-0 snap-center"
                 >
                   <div
                     className={`h-full rounded-2xl p-8 shadow-lg border border-gray-100 ${service.color} transition-transform hover:scale-105`}
@@ -83,11 +160,14 @@ export default function ServicesPreview() {
             </div>
           </motion.div>
 
+          {/* Progress Indicators */}
           <div className="absolute -bottom-2 left-0 right-0 flex justify-center gap-2 py-4">
             {services.map((_, index) => (
               <div
                 key={index}
-                className={`h-2 w-2 rounded-full ${index === 0 ? "bg-red-600" : "bg-gray-300"}`}
+                className={`h-2 w-2 rounded-full transition-colors duration-300 ${
+                  index === currentIndex ? "bg-red-600" : "bg-gray-300"
+                }`}
               ></div>
             ))}
           </div>

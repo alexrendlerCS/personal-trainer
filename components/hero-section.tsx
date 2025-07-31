@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AnimatedHero } from "./animated-hero";
 
 export default function HeroSection() {
@@ -22,22 +23,22 @@ export default function HeroSection() {
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       </div>
 
-            {/* Content */}
+      {/* Content */}
       <div className="container mx-auto px-4 z-10 text-center">
         <AnimatedHero delay={0.2}>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
             COACH KILDAY <span className="text-red-600">PERSONAL TRAINING</span>
           </h1>
         </AnimatedHero>
-        
+
         <AnimatedHero delay={0.4}>
           <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl mx-auto">
-            Transform your fitness journey in Westminster, Colorado.
-            Personalized training to help you break through plateaus and reach
-            your next level
+            Transform your fitness journey in Thornton, Colorado. Personalized
+            training to help you break through plateaus and reach your next
+            level
           </p>
         </AnimatedHero>
-        
+
         <AnimatedHero delay={0.6}>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
@@ -46,12 +47,14 @@ export default function HeroSection() {
             >
               Login/Sign Up <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button
-              variant="outline"
-              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-red-600 text-lg rounded-full px-8 py-6"
-            >
-              Learn More
-            </Button>
+            <Link href="/services">
+              <Button
+                variant="outline"
+                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-red-600 text-lg rounded-full px-8 py-6"
+              >
+                Learn More
+              </Button>
+            </Link>
           </div>
         </AnimatedHero>
       </div>

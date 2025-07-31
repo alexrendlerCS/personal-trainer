@@ -60,42 +60,42 @@ export default function AboutPreview() {
               Meet Coach Haley Kilday
             </h2>
             <h3 className="text-xl md:text-2xl font-semibold text-red-600">
-              Personal Trainer in Westminster, Colorado
+              Personal Trainer in Thornton, Colorado
             </h3>
             <p className="text-lg text-gray-700">
               With over a decade of experience transforming bodies and lives,
               Coach Haley Kilday brings elite-level training techniques to
-              clients of all fitness levels in Westminster, Colorado and the
+              clients of all fitness levels in Thornton, Colorado and the
               surrounding Denver metro area.
             </p>
             <p className="text-lg text-gray-700">
-              After competing professionally and coaching Olympic athletes,
-              Haley developed a unique training methodology that combines
-              strength training, mobility work, and personalized nutrition
-              guidance.
+              As an ISSA certified personal trainer with over half a decade of
+              experience training and transforming individuals, Haley has
+              developed a unique training methodology that combines strength
+              training, mobility work, and personalized nutrition guidance.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <div className="bg-gray-100 rounded-lg px-4 py-2 flex items-center">
                 <span className="text-red-600 font-bold text-xl mr-2">10+</span>
-                <span className="text-sm">Years Experience</span>
+                <span className="text-sm">In the Fitness Industry</span>
               </div>
               <div className="bg-gray-100 rounded-lg px-4 py-2 flex items-center">
-                <span className="text-red-600 font-bold text-xl mr-2">
-                  500+
+                <span className="text-red-600 font-bold text-xl mr-2">5+</span>
+                <span className="text-sm">
+                  Years Transforming the Lives of{" "}
+                  <span className="text-red-600 font-bold text-xl">500+</span>{" "}
+                  Clients
                 </span>
-                <span className="text-sm">Clients Trained</span>
-              </div>
-              <div className="bg-gray-100 rounded-lg px-4 py-2 flex items-center">
-                <span className="text-red-600 font-bold text-xl mr-2">5</span>
-                <span className="text-sm">Certifications</span>
               </div>
             </div>
-            <Link href="/about">
-              <Button className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-3">
-                Learn More About Coach Kilday{" "}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <div className="pt-6">
+              <Link href="/about">
+                <Button className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-3">
+                  Learn More About Coach Kilday{" "}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </div>

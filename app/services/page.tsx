@@ -7,24 +7,32 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Dumbbell, Heart, Target, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Dumbbell,
+  Heart,
+  Target,
+  Users,
+  Video,
+  Utensils,
+} from "lucide-react";
 import Link from "next/link";
 import { AnimatedHero } from "@/components/animated-hero";
 
 export const metadata = {
-  title: "Personal Training Services | Coach Kilday - Westminster, CO",
+  title: "Personal Training Services | Coach Kilday - Thornton, CO",
   description:
-    "Transform your fitness with Coach Kilday's personal training services in Westminster, Colorado. Strength training, weight loss, muscle building, and nutrition coaching.",
+    "Transform your fitness with Coach Kilday's personal training services in Thornton, Colorado. Strength training, weight loss, muscle building, and nutrition coaching.",
   keywords:
-    "personal training services, fitness coaching, strength training, weight loss, muscle building, nutrition coaching, Westminster Colorado, Coach Kilday",
+    "personal training services, fitness coaching, strength training, weight loss, muscle building, nutrition coaching, Thornton Colorado, Coach Kilday",
 };
 
 export default function ServicesPage() {
   const services = [
     {
-      title: "Personal Training Sessions",
+      title: "In-Person Training",
       description:
-        "One-on-one personal training sessions tailored to your specific goals and fitness level.",
+        "One-on-one personal training sessions at Life Time Thornton with hands-on coaching and real-time feedback.",
       icon: Dumbbell,
       features: [
         "Customized workout programs",
@@ -34,39 +42,39 @@ export default function ServicesPage() {
       ],
     },
     {
-      title: "Strength Training",
+      title: "Virtual Training",
       description:
-        "Build strength, muscle, and confidence with proven strength training methodologies.",
-      icon: Target,
+        "Remote coaching sessions via video call with personalized workout plans and ongoing support from anywhere.",
+      icon: Video,
       features: [
-        "Compound movement focus",
-        "Progressive overload training",
-        "Injury prevention techniques",
-        "Strength assessment and testing",
+        "Live video coaching sessions",
+        "Personalized workout plans",
+        "Progress tracking and assessment",
+        "Flexible scheduling options",
       ],
     },
     {
-      title: "Weight Loss Coaching",
+      title: "Partner Training",
       description:
-        "Sustainable weight loss through proper nutrition and effective training programs.",
-      icon: Heart,
-      features: [
-        "Nutrition guidance and meal planning",
-        "Metabolic conditioning",
-        "Lifestyle habit coaching",
-        "Body composition tracking",
-      ],
-    },
-    {
-      title: "Group Training",
-      description:
-        "Small group sessions for motivation and community while maintaining personalized attention.",
+        "Small group sessions with a partner for motivation, accountability, and shared fitness goals.",
       icon: Users,
       features: [
         "Small group sizes (2-4 people)",
         "Shared motivation and accountability",
         "Cost-effective training option",
         "Community building",
+      ],
+    },
+    {
+      title: "Diet Recommendations",
+      description:
+        "Personalized nutrition guidance and meal planning to complement your fitness journey.",
+      icon: Utensils,
+      features: [
+        "Personalized nutrition plans",
+        "Meal planning and prep guidance",
+        "Supplement recommendations",
+        "Lifestyle habit coaching",
       ],
     },
   ];
@@ -85,23 +93,23 @@ export default function ServicesPage() {
             <div className="absolute inset-0 bg-black bg-opacity-50"></div>
           </div>
 
-                    {/* Content */}
+          {/* Content */}
           <div className="container mx-auto px-4 z-10 text-center">
             <AnimatedHero delay={0.2}>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
                 PERSONAL <span className="text-red-600">TRAINING SERVICES</span>
               </h1>
             </AnimatedHero>
-            
+
             <AnimatedHero delay={0.4}>
               <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
                 Transform your fitness journey with Coach Kilday's comprehensive
-                personal training services in Westminster, Colorado
+                personal training services in Thornton, Colorado
               </p>
             </AnimatedHero>
-            
+
             <AnimatedHero delay={0.6}>
-              <Link href="/client/packages">
+              <Link href="/login">
                 <Button
                   size="lg"
                   className="bg-red-600 hover:bg-red-700 text-white text-lg rounded-full px-8 py-6"
@@ -156,17 +164,16 @@ export default function ServicesPage() {
         <section className="py-20 bg-gray-50">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">
-              Located at Life Time Westminster
+              Located at Life Time Thornton
             </h2>
             <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-              397 W 148th Ave, Westminster, CO 80023
+              397 W 148th Ave, Thornton, CO 80023
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-xl font-bold mb-2">Convenient Location</h3>
                 <p className="text-gray-600">
-                  Easy access from Westminster, Broomfield, and surrounding
-                  areas
+                  Easy access from Thornton, Broomfield, and surrounding areas
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow">
@@ -196,12 +203,12 @@ export default function ServicesPage() {
               towards your fitness goals
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/client/packages">
+              <Link href="/login">
                 <Button size="lg" variant="secondary">
                   View Training Packages
                 </Button>
               </Link>
-              <Link href="/client/booking">
+              <Link href="/login">
                 <Button
                   size="lg"
                   className="bg-white text-red-600 hover:bg-gray-100"

@@ -35,14 +35,9 @@ export default function Header() {
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
-        <a
-          href="https://www.instagram.com/coachkilday/?hl=en"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center"
-        >
+        <Link href="/" className="flex items-center">
           <span className="font-bold text-2xl text-red-600">COACH KILDAY</span>
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">

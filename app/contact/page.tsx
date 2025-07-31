@@ -6,11 +6,11 @@ import Link from "next/link";
 import { AnimatedHero } from "@/components/animated-hero";
 
 export const metadata = {
-  title: "Contact Coach Kilday | Personal Trainer Westminster, CO",
+  title: "Contact Coach Kilday | Personal Trainer Thornton, CO",
   description:
-    "Contact Coach Kilday for personal training in Westminster, Colorado. Located at Life Time Westminster. Call (720) 979-2808 or book online.",
+    "Contact Coach Kilday for personal training in Thornton, Colorado. Located at Life Time Thornton. Call (720) 979-2808 or book online.",
   keywords:
-    "contact Coach Kilday, personal trainer Westminster, fitness coach contact, Life Time Westminster, personal training Colorado",
+    "contact Coach Kilday, personal trainer Thornton, fitness coach contact, Life Time Thornton, personal training Colorado",
 };
 
 export default function ContactPage() {
@@ -39,7 +39,7 @@ export default function ContactPage() {
             <AnimatedHero delay={0.4}>
               <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
                 Ready to start your fitness transformation? Get in touch with
-                Coach Kilday for personal training in Westminster, Colorado.
+                Coach Kilday for personal training in Thornton, Colorado.
               </p>
             </AnimatedHero>
           </div>
@@ -65,12 +65,12 @@ export default function ContactPage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-lg font-semibold">
-                        Life Time Westminster
+                        Life Time Thornton
                       </p>
                       <p className="text-gray-600">397 W 148th Ave</p>
-                      <p className="text-gray-600">Westminster, CO 80023</p>
+                      <p className="text-gray-600">Thornton, CO 80023</p>
                       <p className="text-sm text-gray-500 mt-2">
-                        Conveniently located in Westminster, serving the Denver
+                        Conveniently located in Thornton, serving the Denver
                         metro area
                       </p>
                     </CardContent>
@@ -139,6 +139,25 @@ export default function ContactPage() {
                   Ready to Start?
                 </h2>
 
+                {/* Free Session Promo */}
+                <Card className="border-2 border-red-200 bg-gradient-to-r from-red-50 to-red-100">
+                  <CardContent className="p-6">
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold text-red-800 mb-2">
+                        Sign Up Now for Your First Session Free!
+                      </h3>
+                      <Link href="/login">
+                        <Button
+                          size="lg"
+                          className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+                        >
+                          Claim Free Session
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <div className="space-y-6">
                   <Card>
                     <CardHeader>
@@ -151,10 +170,11 @@ export default function ContactPage() {
                         Take the first step towards your fitness goals with a
                         personalized training session.
                       </p>
-                      <Link href="/client/booking">
+                      <Link href="/login">
                         <Button
                           size="lg"
-                          className="w-full bg-red-600 hover:bg-red-700"
+                          variant="outline"
+                          className="w-full border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
                         >
                           Book Online
                         </Button>
@@ -173,8 +193,12 @@ export default function ContactPage() {
                         Explore our training packages and find the perfect fit
                         for your goals.
                       </p>
-                      <Link href="/client/packages">
-                        <Button size="lg" variant="outline" className="w-full">
+                      <Link href="/login">
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="w-full border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                        >
                           View Packages
                         </Button>
                       </Link>
@@ -192,12 +216,18 @@ export default function ContactPage() {
                       </p>
                       <div className="flex flex-col gap-2">
                         <Link href="/about">
-                          <Button variant="outline" className="w-full">
+                          <Button
+                            variant="outline"
+                            className="w-full border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                          >
                             About Coach Kilday
                           </Button>
                         </Link>
                         <Link href="/services">
-                          <Button variant="outline" className="w-full">
+                          <Button
+                            variant="outline"
+                            className="w-full border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                          >
                             Training Services
                           </Button>
                         </Link>
@@ -210,37 +240,8 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* Map Section */}
-        <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-              Visit Us at Life Time Westminster
-            </h2>
-            <div className="max-w-4xl mx-auto">
-              <Card>
-                <CardContent className="p-8">
-                  <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <MapPin className="h-16 w-16 text-red-600 mx-auto mb-4" />
-                      <p className="text-xl font-semibold">
-                        Life Time Westminster
-                      </p>
-                      <p className="text-gray-600">
-                        397 W 148th Ave, Westminster, CO 80023
-                      </p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Interactive map would be embedded here
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
         {/* FAQ Section */}
-        <section className="py-20">
+        <section className="py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
               Frequently Asked Questions
@@ -281,7 +282,7 @@ export default function ContactPage() {
                 <CardContent>
                   <p className="text-gray-700">
                     Currently, we focus on in-person training at Life Time
-                    Westminster for the best results and personalized attention.
+                    Thornton for the best results and personalized attention.
                   </p>
                 </CardContent>
               </Card>
@@ -292,9 +293,9 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700">
-                    Coach Kilday serves Westminster, Broomfield, and the
+                    Coach Kilday serves Thornton, Broomfield, and the
                     surrounding Denver metro area. Sessions are held at Life
-                    Time Westminster.
+                    Time Thornton.
                   </p>
                 </CardContent>
               </Card>
