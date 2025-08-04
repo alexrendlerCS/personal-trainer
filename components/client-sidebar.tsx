@@ -57,6 +57,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useUser } from "@/lib/store/user";
 
 const menuItems = [
   {
@@ -154,6 +155,7 @@ export function ClientSidebar() {
   const router = useRouter();
   const supabase = createClient();
   const { toast } = useToast();
+  const { setUser } = useUser();
   const [userData, setUserData] = useState<UserData>({
     full_name: "Client",
     avatar_url: null,
@@ -542,16 +544,31 @@ export function ClientSidebar() {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to sign out. Please try again.",
-          variant: "destructive",
-        });
-        return;
+      // Call the logout API endpoint to ensure proper server-side cleanup
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to sign out");
       }
-      router.push("/login");
+
+      // Also clear client-side state
+      await supabase.auth.signOut();
+      setUser(null);
+
+      // Clear any stored authentication data
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+
+      // Force a hard refresh to clear all client state and cookies
+      // This ensures the middleware sees the updated authentication state
+      window.location.href = "/login";
     } catch (error) {
       console.error("Error signing out:", error);
       toast({

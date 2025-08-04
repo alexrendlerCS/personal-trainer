@@ -79,17 +79,24 @@ export async function middleware(request: NextRequest) {
   if (publicRoutes.some((route) => path.startsWith(route))) {
     // If user is authenticated and trying to access login, redirect to dashboard
     if (user && path.startsWith("/login")) {
-      const { data: userData } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+      try {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
 
-      const redirectTo =
-        userData?.role === "trainer"
-          ? "/trainer/dashboard"
-          : "/client/dashboard";
-      return NextResponse.redirect(new URL(redirectTo, request.url));
+        const redirectTo =
+          userData?.role === "trainer"
+            ? "/trainer/dashboard"
+            : "/client/dashboard";
+        return NextResponse.redirect(new URL(redirectTo, request.url));
+      } catch (error) {
+        // If there's an error fetching user data, clear the session and redirect to login
+        console.error("Error fetching user data in middleware:", error);
+        await supabase.auth.signOut();
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
     }
     return response;
   }
@@ -100,6 +107,34 @@ export async function middleware(request: NextRequest) {
   );
   if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // If user is authenticated but trying to access protected routes, verify they have proper role
+  if (isProtectedRoute && user) {
+    try {
+      const { data: userData } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      // Check if user is trying to access trainer routes but is a client
+      if (path.startsWith("/trainer") && userData?.role !== "trainer") {
+        return NextResponse.redirect(new URL("/client/dashboard", request.url));
+      }
+
+      // Check if user is trying to access client routes but is a trainer
+      if (path.startsWith("/client") && userData?.role !== "client") {
+        return NextResponse.redirect(
+          new URL("/trainer/dashboard", request.url)
+        );
+      }
+    } catch (error) {
+      // If there's an error fetching user data, redirect to login
+      console.error("Error fetching user data in middleware:", error);
+      await supabase.auth.signOut();
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
   }
 
   return response;

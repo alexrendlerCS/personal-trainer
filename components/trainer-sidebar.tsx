@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,35 +17,51 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
-  Users,
   Calendar,
   DollarSign,
-  Settings,
-  BarChart3,
   MessageSquare,
   LogOut,
-  Clock,
+  CalendarPlus,
   Camera,
+  Loader2,
+  Home,
+  X,
   Eye,
   EyeOff,
+  CreditCard,
+  Menu,
+  Settings,
   Gift,
+  BarChart3,
+  Users,
+  FileText,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabaseClient";
-import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useUser } from "@/lib/store/user";
 
 // Interface for user data
 interface UserData {
@@ -136,6 +153,7 @@ export function TrainerSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const { user, setUser } = useUser();
 
   // State for account settings modal
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -478,8 +496,27 @@ export function TrainerSidebar() {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Call the logout API endpoint to ensure proper server-side cleanup
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to sign out");
+      }
+
+      // Also clear client-side state
+      await supabase.auth.signOut();
+      setUser(null); // Clear user state
+
+      // Clear any stored authentication data
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
 
       // Force a hard refresh to clear all client state
       window.location.href = "/login";
@@ -500,60 +537,60 @@ export function TrainerSidebar() {
 
   return (
     <>
-    <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center space-x-3 px-2 py-2">
-          <Image
-            src="/logo.jpg"
-            alt="Coach Kilday Logo"
-            width={36}
-            height={36}
-            className="rounded-full shadow"
-            priority
-          />
-          <div>
-            <h2 className="font-bold text-sidebar-foreground">
-              Coach Kilday
-            </h2>
+      <Sidebar>
+        <SidebarHeader className="border-b border-sidebar-border">
+          <div className="flex items-center space-x-3 px-2 py-2">
+            <Image
+              src="/logo.jpg"
+              alt="Coach Kilday Logo"
+              width={36}
+              height={36}
+              className="rounded-full shadow"
+              priority
+            />
+            <div>
+              <h2 className="font-bold text-sidebar-foreground">
+                Coach Kilday
+              </h2>
               <p className="text-xs text-sidebar-foreground/70">
                 Trainer Portal
               </p>
+            </div>
           </div>
-        </div>
-      </SidebarHeader>
+        </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.url}
-                    className="w-full"
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4 text-red-600" />
-                      <span>{item.title}</span>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.url}
+                      className="w-full"
+                    >
+                      <Link href={item.url}>
+                        <item.icon className="h-4 w-4 text-red-600" />
+                        <span>{item.title}</span>
                         {item.badge && (
                           <span className="ml-2 text-xs text-gray-500">
                             {item.badge}
                           </span>
                         )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-        <SidebarGroup>
+          <SidebarGroup>
             <SidebarGroupLabel>General</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarGroupContent>
+              <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
@@ -565,31 +602,31 @@ export function TrainerSidebar() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/trainer/settings"}
-                >
-                  <Link href="/trainer/settings">
-                    <Settings className="h-4 w-4 text-red-600" />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === "/trainer/settings"}
+                  >
+                    <Link href="/trainer/settings">
+                      <Settings className="h-4 w-4 text-red-600" />
+                      <span>Settings</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => setIsSettingsOpen(true)}
                 className="w-full"
               >
-            <div className="flex items-center space-x-3 px-2 py-2">
-              <Avatar className="h-8 w-8">
+                <div className="flex items-center space-x-3 px-2 py-2">
+                  <Avatar className="h-8 w-8">
                     <AvatarImage
                       src={
                         previewUrl ||
@@ -598,32 +635,32 @@ export function TrainerSidebar() {
                       }
                       alt={userData.full_name}
                     />
-                <AvatarFallback className="bg-red-600 text-white text-sm">
+                    <AvatarFallback className="bg-red-600 text-white text-sm">
                       {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">
                       {userData.full_name || "Trainer"}
-                </p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">
+                    </p>
+                    <p className="text-xs text-sidebar-foreground/70 truncate">
                       {userData.email || "trainer@example.com"}
-                </p>
-              </div>
-            </div>
+                    </p>
+                  </div>
+                </div>
               </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 text-red-600" />
-              <span>Sign Out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 text-red-600" />
+                <span>Sign Out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
 
-      <SidebarRail />
-    </Sidebar>
+        <SidebarRail />
+      </Sidebar>
 
       {/* Account Settings Modal */}
       <Dialog
