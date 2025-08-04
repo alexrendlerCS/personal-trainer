@@ -34,6 +34,7 @@ import {
   Calendar,
   CreditCard,
   TrendingUp,
+  Filter,
 } from "lucide-react";
 import { createClient } from "@/lib/supabaseClient";
 import { startOfMonth, subMonths, endOfMonth } from "date-fns";
@@ -62,8 +63,16 @@ export default function TrainerPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [clientMap, setClientMap] = useState<ClientMap>({});
   const [loading, setLoading] = useState(true);
+  const [selectedClientFilter, setSelectedClientFilter] =
+    useState<string>("all");
+  const [availableClients, setAvailableClients] = useState<any[]>([]);
 
   const supabase = createClient();
+
+  // Debug: Log availableClients when it changes
+  useEffect(() => {
+    console.log("🔍 Available clients updated:", availableClients);
+  }, [availableClients]);
 
   // Handle client search from URL query parameter
   useEffect(() => {
@@ -85,25 +94,46 @@ export default function TrainerPaymentsPage() {
           "id, client_id, amount, method, session_count, status, transaction_id, paid_at"
         );
       if (paymentsError) {
+        console.error("❌ Error fetching payments:", paymentsError);
         setPayments([]);
         setLoading(false);
         return;
       }
+      console.log("✅ Payments data fetched:", paymentsData);
       setPayments(paymentsData || []);
       // Fetch all clients referenced in payments
       const clientIds = Array.from(
         new Set((paymentsData || []).map((p) => p.client_id))
       );
+      console.log("🔍 Unique client IDs found:", clientIds);
       if (clientIds.length > 0) {
-        const { data: usersData } = await supabase
+        console.log("🔍 Fetching clients for IDs:", clientIds);
+        const { data: usersData, error: usersError } = await supabase
           .from("users")
           .select("id, full_name")
           .in("id", clientIds);
+
+        if (usersError) {
+          console.error("❌ Error fetching users:", usersError);
+        } else {
+          console.log("✅ Users data fetched:", usersData);
+        }
+
         const map: ClientMap = {};
+        const clientsList: any[] = [];
         (usersData || []).forEach((u) => {
           map[u.id] = u.full_name;
+          clientsList.push({
+            id: u.id,
+            full_name: u.full_name,
+          });
         });
+        console.log("📋 Client map:", map);
+        console.log("📋 Available clients list:", clientsList);
         setClientMap(map);
+        setAvailableClients(clientsList);
+      } else {
+        console.log("⚠️ No client IDs found in payments");
       }
       setLoading(false);
     }
@@ -117,7 +147,10 @@ export default function TrainerPaymentsPage() {
       .includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || payment.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesClientFilter =
+      selectedClientFilter === "all" ||
+      payment.client_id === selectedClientFilter;
+    return matchesSearch && matchesStatus && matchesClientFilter;
   });
 
   // Calculate revenue for this month and last month
@@ -392,10 +425,36 @@ export default function TrainerPaymentsPage() {
         {/* Payments Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Payment Records ({filteredPayments.length})</CardTitle>
-            <CardDescription>
-              Complete history of all payment transactions
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>
+                  Payment Records ({filteredPayments.length})
+                </CardTitle>
+                <CardDescription>
+                  Complete history of all payment transactions
+                </CardDescription>
+              </div>
+              {/* Client Filter */}
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-500" />
+                <Select
+                  value={selectedClientFilter}
+                  onValueChange={setSelectedClientFilter}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filter by client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Clients</SelectItem>
+                    {availableClients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>

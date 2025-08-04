@@ -14,6 +14,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Calendar,
   Search,
   DollarSign,
@@ -24,6 +31,7 @@ import {
   CreditCard,
   BarChart3,
   Dumbbell,
+  Filter,
 } from "lucide-react";
 import { ContractFlowModal } from "@/components/ContractFlowModal";
 import GoogleCalendarPopup from "@/components/GoogleCalendarPopup";
@@ -201,6 +209,9 @@ export default function TrainerDashboard() {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrClient, setQrClient] = useState<any>(null);
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
+  const [selectedClientFilter, setSelectedClientFilter] =
+    useState<string>("all");
+  const [availableClients, setAvailableClients] = useState<any[]>([]);
 
   // Add OAuth success and error handlers
   const handleOAuthSuccess = useCallback((calendarName: string) => {
@@ -823,7 +834,7 @@ export default function TrainerDashboard() {
       setClientsWithSessions(processedClients);
     }
 
-    // Function to fetch recent payments
+    // Function to fetch recent payments and available clients
     async function fetchRecentPayments() {
       try {
         console.log("🔍 Fetching recent payments...");
@@ -848,7 +859,7 @@ export default function TrainerDashboard() {
           `
           )
           .order("paid_at", { ascending: false })
-          .limit(3);
+          .limit(10); // Increased limit to get more payments for filtering
 
         if (error) {
           console.error("❌ Error fetching recent payments:", error);
@@ -857,6 +868,26 @@ export default function TrainerDashboard() {
 
         console.log("✅ Recent payments fetched:", payments);
         setRecentPayments(payments || []);
+
+        // Extract unique clients from payments for the filter
+        const clientsFromPayments = (payments || [])
+          .filter((payment) => payment.users)
+          .map((payment) => {
+            const userData = Array.isArray(payment.users)
+              ? payment.users[0]
+              : payment.users;
+            return {
+              id: payment.client_id,
+              full_name: userData?.full_name || "Unknown Client",
+              email: userData?.email || "",
+            };
+          })
+          .filter(
+            (client, index, self) =>
+              index === self.findIndex((c) => c.id === client.id)
+          );
+
+        setAvailableClients(clientsFromPayments);
       } catch (error) {
         console.error("❌ Error in fetchRecentPayments:", error);
       }
@@ -895,6 +926,16 @@ export default function TrainerDashboard() {
       ),
     [searchTerm]
   );
+
+  // Memoize the filtered payments based on selected client
+  const filteredPayments = useMemo(() => {
+    if (selectedClientFilter === "all") {
+      return recentPayments.slice(0, 4); // Show first 4 for "all"
+    }
+    return recentPayments
+      .filter((payment) => payment.client_id === selectedClientFilter)
+      .slice(0, 4);
+  }, [recentPayments, selectedClientFilter]);
 
   // Memoize the modals to prevent unnecessary re-renders
   const modals = useMemo(
@@ -1432,60 +1473,91 @@ export default function TrainerDashboard() {
             {/* Recent Payments */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <DollarSign className="h-5 w-5 text-red-600" />
-                  <span>Recent Payments</span>
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-5 w-5 text-red-600" />
+                    <span>Recent Payments</span>
+                  </div>
+                  {/* Client Filter */}
+                  <div className="flex items-center space-x-2">
+                    <Filter className="h-4 w-4 text-gray-500" />
+                    <Select
+                      value={selectedClientFilter}
+                      onValueChange={setSelectedClientFilter}
+                    >
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Filter by client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Clients</SelectItem>
+                        {availableClients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <CardDescription>
                   Track your recent transactions
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentPayments.length > 0 ? (
-                    recentPayments.map((payment) => (
-                      <div
-                        key={payment.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">
-                            {payment.users?.full_name || "Unknown Client"}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {payment.session_count} sessions •{" "}
-                            {payment.package_type}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {new Date(payment.paid_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-green-600">
-                            ${payment.amount}
-                          </p>
-                          <Badge
-                            variant="default"
-                            className={
-                              payment.status === "completed"
-                                ? "bg-green-100 text-green-800"
+                  {filteredPayments.length > 0 ? (
+                    filteredPayments.map((payment) => {
+                      const userData = Array.isArray(payment.users)
+                        ? payment.users[0]
+                        : payment.users;
+                      return (
+                        <div
+                          key={payment.id}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium">
+                              {userData?.full_name || "Unknown Client"}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {payment.session_count} sessions •{" "}
+                              {payment.package_type}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(payment.paid_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-green-600">
+                              ${payment.amount}
+                            </p>
+                            <Badge
+                              variant="default"
+                              className={
+                                payment.status === "completed"
+                                  ? "bg-green-100 text-green-800"
+                                  : payment.status === "pending"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-red-100 text-red-800"
+                              }
+                            >
+                              {payment.status === "completed"
+                                ? "Completed"
                                 : payment.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                            }
-                          >
-                            {payment.status === "completed"
-                              ? "Completed"
-                              : payment.status === "pending"
-                                ? "Pending"
-                                : "Failed"}
-                          </Badge>
+                                  ? "Pending"
+                                  : "Failed"}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      <p>No recent payments found</p>
+                      <p>
+                        {selectedClientFilter === "all"
+                          ? "No recent payments found"
+                          : "No payments found for selected client"}
+                      </p>
                     </div>
                   )}
                 </div>
