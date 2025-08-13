@@ -1695,7 +1695,7 @@ export default function TrainerSchedulePage() {
           <div className="flex-1 overflow-x-auto">
             <div
               ref={scrollContainerRef}
-              className="h-[600px] overflow-y-auto w-full"
+              className="h-[calc(100vh-12rem)] overflow-y-auto w-full"
             >
               {/* Sticky header row inside the scrollable container */}
               <div className="sticky top-0 z-30 bg-white dark:bg-gray-900">
@@ -1706,7 +1706,7 @@ export default function TrainerSchedulePage() {
                   {weekDates.map((date, index) => (
                     <div
                       key={date.toISOString()}
-                      className={`flex flex-col items-center justify-center h-10 sm:h-12 px-2 sm:px-4 bg-gradient-to-b from-gray-50 to-white border-l border-gray-200 ${isToday(date.getDate()) ? "bg-gradient-to-b from-red-50 to-red-100" : ""}`}
+                      className={`flex flex-col items-center justify-center h-10 sm:h-12 px-2 sm:px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-l border-gray-200 dark:border-gray-800 ${isToday(date.getDate()) ? "bg-gradient-to-b from-red-50 to-red-100 dark:from-red-900/40 dark:to-red-900/20" : ""}`}
                     >
                       <span
                         className={`text-xs sm:text-sm font-semibold uppercase tracking-wide ${isToday(date.getDate()) ? "text-red-800" : "text-gray-900 dark:text-gray-100"}`}
@@ -1725,8 +1725,8 @@ export default function TrainerSchedulePage() {
               {/* The grid itself */}
               <div className="grid grid-cols-[80px_repeat(7,1fr)] gap-0 bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden min-w-[700px] border border-gray-200 dark:border-gray-800 divide-x divide-gray-300 dark:divide-gray-800">
                 {/* Time column */}
-                <div className="bg-gradient-to-b from-gray-50 to-gray-100">
-                  <div className="h-10 sm:h-12 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100" />
+                <div className="bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                  <div className="h-10 sm:h-12 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900" />
                   {timeSlots.map((time, i) => (
                     <div
                       key={time}
@@ -1735,7 +1735,7 @@ export default function TrainerSchedulePage() {
                           ? firstSessionRowRef
                           : undefined
                       }
-                      className="h-16 sm:h-20 bg-gradient-to-r from-gray-50 to-gray-100 p-1 sm:p-2 text-xs sm:text-sm font-medium text-gray-600 flex items-center justify-end pr-2 sm:pr-4 border-b border-gray-100"
+                      className="h-16 sm:h-20 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center justify-end pr-2 sm:pr-4 border-b border-gray-100 dark:border-gray-800"
                     >
                       {time}
                     </div>
@@ -1751,7 +1751,7 @@ export default function TrainerSchedulePage() {
                     <div
                       className={`bg-white dark:bg-gray-900 ${isToday(date.getDate()) ? "bg-red-50" : ""}`}
                     >
-                      <div className="h-10 sm:h-12 border-b border-gray-200 p-1 sm:p-2 bg-gradient-to-b from-gray-50 to-white" />
+                      <div className="h-10 sm:h-12 border-b border-gray-200 dark:border-gray-800 p-1 sm:p-2 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900" />
                       {timeSlots.map((time, i) => {
                         const sessions = getSessionsForTimeSlot(date, time);
                         return (
@@ -1766,7 +1766,7 @@ export default function TrainerSchedulePage() {
                                   ? firstSessionRowRef
                                   : undefined
                               }
-                              className={`h-16 sm:h-20 border-b border-gray-200 dark:border-gray-800 p-1 sm:p-2 relative transition-colors duration-150 ${isToday(date.getDate()) ? "bg-red-50 hover:bg-red-100 border-red-200" : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-800"}`}
+                              className={`h-16 sm:h-20 border-b border-gray-200 dark:border-gray-800 p-1 sm:p-2 relative transition-colors duration-150 ${isToday(date.getDate()) ? "bg-red-50 hover:bg-red-100 border-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:border-red-700" : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-800"}`}
                             >
                               {sessions.map((session) => (
                                 <DraggableSession
@@ -2120,14 +2120,16 @@ export default function TrainerSchedulePage() {
 
   return (
     <>
-      <div className="flex-1 bg-white">
-        <header className="border-b border-gray-200 bg-white px-6 py-6 shadow-sm">
+      <div className="flex-1 bg-white dark:bg-gray-900">
+        <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <SidebarTrigger />
               <div className="flex items-center gap-3">
                 <div className="w-1 h-8 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></div>
-                <h1 className="text-3xl font-bold text-gray-900">Schedule</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Schedule
+                </h1>
               </div>
               {/* Package Summary Display */}
               {renderPackageSummary()}
@@ -2154,15 +2156,15 @@ export default function TrainerSchedulePage() {
                 </Select>
               </div>
 
-              <div className="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
+              <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                 <Button
                   variant={viewMode === "week" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("week")}
                   className={
                     viewMode === "week"
-                      ? "bg-white shadow-sm text-gray-900 hover:bg-gray-50"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-transparent"
+                      ? "bg-white dark:bg-gray-900 shadow-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-transparent"
                   }
                 >
                   Week
@@ -2173,8 +2175,8 @@ export default function TrainerSchedulePage() {
                   onClick={() => setViewMode("month")}
                   className={
                     viewMode === "month"
-                      ? "bg-white shadow-sm text-gray-900 hover:bg-gray-50"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-transparent"
+                      ? "bg-white dark:bg-gray-900 shadow-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-transparent"
                   }
                 >
                   Month

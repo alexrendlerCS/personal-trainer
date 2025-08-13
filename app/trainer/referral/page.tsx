@@ -26,10 +26,10 @@ export default function TrainerReferralPage() {
 
   return (
     <div className="flex-1">
-      <header className="border-b bg-white px-6 py-4">
+      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center space-x-4">
           <SidebarTrigger />
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Gift className="h-6 w-6 text-red-600" /> Referral Program
           </h1>
         </div>
@@ -47,9 +47,11 @@ export default function TrainerReferralPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-center gap-2 bg-gray-50 border rounded p-3">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded p-3">
               <LinkIcon className="h-4 w-4 text-gray-400" />
-              <span className="truncate text-sm font-mono">{referralLink}</span>
+              <span className="truncate text-sm font-mono text-gray-800 dark:text-gray-200">
+                {referralLink}
+              </span>
               <Button
                 size="sm"
                 variant="outline"
@@ -59,17 +61,19 @@ export default function TrainerReferralPage() {
                 {copied ? "Copied!" : "Copy"}
               </Button>
             </div>
-            <div className="bg-gray-50 p-4 rounded flex items-center gap-3">
+            <div className="bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 p-4 rounded flex items-center gap-3">
               <Users className="h-5 w-5 text-blue-600" />
               <div>
-                <div className="font-medium">Referred Trainers</div>
-                <div className="text-sm text-gray-500">
+                <div className="font-medium dark:text-gray-100">
+                  Referred Trainers
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   Coming Soon: See who you've referred and your commission
                   status.
                 </div>
               </div>
             </div>
-            <div className="bg-yellow-50 p-4 rounded text-yellow-800 text-center font-medium">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-4 rounded text-yellow-800 dark:text-yellow-200 text-center font-medium">
               Commission tracking and payout features are coming soon!
             </div>
           </CardContent>

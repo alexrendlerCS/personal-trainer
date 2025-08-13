@@ -310,8 +310,8 @@ function WeeklyAvailabilityEditor({
           className={cn(
             "transition-all duration-200",
             schedule[day]?.enabled
-              ? "border-green-200 bg-green-50"
-              : "border-gray-200 bg-gray-50"
+              ? "border-green-200 bg-green-50 dark:border-green-700 dark:bg-green-900/20"
+              : "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/40"
           )}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -325,7 +325,9 @@ function WeeklyAvailabilityEditor({
               <h3
                 className={cn(
                   "font-medium",
-                  schedule[day]?.enabled ? "text-gray-900" : "text-gray-500"
+                  schedule[day]?.enabled
+                    ? "text-gray-900 dark:text-gray-100"
+                    : "text-gray-500 dark:text-gray-400"
                 )}
               >
                 {day}
@@ -345,12 +347,13 @@ function WeeklyAvailabilityEditor({
                   key={index}
                   className={cn(
                     "flex items-center justify-between transition-all duration-300 transform",
-                    range.isModified && "animate-pulse bg-yellow-50 rounded-lg"
+                    range.isModified &&
+                      "animate-pulse bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
                   )}
                 >
                   <Badge
                     variant="secondary"
-                    className="bg-green-100 text-green-800 hover:bg-green-200"
+                    className="bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/40"
                   >
                     {formatTime(range.start_time)} –{" "}
                     {formatTime(range.end_time)}
@@ -486,7 +489,7 @@ function SaveFooter({
   isSaving: boolean;
 }) {
   return (
-    <div className="sticky bottom-0 bg-white border-t shadow-lg p-4 z-50">
+    <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg p-4 z-50">
       <div className="container max-w-7xl mx-auto">
         <Button
           onClick={onSave}
