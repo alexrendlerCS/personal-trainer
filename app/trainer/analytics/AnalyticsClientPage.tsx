@@ -72,14 +72,23 @@ export default function AnalyticsClientPage() {
   >([]);
   const [showAllPayments, setShowAllPayments] = useState(false);
   const [recentSessions, setRecentSessions] = useState<
-    { id: string; client: string; clientId: string; type: string; date: string; status: string }[]
+    {
+      id: string;
+      client: string;
+      clientId: string;
+      type: string;
+      date: string;
+      status: string;
+    }[]
   >([]);
   const [showAllSessions, setShowAllSessions] = useState(false);
   const supabase = createClient();
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [currentSessionPage, setCurrentSessionPage] = useState(1);
   const sessionsPerPage = 5;
-  const [clientOptions, setClientOptions] = useState<{ id: string; name: string }[]>([]);
+  const [clientOptions, setClientOptions] = useState<
+    { id: string; name: string }[]
+  >([]);
   const searchParams = useSearchParams();
   const recentSessionsRef = useRef<HTMLDivElement>(null);
 
@@ -103,7 +112,10 @@ export default function AnalyticsClientPage() {
       // Scroll to Recent Sessions after a short delay to ensure rendering
       setTimeout(() => {
         if (recentSessionsRef.current) {
-          recentSessionsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+          recentSessionsRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
         }
       }, 300);
     }
@@ -424,25 +436,38 @@ export default function AnalyticsClientPage() {
       if (!session) return;
       // Fetch ALL sessions for debugging
       const now = new Date();
-      console.log('[DEBUG] Current date/time for filtering:', now.toISOString());
+      console.log(
+        "[DEBUG] Current date/time for filtering:",
+        now.toISOString()
+      );
       const { data: sessions, error: sessionsError } = await supabase
         .from("sessions")
-        .select("id, client_id, type, date, start_time, end_time, duration_minutes, status, timezone")
+        .select(
+          "id, client_id, type, date, start_time, end_time, duration_minutes, status, timezone"
+        )
         .order("date", { ascending: false })
         .order("start_time", { ascending: false }); // no limit
       if (sessionsError) {
         setRecentSessions([]);
-        console.log('[DEBUG] Error fetching sessions:', sessionsError);
+        console.log("[DEBUG] Error fetching sessions:", sessionsError);
         return;
       }
-      console.log('[DEBUG] Raw sessions from Supabase (count):', sessions?.length, sessions);
+      console.log(
+        "[DEBUG] Raw sessions from Supabase (count):",
+        sessions?.length,
+        sessions
+      );
       // Filter for sessions before now (existing logic)
       const filtered = sessions.filter((s) => {
         if (!s.date || !s.start_time) return false;
         const sessionDate = new Date(`${s.date}T${s.start_time}`);
         return sessionDate < now;
       });
-      console.log('[DEBUG] Filtered sessions (past, count):', filtered.length, filtered);
+      console.log(
+        "[DEBUG] Filtered sessions (past, count):",
+        filtered.length,
+        filtered
+      );
       // Fetch client names
       const clientIds = Array.from(
         new Set(filtered.map((s) => s.client_id).filter(Boolean))
@@ -460,10 +485,16 @@ export default function AnalyticsClientPage() {
         }
       }
       // Prepare client options for dropdown
-      let options = Object.entries(clientNames).map(([id, name]) => ({ id, name }));
+      let options = Object.entries(clientNames).map(([id, name]) => ({
+        id,
+        name,
+      }));
       // --- Ensure selected client from URL is present in dropdown ---
       const clientIdFromUrl = searchParams.get("client");
-      if (clientIdFromUrl && !options.some(opt => opt.id === clientIdFromUrl)) {
+      if (
+        clientIdFromUrl &&
+        !options.some((opt) => opt.id === clientIdFromUrl)
+      ) {
         // Fetch client name from DB
         const { data: user, error: userError } = await supabase
           .from("users")
@@ -471,7 +502,10 @@ export default function AnalyticsClientPage() {
           .eq("id", clientIdFromUrl)
           .single();
         if (!userError && user) {
-          options = [{ id: user.id, name: user.full_name || "Unknown" }, ...options];
+          options = [
+            { id: user.id, name: user.full_name || "Unknown" },
+            ...options,
+          ];
         }
       }
       setClientOptions(options);
@@ -487,12 +521,12 @@ export default function AnalyticsClientPage() {
             : "",
         status: s.status,
       }));
-      console.log('[DEBUG] Final mapped session data:', data);
+      console.log("[DEBUG] Final mapped session data:", data);
       setRecentSessions(data);
       setCurrentSessionPage(1); // Reset to first page on fetch
     } catch (error) {
       setRecentSessions([]);
-      console.log('[DEBUG] Exception in fetchRecentSessions:', error);
+      console.log("[DEBUG] Exception in fetchRecentSessions:", error);
     }
   };
 
@@ -510,7 +544,9 @@ export default function AnalyticsClientPage() {
   const filteredSessions = selectedClient
     ? recentSessions.filter((s) => s.clientId === selectedClient)
     : recentSessions;
-  const totalSessionPages = Math.ceil(filteredSessions.length / sessionsPerPage);
+  const totalSessionPages = Math.ceil(
+    filteredSessions.length / sessionsPerPage
+  );
   const paginatedSessions = filteredSessions.slice(
     (currentSessionPage - 1) * sessionsPerPage,
     currentSessionPage * sessionsPerPage
@@ -518,10 +554,12 @@ export default function AnalyticsClientPage() {
 
   return (
     <div className="flex-1">
-      <header className="border-b bg-white px-6 py-4">
+      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center space-x-4">
           <SidebarTrigger />
-          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Analytics
+          </h1>
         </div>
       </header>
       <main className="p-6 space-y-8">
@@ -818,15 +856,17 @@ export default function AnalyticsClientPage() {
               <div className="mt-2">
                 <select
                   value={selectedClient || ""}
-                  onChange={e => {
+                  onChange={(e) => {
                     setSelectedClient(e.target.value || null);
                     setCurrentSessionPage(1);
                   }}
                   className="border rounded px-2 py-1"
                 >
                   <option value="">All Clients</option>
-                  {clientOptions.map(opt => (
-                    <option key={opt.id} value={opt.id}>{opt.name}</option>
+                  {clientOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -858,7 +898,9 @@ export default function AnalyticsClientPage() {
               <div className="flex justify-between items-center mt-2">
                 <button
                   className="text-blue-600 hover:underline text-sm font-medium disabled:text-gray-400"
-                  onClick={() => setCurrentSessionPage((p) => Math.max(1, p - 1))}
+                  onClick={() =>
+                    setCurrentSessionPage((p) => Math.max(1, p - 1))
+                  }
                   disabled={currentSessionPage === 1}
                 >
                   Previous
@@ -868,8 +910,15 @@ export default function AnalyticsClientPage() {
                 </span>
                 <button
                   className="text-blue-600 hover:underline text-sm font-medium disabled:text-gray-400"
-                  onClick={() => setCurrentSessionPage((p) => Math.min(totalSessionPages, p + 1))}
-                  disabled={currentSessionPage === totalSessionPages || totalSessionPages === 0}
+                  onClick={() =>
+                    setCurrentSessionPage((p) =>
+                      Math.min(totalSessionPages, p + 1)
+                    )
+                  }
+                  disabled={
+                    currentSessionPage === totalSessionPages ||
+                    totalSessionPages === 0
+                  }
                 >
                   Next
                 </button>
@@ -880,4 +929,4 @@ export default function AnalyticsClientPage() {
       </main>
     </div>
   );
-} 
+}

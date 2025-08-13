@@ -579,7 +579,12 @@ export default function TrainerSchedulePage() {
 
   // Generate time slots when date is selected (for booking modal)
   useEffect(() => {
-    console.log('[AVAILABILITY DEBUG] selectedDateForSession:', selectedDateForSession, 'trainerAvailability:', trainerAvailability);
+    console.log(
+      "[AVAILABILITY DEBUG] selectedDateForSession:",
+      selectedDateForSession,
+      "trainerAvailability:",
+      trainerAvailability
+    );
     generateTimeSlotsForDate(selectedDateForSession);
   }, [selectedDateForSession, trainerAvailability]);
 
@@ -1603,7 +1608,11 @@ export default function TrainerSchedulePage() {
       }
       const headerHeight = 48; // Adjust if your header is taller/shorter
       const rowHeight = targetRow.offsetHeight;
-      container.scrollTop = targetRow.offsetTop - container.offsetTop - headerHeight + rowHeight / 2;
+      container.scrollTop =
+        targetRow.offsetTop -
+        container.offsetTop -
+        headerHeight +
+        rowHeight / 2;
     }
   }, [events, currentDate]);
 
@@ -1624,18 +1633,30 @@ export default function TrainerSchedulePage() {
       >
         <div className="flex flex-col h-full">
           {/* Sticky header group: controls + days/dates header */}
-          <div className="sticky top-0 z-30 bg-white">
+          <div className="sticky top-0 z-30 bg-white dark:bg-gray-900">
             <div className="flex items-center justify-between mb-0 px-2 sm:px-4 pt-4 pb-2 border-b border-gray-200">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-8 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></div>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                  Week of {startDate.toLocaleDateString("en-US", { month: "long", day: "numeric" })} - {endDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                  Week of{" "}
+                  {startDate.toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                  })}{" "}
+                  -{" "}
+                  {endDate.toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </h2>
               </div>
               <div className="flex items-center gap-2">
                 {/* Edit Mode Toggle */}
                 <div className="flex items-center gap-2 mr-4 border-r border-gray-300 pr-4">
-                  <span className="text-sm font-medium text-gray-700">Mode:</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    Mode:
+                  </span>
                   <div className="flex bg-gray-100 rounded-lg p-1">
                     <button
                       onClick={() => setIsEditMode(false)}
@@ -1672,10 +1693,13 @@ export default function TrainerSchedulePage() {
           </div>
           {/* Header and grid alignment wrapper - both in the same scrollable container */}
           <div className="flex-1 overflow-x-auto">
-            <div ref={scrollContainerRef} className="h-[600px] overflow-y-auto w-full">
+            <div
+              ref={scrollContainerRef}
+              className="h-[600px] overflow-y-auto w-full"
+            >
               {/* Sticky header row inside the scrollable container */}
-              <div className="sticky top-0 z-30 bg-white">
-                <div className="grid grid-cols-[80px_repeat(7,1fr)] min-w-[700px] bg-white border-b border-gray-200">
+              <div className="sticky top-0 z-30 bg-white dark:bg-gray-900">
+                <div className="grid grid-cols-[80px_repeat(7,1fr)] min-w-[700px] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                   {/* Time column header (empty) */}
                   <div className="bg-gradient-to-b from-gray-50 to-gray-100 h-10 sm:h-12" />
                   {/* Day/date headers */}
@@ -1684,21 +1708,33 @@ export default function TrainerSchedulePage() {
                       key={date.toISOString()}
                       className={`flex flex-col items-center justify-center h-10 sm:h-12 px-2 sm:px-4 bg-gradient-to-b from-gray-50 to-white border-l border-gray-200 ${isToday(date.getDate()) ? "bg-gradient-to-b from-red-50 to-red-100" : ""}`}
                     >
-                      <span className={`text-xs sm:text-sm font-semibold uppercase tracking-wide ${isToday(date.getDate()) ? "text-red-800" : "text-gray-900"}`}>{daysOfWeek[index]}</span>
-                      <span className={`text-base sm:text-lg font-bold ${isToday(date.getDate()) ? "text-red-600" : "text-gray-700"}`}>{date.getDate()}</span>
+                      <span
+                        className={`text-xs sm:text-sm font-semibold uppercase tracking-wide ${isToday(date.getDate()) ? "text-red-800" : "text-gray-900 dark:text-gray-100"}`}
+                      >
+                        {daysOfWeek[index]}
+                      </span>
+                      <span
+                        className={`text-base sm:text-lg font-bold ${isToday(date.getDate()) ? "text-red-600" : "text-gray-700 dark:text-gray-300"}`}
+                      >
+                        {date.getDate()}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
               {/* The grid itself */}
-              <div className="grid grid-cols-[80px_repeat(7,1fr)] gap-0 bg-white rounded-xl shadow-lg overflow-hidden min-w-[700px] border border-gray-200 divide-x divide-gray-300">
+              <div className="grid grid-cols-[80px_repeat(7,1fr)] gap-0 bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden min-w-[700px] border border-gray-200 dark:border-gray-800 divide-x divide-gray-300 dark:divide-gray-800">
                 {/* Time column */}
                 <div className="bg-gradient-to-b from-gray-50 to-gray-100">
                   <div className="h-10 sm:h-12 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100" />
                   {timeSlots.map((time, i) => (
                     <div
                       key={time}
-                      ref={i === firstSessionRowIndex ? firstSessionRowRef : undefined}
+                      ref={
+                        i === firstSessionRowIndex
+                          ? firstSessionRowRef
+                          : undefined
+                      }
                       className="h-16 sm:h-20 bg-gradient-to-r from-gray-50 to-gray-100 p-1 sm:p-2 text-xs sm:text-sm font-medium text-gray-600 flex items-center justify-end pr-2 sm:pr-4 border-b border-gray-100"
                     >
                       {time}
@@ -1712,7 +1748,9 @@ export default function TrainerSchedulePage() {
                     date={date}
                     time={timeSlots[0]}
                   >
-                    <div className={`bg-white ${isToday(date.getDate()) ? "bg-red-50" : ""}`}>
+                    <div
+                      className={`bg-white dark:bg-gray-900 ${isToday(date.getDate()) ? "bg-red-50" : ""}`}
+                    >
                       <div className="h-10 sm:h-12 border-b border-gray-200 p-1 sm:p-2 bg-gradient-to-b from-gray-50 to-white" />
                       {timeSlots.map((time, i) => {
                         const sessions = getSessionsForTimeSlot(date, time);
@@ -1723,8 +1761,12 @@ export default function TrainerSchedulePage() {
                             time={time}
                           >
                             <div
-                              ref={i === firstSessionRowIndex ? firstSessionRowRef : undefined}
-                              className={`h-16 sm:h-20 border-b border-gray-200 p-1 sm:p-2 relative transition-colors duration-150 ${isToday(date.getDate()) ? "bg-red-50 hover:bg-red-100 border-red-200" : "bg-white hover:bg-gray-50 border-gray-100"}`}
+                              ref={
+                                i === firstSessionRowIndex
+                                  ? firstSessionRowRef
+                                  : undefined
+                              }
+                              className={`h-16 sm:h-20 border-b border-gray-200 dark:border-gray-800 p-1 sm:p-2 relative transition-colors duration-150 ${isToday(date.getDate()) ? "bg-red-50 hover:bg-red-100 border-red-200" : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-800"}`}
                             >
                               {sessions.map((session) => (
                                 <DraggableSession
@@ -2038,17 +2080,24 @@ export default function TrainerSchedulePage() {
   useEffect(() => {
     async function fetchTrainerAvailability() {
       const supabase = createClient();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('[AVAILABILITY DEBUG] Full session object:', session, sessionError);
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      console.log(
+        "[AVAILABILITY DEBUG] Full session object:",
+        session,
+        sessionError
+      );
       if (!session) {
         setTrainerAvailability([]);
         return;
       }
       const { data, error } = await supabase
-        .from('trainer_availability')
-        .select('*')
-        .eq('trainer_id', session.user.id);
-      console.log('[AVAILABILITY DEBUG] Raw fetch result:', { data, error });
+        .from("trainer_availability")
+        .select("*")
+        .eq("trainer_id", session.user.id);
+      console.log("[AVAILABILITY DEBUG] Raw fetch result:", { data, error });
       setTrainerAvailability(data || []);
     }
     fetchTrainerAvailability();

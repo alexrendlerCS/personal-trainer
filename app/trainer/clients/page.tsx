@@ -473,11 +473,13 @@ export default function TrainerClientsPage() {
 
   return (
     <>
-      <header className="border-b bg-white px-6 py-4">
+      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <SidebarTrigger />
-            <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Clients
+            </h1>
           </div>
           <Dialog>
             <DialogTrigger asChild>
@@ -781,7 +783,9 @@ export default function TrainerClientsPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
-                                router.push(`/trainer/analytics?client=${client.id}`);
+                                router.push(
+                                  `/trainer/analytics?client=${client.id}`
+                                );
                               }}
                             >
                               <BarChart className="h-4 w-4 mr-2" />

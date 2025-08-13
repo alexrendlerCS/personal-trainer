@@ -3,11 +3,11 @@ import { Instagram } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="w-full border-t py-6 mt-auto z-0 relative bg-gray-50">
-      <div className="container flex items-center justify-between px-4">
+    <footer className="w-full border-t py-6 mt-auto z-0 relative bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <div className="container flex items-center justify-between px-4 text-gray-800 dark:text-gray-200">
         {/* Left Side - Copyright */}
         <div className="flex items-center gap-2">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             © 2025 FitWeb Studios. All rights reserved.
           </p>
         </div>
@@ -48,13 +48,13 @@ export function Footer() {
         <nav className="flex gap-4">
           <Link
             href="/privacy"
-            className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors"
           >
             Privacy Policy
           </Link>
           <Link
             href="/terms"
-            className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors"
           >
             Terms of Service
           </Link>

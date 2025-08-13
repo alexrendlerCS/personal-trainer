@@ -281,11 +281,13 @@ export default function TrainerPaymentsPage() {
 
   return (
     <div className="flex-1">
-      <header className="border-b bg-white px-6 py-4">
+      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <SidebarTrigger />
-            <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Payments
+            </h1>
           </div>
           <Button onClick={exportToCSV} className="bg-red-600 hover:bg-red-700">
             <Download className="h-4 w-4 mr-2" />

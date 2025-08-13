@@ -246,9 +246,9 @@ function UnavailableSlots({
 }) {
   if (slots.length === 0) {
     return (
-      <Card className="bg-gray-50 border-gray-100">
+      <Card className="bg-gray-50 dark:bg-gray-900/40 border-gray-100 dark:border-gray-800">
         <CardHeader className="pb-2">
-          <CardDescription className="text-center text-gray-500">
+          <CardDescription className="text-center text-gray-500 dark:text-gray-400">
             No blocked time slots
           </CardDescription>
         </CardHeader>
@@ -834,10 +834,10 @@ export default function TrainerAvailabilityPage() {
   return (
     <>
       <div className="flex-1 flex flex-col min-h-screen">
-        <header className="border-b bg-white px-6 py-4">
+        <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-6 py-4">
           <div className="flex items-center space-x-4">
             <SidebarTrigger />
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               My Availability
             </h1>
           </div>
@@ -891,7 +891,7 @@ export default function TrainerAvailabilityPage() {
 
           <section
             aria-label="Current availability summary"
-            className="bg-gray-50 rounded-lg p-6"
+            className="bg-gray-50 dark:bg-gray-900/40 rounded-lg p-6"
           >
             <AvailabilitySummary schedule={schedule} />
           </section>
