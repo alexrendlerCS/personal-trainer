@@ -12,7 +12,7 @@ import { AnimatedHero } from "@/components/animated-hero";
 
 export default function RebalancePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white dark:from-gray-900 dark:to-gray-900">
       <Header />
 
       {/* Hero Section */}
@@ -66,12 +66,12 @@ export default function RebalancePage() {
         {/* How it Works Section */}
         <Card className="mb-12 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-gray-900">
+            <CardTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               How it Works
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <p className="text-lg text-gray-700">
+            <p className="text-lg text-gray-700 dark:text-gray-300">
               Your body runs on a daily cortisol rhythm — high in the morning,
               tapering off through the day. When cortisol is off (too high, too
               low, or always spiking), you might feel:
@@ -81,55 +81,73 @@ export default function RebalancePage() {
               <div className="space-y-3">
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-red-600 rounded-full mt-2"></div>
-                  <p className="text-gray-700">Stressed but exhausted</p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    Stressed but exhausted
+                  </p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-red-600 rounded-full mt-2"></div>
-                  <p className="text-gray-700">Bloated or stuck in fat-loss</p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    Bloated or stuck in fat-loss
+                  </p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-red-600 rounded-full mt-2"></div>
-                  <p className="text-gray-700">Anxious or foggy</p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    Anxious or foggy
+                  </p>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-red-600 rounded-full mt-2"></div>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-300">
                     Wired at night, dragging all day
                   </p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-red-600 rounded-full mt-2"></div>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-300">
                     Like your body is fighting you
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-red-50 p-6 rounded-lg">
-              <p className="text-lg text-gray-700 mb-4">
+            <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg">
+              <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
                 Rebalance helps restore a healthy rhythm using adaptogens,
                 nutrients, and antioxidants — no hormones added — taken as
                 needed throughout the day:
               </p>
 
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="bg-white p-4 rounded-lg text-center">
+                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 rounded-lg text-center">
                   <Sun className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                  <h3 className="font-semibold text-gray-900">Morning</h3>
-                  <p className="text-sm text-gray-600">energize + focus</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                    Morning
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    energize + focus
+                  </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg text-center">
+                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 rounded-lg text-center">
                   <Cloud className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <h3 className="font-semibold text-gray-900">Afternoon</h3>
-                  <p className="text-sm text-gray-600">control stress</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                    Afternoon
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    control stress
+                  </p>
                 </div>
-                <div className="bg-white p-4 rounded-lg text-center">
+                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 rounded-lg text-center">
                   <Moon className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                  <h3 className="font-semibold text-gray-900">Evening Mint</h3>
-                  <p className="text-sm text-gray-600">calm + sleep</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                    Evening Mint
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    calm + sleep
+                  </p>
                 </div>
               </div>
             </div>
@@ -139,7 +157,7 @@ export default function RebalancePage() {
         {/* Ingredients Section */}
         <Card className="mb-12 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-gray-900">
+            <CardTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               Clinically Studied Ingredients
             </CardTitle>
           </CardHeader>
@@ -149,8 +167,12 @@ export default function RebalancePage() {
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="h-5 w-5 text-red-600 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">Ashwagandha</p>
-                    <p className="text-gray-600">regulates cortisol & stress</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">
+                      Ashwagandha
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      regulates cortisol & stress
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
@@ -159,16 +181,20 @@ export default function RebalancePage() {
                     <p className="font-semibold text-gray-900">
                       Cordyceps & Reishi Mushroom
                     </p>
-                    <p className="text-gray-600">immune & hormone support</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      immune & hormone support
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="h-5 w-5 text-red-600 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">
                       Green Tea Extract + L-Theanine
                     </p>
-                    <p className="text-gray-600">clean energy & focus</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      clean energy & focus
+                    </p>
                   </div>
                 </div>
               </div>
@@ -176,8 +202,10 @@ export default function RebalancePage() {
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="h-5 w-5 text-red-600 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-900">DIM</p>
-                    <p className="text-gray-600">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">
+                      DIM
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400">
                       supports healthy estrogen metabolism
                     </p>
                   </div>
@@ -188,7 +216,9 @@ export default function RebalancePage() {
                     <p className="font-semibold text-gray-900">
                       Zinc, Ginger, Magnolia Bark, EDTA
                     </p>
-                    <p className="text-gray-600">anti-inflammatory & calming</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      anti-inflammatory & calming
+                    </p>
                   </div>
                 </div>
               </div>
@@ -199,7 +229,7 @@ export default function RebalancePage() {
         {/* Use Cases Section */}
         <Card className="mb-12 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-gray-900">
+            <CardTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               It's been used by clients struggling with:
             </CardTitle>
           </CardHeader>
@@ -214,10 +244,10 @@ export default function RebalancePage() {
               ].map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center space-x-3 bg-red-50 p-3 rounded-lg"
+                  className="flex items-center space-x-3 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg"
                 >
                   <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                  <p className="text-gray-700">{item}</p>
+                  <p className="text-gray-700 dark:text-gray-300">{item}</p>
                 </div>
               ))}
             </div>
@@ -228,12 +258,12 @@ export default function RebalancePage() {
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-gray-900">
+              <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Why Coach Kilday Might Recommend It
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 Because cortisol mismanagement is one of the most overlooked
                 reasons women struggle with plateaus, stubborn fat, fatigue, or
                 anxiety — even with perfect nutrition and workouts. Rebalance
@@ -243,26 +273,26 @@ export default function RebalancePage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-red-200">
+          <Card className="shadow-lg border-red-200 dark:border-red-700">
             <CardHeader>
               <CardTitle className="text-2xl font-bold text-red-600">
                 Why I Personally Recommend It (Big Time)
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                 I've been taking Rebalance consistently since spring 2024 — it
                 has completely changed my fitness, my health, and even my
                 ability to run my business.
               </p>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                 It's helped me manage stress, improve my sleep, show up better
                 for my clients, stay leaner with less burnout, and just feel
                 more like me again. I truly don't know where I'd be without it —
                 and I recommend it to my clients who are hitting invisible walls
                 with fat loss, stress, and recovery.
               </p>
-              <p className="text-gray-700 leading-relaxed font-medium">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
                 If your body feels like it's fighting back even when you're
                 doing everything right… this might be the missing link.
               </p>

@@ -54,9 +54,12 @@ export default function VideoGallerySection() {
   };
 
   return (
-    <section id="videos" className="py-20 bg-gray-50">
+    <section
+      id="videos"
+      className="py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950"
+    >
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 dark:text-gray-100">
           VIDEO <span className="text-red-600">GALLERY</span>
         </h2>
 
@@ -93,13 +96,13 @@ export default function VideoGallerySection() {
                   {video.duration}
                 </div>
               </div>
-              <div className="p-6 bg-white border-t border-gray-100">
+              <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-bold text-xl text-gray-800 mb-2">
+                    <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100 mb-2">
                       {video.title}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                       {video.description}
                     </p>
                   </div>
@@ -114,7 +117,7 @@ export default function VideoGallerySection() {
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                   <div className="flex items-center space-x-3">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       Training
@@ -136,7 +139,7 @@ export default function VideoGallerySection() {
         {/* Video Modal */}
         {activeVideo !== null && (
           <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-100">
+            <div className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-100">
               {/* Header with close button */}
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-red-600 to-red-700">
                 <div className="flex items-center space-x-3">
@@ -185,13 +188,13 @@ export default function VideoGallerySection() {
               </div>
 
               {/* Content Section */}
-              <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
+              <div className="p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-900">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="font-bold text-xl text-red-600 mb-3">
                       {videos[activeVideo].title}
                     </h3>
-                    <p className="text-gray-700 text-base leading-relaxed">
+                    <p className="text-gray-300 text-base leading-relaxed">
                       {videos[activeVideo].description}
                     </p>
                   </div>

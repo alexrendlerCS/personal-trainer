@@ -105,13 +105,16 @@ export default function ServicesPreview() {
   };
 
   return (
-    <section id="services" className="py-20 bg-gray-50">
+    <section
+      id="services"
+      className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900"
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-gray-100">
             TRAINING <span className="text-red-600">SERVICES</span>
           </h2>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
             Coach Haley's approach combines science-backed training methods with
             personalized attention to help you achieve sustainable results.
           </p>
@@ -122,7 +125,7 @@ export default function ServicesPreview() {
           <button
             onClick={() => scrollToService("prev")}
             disabled={currentIndex === 0}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white hover:bg-gray-50 text-gray-600 hover:text-red-600 disabled:text-gray-300 disabled:cursor-not-allowed rounded-full p-3 shadow-lg border border-gray-200 transition-all duration-300 hover:scale-110"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-red-600 disabled:text-gray-300 disabled:cursor-not-allowed rounded-full p-3 shadow-lg border border-gray-200 dark:border-gray-800 transition-all duration-300 hover:scale-110"
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
@@ -130,7 +133,7 @@ export default function ServicesPreview() {
           <button
             onClick={() => scrollToService("next")}
             disabled={currentIndex === services.length - 1}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white hover:bg-gray-50 text-gray-600 hover:text-red-600 disabled:text-gray-300 disabled:cursor-not-allowed rounded-full p-3 shadow-lg border border-gray-200 transition-all duration-300 hover:scale-110"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-red-600 disabled:text-gray-300 disabled:cursor-not-allowed rounded-full p-3 shadow-lg border border-gray-200 dark:border-gray-800 transition-all duration-300 hover:scale-110"
           >
             <ChevronRight className="h-6 w-6" />
           </button>
@@ -149,11 +152,15 @@ export default function ServicesPreview() {
                   className="min-w-[300px] md:min-w-[350px] flex-shrink-0 snap-center"
                 >
                   <div
-                    className={`h-full rounded-2xl p-8 shadow-lg border border-gray-100 ${service.color} transition-transform hover:scale-105`}
+                    className={`h-full rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-800 ${service.color} dark:bg-gray-900 transition-transform hover:scale-105`}
                   >
                     <div className="mb-6">{service.icon}</div>
-                    <h3 className="text-xl font-bold mb-4">{service.title}</h3>
-                    <p className="text-gray-700 mb-6">{service.description}</p>
+                    <h3 className="text-xl font-bold mb-4 dark:text-gray-100">
+                      {service.title}
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                      {service.description}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -166,7 +173,9 @@ export default function ServicesPreview() {
               <div
                 key={index}
                 className={`h-2 w-2 rounded-full transition-colors duration-300 ${
-                  index === currentIndex ? "bg-red-600" : "bg-gray-300"
+                  index === currentIndex
+                    ? "bg-red-600"
+                    : "bg-gray-300 dark:bg-gray-700"
                 }`}
               ></div>
             ))}

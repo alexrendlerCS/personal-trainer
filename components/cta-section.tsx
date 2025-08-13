@@ -76,17 +76,17 @@ export default function CtaSection() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <div className="bg-white bg-opacity-90 p-8 rounded-2xl backdrop-blur-sm">
+            <div className="bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-80 p-8 rounded-2xl backdrop-blur-sm">
               <div className="flex items-center justify-center mb-4">
                 <Gift className="h-8 w-8 mr-3 text-red-600" />
-                <h3 className="text-2xl font-bold text-gray-800">
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                   Book First Session
                 </h3>
               </div>
               <div className="bg-red-600 text-white font-bold text-sm px-3 py-1 rounded-full inline-block mb-4">
                 FREE WITH SIGNUP
               </div>
-              <p className="mb-6 text-gray-700">
+              <p className="mb-6 text-gray-700 dark:text-gray-300">
                 Sign up today and get your first training session absolutely
                 free! Choose from virtual, in-person, or partner training.
               </p>
@@ -98,14 +98,14 @@ export default function CtaSection() {
               </Button>
             </div>
 
-            <div className="bg-white bg-opacity-90 p-8 rounded-2xl backdrop-blur-sm">
+            <div className="bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-80 p-8 rounded-2xl backdrop-blur-sm">
               <div className="flex items-center justify-center mb-4">
                 <Newspaper className="h-8 w-8 mr-3 text-red-600" />
-                <h3 className="text-2xl font-bold text-gray-800">
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                   Join the Newsletter
                 </h3>
               </div>
-              <p className="mb-6 text-gray-700">
+              <p className="mb-6 text-gray-700 dark:text-gray-300">
                 Get weekly training tips, nutrition advice, and exclusive
                 offers.
               </p>
@@ -117,9 +117,13 @@ export default function CtaSection() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  className="bg-gray-100 border border-gray-300 placeholder:text-gray-500 text-gray-800 py-6"
+                  className="bg-gray-100 dark:bg-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-gray-800 py-6"
                 />
-                {error && <p className="text-red-600 text-sm">{error}</p>}
+                {error && (
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    {error}
+                  </p>
+                )}
                 <Button
                   type="submit"
                   disabled={loading}

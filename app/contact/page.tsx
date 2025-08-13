@@ -15,7 +15,7 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header />
       <main>
         {/* Hero Section */}
@@ -51,25 +51,29 @@ export default function ContactPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               {/* Contact Details */}
               <div className="space-y-8">
-                <h2 className="text-3xl md:text-4xl font-bold mb-8">
+                <h2 className="text-3xl md:text-4xl font-bold mb-8 dark:text-gray-100">
                   Get In Touch
                 </h2>
 
                 <div className="space-y-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-3">
+                      <CardTitle className="flex items-center gap-3 dark:text-gray-100">
                         <MapPin className="h-6 w-6 text-red-600" />
                         Location
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-lg font-semibold">
+                      <p className="text-lg font-semibold dark:text-gray-100">
                         Life Time Thornton
                       </p>
-                      <p className="text-gray-600">397 W 148th Ave</p>
-                      <p className="text-gray-600">Thornton, CO 80023</p>
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-gray-600 dark:text-gray-300">
+                        397 W 148th Ave
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        Thornton, CO 80023
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                         Conveniently located in Thornton, serving the Denver
                         metro area
                       </p>
@@ -78,14 +82,16 @@ export default function ContactPage() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-3">
+                      <CardTitle className="flex items-center gap-3 dark:text-gray-100">
                         <Phone className="h-6 w-6 text-red-600" />
                         Phone
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-lg font-semibold">(720) 979-2808</p>
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-lg font-semibold dark:text-gray-100">
+                        (720) 979-2808
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                         Call or text for immediate assistance
                       </p>
                     </CardContent>
@@ -93,17 +99,19 @@ export default function ContactPage() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-3">
+                      <CardTitle className="flex items-center gap-3 dark:text-gray-100">
                         <Calendar className="h-6 w-6 text-red-600" />
                         Hours
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-lg font-semibold">By Appointment</p>
-                      <p className="text-gray-600">
+                      <p className="text-lg font-semibold dark:text-gray-100">
+                        By Appointment
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-300">
                         Flexible scheduling available
                       </p>
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                         Morning, afternoon, and evening sessions
                       </p>
                     </CardContent>
@@ -111,7 +119,7 @@ export default function ContactPage() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-3">
+                      <CardTitle className="flex items-center gap-3 dark:text-gray-100">
                         <Instagram className="h-6 w-6 text-red-600" />
                         Social Media
                       </CardTitle>
@@ -125,7 +133,7 @@ export default function ContactPage() {
                       >
                         @coachkilday
                       </a>
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                         Follow for fitness tips and motivation
                       </p>
                     </CardContent>
@@ -135,15 +143,15 @@ export default function ContactPage() {
 
               {/* Booking CTA */}
               <div className="space-y-8">
-                <h2 className="text-3xl md:text-4xl font-bold mb-8">
+                <h2 className="text-3xl md:text-4xl font-bold mb-8 dark:text-gray-100">
                   Ready to Start?
                 </h2>
 
                 {/* Free Session Promo */}
-                <Card className="border-2 border-red-200 bg-gradient-to-r from-red-50 to-red-100">
+                <Card className="border-2 border-red-200 dark:border-red-700 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/10">
                   <CardContent className="p-6">
                     <div className="text-center">
-                      <h3 className="text-xl font-bold text-red-800 mb-2">
+                      <h3 className="text-xl font-bold text-red-800 dark:text-red-300 mb-2">
                         Sign Up Now for Your First Session Free!
                       </h3>
                       <Link href="/login">
@@ -166,7 +174,7 @@ export default function ContactPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 dark:text-gray-300">
                         Take the first step towards your fitness goals with a
                         personalized training session.
                       </p>
@@ -189,7 +197,7 @@ export default function ContactPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 dark:text-gray-300">
                         Explore our training packages and find the perfect fit
                         for your goals.
                       </p>
@@ -210,7 +218,7 @@ export default function ContactPage() {
                       <CardTitle className="text-2xl">Learn More</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 dark:text-gray-300">
                         Discover more about Coach Kilday's training approach and
                         experience.
                       </p>
@@ -241,18 +249,20 @@ export default function ContactPage() {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 bg-gray-50 dark:bg-gray-900">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 dark:text-gray-100">
               Frequently Asked Questions
             </h2>
             <div className="max-w-4xl mx-auto space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>How do I book my first session?</CardTitle>
+                  <CardTitle className="dark:text-gray-100">
+                    How do I book my first session?
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-300">
                     You can book your first session online through our booking
                     system, or call/text Coach Kilday directly at (720)
                     979-2808.
@@ -262,12 +272,12 @@ export default function ContactPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>
+                  <CardTitle className="dark:text-gray-100">
                     What should I bring to my first session?
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-300">
                     Bring comfortable workout clothes, athletic shoes, a water
                     bottle, and a positive attitude! All equipment is provided
                     at Life Time.
@@ -277,10 +287,12 @@ export default function ContactPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Do you offer virtual training sessions?</CardTitle>
+                  <CardTitle className="dark:text-gray-100">
+                    Do you offer virtual training sessions?
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-300">
                     Currently, we focus on in-person training at Life Time
                     Thornton for the best results and personalized attention.
                   </p>
@@ -289,10 +301,12 @@ export default function ContactPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>What areas do you serve?</CardTitle>
+                  <CardTitle className="dark:text-gray-100">
+                    What areas do you serve?
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-300">
                     Coach Kilday serves Thornton, Broomfield, and the
                     surrounding Denver metro area. Sessions are held at Life
                     Time Thornton.

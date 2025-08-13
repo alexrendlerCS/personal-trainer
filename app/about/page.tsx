@@ -32,7 +32,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header />
       <main>
         {/* Hero Section */}
@@ -96,21 +96,23 @@ export default function AboutPage() {
                 />
               </div>
               <div className="space-y-6">
-                <h2 className="text-3xl md:text-4xl font-bold">My Journey</h2>
-                <p className="text-lg text-gray-700">
+                <h2 className="text-3xl md:text-4xl font-bold dark:text-gray-100">
+                  My Journey
+                </h2>
+                <p className="text-lg text-gray-700 dark:text-gray-300">
                   After competing professionally and coaching Olympic athletes,
                   I developed a unique training methodology that combines
                   strength training, mobility work, and personalized nutrition
                   guidance.
                 </p>
-                <p className="text-lg text-gray-700">
+                <p className="text-lg text-gray-700 dark:text-gray-300">
                   My approach isn't about quick fixes—it's about sustainable
                   results through science-backed methods and unwavering
                   accountability. Located at Life Time Thornton, I provide
                   personal training services to help you achieve your fitness
                   goals.
                 </p>
-                <p className="text-lg text-gray-700">
+                <p className="text-lg text-gray-700 dark:text-gray-300">
                   I believe that everyone deserves to feel confident in their
                   body and capable of achieving their fitness goals. Whether
                   you're just starting your fitness journey or looking to break
@@ -122,21 +124,21 @@ export default function AboutPage() {
         </section>
 
         {/* Certifications & Achievements */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 bg-gray-50 dark:bg-gray-900">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 dark:text-gray-100">
               Certifications & Achievements
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 dark:text-gray-100">
                     <Award className="h-6 w-6 text-red-600" />
                     Certifications
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 dark:text-gray-300">
                     {certifications.map((cert, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-red-600 rounded-full"></div>
@@ -148,13 +150,13 @@ export default function AboutPage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 dark:text-gray-100">
                     <Award className="h-6 w-6 text-red-600" />
                     Key Achievements
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 dark:text-gray-300">
                     {achievements.map((achievement, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-red-600 rounded-full"></div>
@@ -171,41 +173,47 @@ export default function AboutPage() {
         {/* Contact Information */}
         <section className="py-20">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 dark:text-gray-100">
               Get In Touch
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
               <Card className="text-center">
                 <CardHeader>
                   <MapPin className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                  <CardTitle>Location</CardTitle>
+                  <CardTitle className="dark:text-gray-100">Location</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">Life Time Thornton</p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Life Time Thornton
+                  </p>
                 </CardContent>
               </Card>
               <Card className="text-center">
                 <CardHeader>
                   <Phone className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                  <CardTitle>Phone</CardTitle>
+                  <CardTitle className="dark:text-gray-100">Phone</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">(720) 979-2808</p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    (720) 979-2808
+                  </p>
                 </CardContent>
               </Card>
               <Card className="text-center">
                 <CardHeader>
                   <Calendar className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                  <CardTitle>Hours</CardTitle>
+                  <CardTitle className="dark:text-gray-100">Hours</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">By Appointment</p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    By Appointment
+                  </p>
                 </CardContent>
               </Card>
               <Card className="text-center">
                 <CardHeader>
                   <Instagram className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                  <CardTitle>Social</CardTitle>
+                  <CardTitle className="dark:text-gray-100">Social</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <a

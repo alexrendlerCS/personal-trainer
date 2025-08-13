@@ -19,7 +19,10 @@ export default function AboutPreview() {
   }, [isInView, controls]);
 
   return (
-    <section id="about" className="py-20 bg-white">
+    <section
+      id="about"
+      className="py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950"
+    >
       <div className="container mx-auto px-4">
         <div
           ref={ref}
@@ -56,30 +59,32 @@ export default function AboutPreview() {
             }}
             className="space-y-6"
           >
-            <h2 className="text-3xl md:text-4xl font-bold">
+            <h2 className="text-3xl md:text-4xl font-bold dark:text-gray-100">
               Meet Coach Haley Kilday
             </h2>
             <h3 className="text-xl md:text-2xl font-semibold text-red-600">
               Personal Trainer in Thornton, Colorado
             </h3>
-            <p className="text-lg text-gray-700">
+            <p className="text-lg text-gray-700 dark:text-gray-300">
               With over a decade of experience transforming bodies and lives,
               Coach Haley Kilday brings elite-level training techniques to
               clients of all fitness levels in Thornton, Colorado and the
               surrounding Denver metro area.
             </p>
-            <p className="text-lg text-gray-700">
+            <p className="text-lg text-gray-700 dark:text-gray-300">
               As an ISSA certified personal trainer with over half a decade of
               experience training and transforming individuals, Haley has
               developed a unique training methodology that combines strength
               training, mobility work, and personalized nutrition guidance.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
-              <div className="bg-gray-100 rounded-lg px-4 py-2 flex items-center">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-2 flex items-center">
                 <span className="text-red-600 font-bold text-xl mr-2">10+</span>
-                <span className="text-sm">In the Fitness Industry</span>
+                <span className="text-sm dark:text-gray-300">
+                  In the Fitness Industry
+                </span>
               </div>
-              <div className="bg-gray-100 rounded-lg px-4 py-2 flex items-center">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-2 flex items-center">
                 <span className="text-red-600 font-bold text-xl mr-2">5+</span>
                 <span className="text-sm">
                   Years Transforming the Lives of{" "}

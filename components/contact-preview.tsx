@@ -7,13 +7,13 @@ import Link from "next/link";
 
 export default function ContactPreview() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-gray-100">
             GET IN <span className="text-red-600">TOUCH</span>
           </h2>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
             Ready to start your fitness transformation? Contact Coach Kilday for
             personal training in Thornton, Colorado.
           </p>
@@ -23,37 +23,39 @@ export default function ContactPreview() {
           <Card className="text-center">
             <CardHeader>
               <MapPin className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <CardTitle>Location</CardTitle>
+              <CardTitle className="dark:text-gray-100">Location</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Life Time Thornton</p>
+              <p className="text-gray-600 dark:text-gray-300">
+                Life Time Thornton
+              </p>
             </CardContent>
           </Card>
 
           <Card className="text-center">
             <CardHeader>
               <Phone className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <CardTitle>Phone</CardTitle>
+              <CardTitle className="dark:text-gray-100">Phone</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">(720) 979-2808</p>
+              <p className="text-gray-600 dark:text-gray-300">(720) 979-2808</p>
             </CardContent>
           </Card>
 
           <Card className="text-center">
             <CardHeader>
               <Calendar className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <CardTitle>Hours</CardTitle>
+              <CardTitle className="dark:text-gray-100">Hours</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">By Appointment</p>
+              <p className="text-gray-600 dark:text-gray-300">By Appointment</p>
             </CardContent>
           </Card>
 
           <Card className="text-center">
             <CardHeader>
               <Instagram className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <CardTitle>Social</CardTitle>
+              <CardTitle className="dark:text-gray-100">Social</CardTitle>
             </CardHeader>
             <CardContent>
               <a

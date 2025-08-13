@@ -80,7 +80,7 @@ export default function ServicesPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header />
       <main>
         {/* Hero Section */}
@@ -124,7 +124,7 @@ export default function ServicesPage() {
         {/* Services Grid */}
         <section className="py-20">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 dark:text-gray-100">
               Training Services
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -133,16 +133,16 @@ export default function ServicesPage() {
                   <CardHeader>
                     <div className="flex items-center gap-3">
                       <service.icon className="h-8 w-8 text-red-600" />
-                      <CardTitle className="text-2xl">
+                      <CardTitle className="text-2xl dark:text-gray-100">
                         {service.title}
                       </CardTitle>
                     </div>
-                    <CardDescription className="text-lg">
+                    <CardDescription className="text-lg dark:text-gray-400">
                       {service.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ul className="space-y-2">
+                    <ul className="space-y-2 dark:text-gray-300">
                       {service.features.map((feature, featureIndex) => (
                         <li
                           key={featureIndex}
@@ -161,30 +161,36 @@ export default function ServicesPage() {
         </section>
 
         {/* Location Section */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 bg-gray-50 dark:bg-gray-900">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 dark:text-gray-100">
               Located at Life Time Thornton
             </h2>
-            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
               397 W 148th Ave, Thornton, CO 80023
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-xl font-bold mb-2">Convenient Location</h3>
-                <p className="text-gray-600">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow">
+                <h3 className="text-xl font-bold mb-2 dark:text-gray-100">
+                  Convenient Location
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
                   Easy access from Thornton, Broomfield, and surrounding areas
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-xl font-bold mb-2">Premium Facility</h3>
-                <p className="text-gray-600">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow">
+                <h3 className="text-xl font-bold mb-2 dark:text-gray-100">
+                  Premium Facility
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
                   State-of-the-art equipment and amenities at Life Time
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-xl font-bold mb-2">Flexible Scheduling</h3>
-                <p className="text-gray-600">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow">
+                <h3 className="text-xl font-bold mb-2 dark:text-gray-100">
+                  Flexible Scheduling
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
                   Morning, afternoon, and evening sessions available
                 </p>
               </div>
