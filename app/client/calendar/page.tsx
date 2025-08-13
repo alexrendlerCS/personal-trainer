@@ -402,8 +402,8 @@ export default function ClientCalendarPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
           <SidebarTrigger>
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-6 w-6" />
@@ -423,8 +423,8 @@ export default function ClientCalendarPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
           <SidebarTrigger>
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-6 w-6" />
@@ -452,8 +452,8 @@ export default function ClientCalendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
         <SidebarTrigger>
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-6 w-6" />
@@ -499,7 +499,7 @@ export default function ClientCalendarPage() {
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <h2 className="text-2xl font-bold tracking-tight">
+                <h2 className="text-2xl font-bold tracking-tight dark:text-gray-100">
                   {months[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </h2>
               </div>
@@ -523,12 +523,12 @@ export default function ClientCalendarPage() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden min-w-[600px]">
+              <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden min-w-[600px]">
                 {/* Day headers */}
                 {daysOfWeek.map((day) => (
                   <div
                     key={day}
-                    className="bg-gray-50 p-1 sm:p-2 text-center text-xs sm:text-sm font-medium text-gray-500"
+                    className="bg-gray-50 dark:bg-gray-900/40 p-1 sm:p-2 text-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
                   >
                     {day}
                   </div>
@@ -540,17 +540,17 @@ export default function ClientCalendarPage() {
                     key={`day-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
                     className={`relative p-1 sm:p-2 min-h-[90px] sm:min-h-[120px] ${
                       !day
-                        ? "bg-gray-50"
+                        ? "bg-gray-50 dark:bg-gray-900/40"
                         : isToday(day)
-                          ? "bg-red-50 ring-2 ring-red-500 ring-inset"
-                          : "bg-white"
+                          ? "bg-red-50 dark:bg-red-900/20 ring-2 ring-red-500/70 dark:ring-red-700 ring-inset"
+                          : "bg-white dark:bg-gray-900"
                     }`}
                   >
                     {day && (
                       <>
                         <div
                           className={`font-medium text-xs sm:text-sm mb-1 sm:mb-2 sticky top-0 z-10 ${
-                            isToday(day) ? "text-red-900 font-semibold" : ""
+                            isToday(day) ? "text-red-900 dark:text-red-300 font-semibold" : "dark:text-gray-100"
                           }`}
                         >
                           {day}

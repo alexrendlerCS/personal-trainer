@@ -25,10 +25,12 @@ export default function ClientReferralPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
         <SidebarTrigger />
-        <h1 className="text-xl font-bold text-gray-900">Referral Program</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          Referral Program
+        </h1>
       </div>
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
@@ -37,15 +39,17 @@ export default function ClientReferralPage() {
               <Gift className="h-5 w-5 text-red-600" />
               <span>Invite Friends & Earn Rewards</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="dark:text-gray-400">
               Share your unique referral link. Earn rewards when friends join
               and purchase training packages!
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-center gap-2 bg-gray-50 border rounded p-3">
-              <LinkIcon className="h-4 w-4 text-gray-400" />
-              <span className="truncate text-sm font-mono">{referralLink}</span>
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded p-3">
+              <LinkIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <span className="truncate text-sm font-mono dark:text-gray-200">
+                {referralLink}
+              </span>
               <Button
                 size="sm"
                 variant="outline"
@@ -55,16 +59,18 @@ export default function ClientReferralPage() {
                 {copied ? "Copied!" : "Copy"}
               </Button>
             </div>
-            <div className="bg-gray-50 p-4 rounded flex items-center gap-3">
+            <div className="bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 p-4 rounded flex items-center gap-3">
               <Users className="h-5 w-5 text-blue-600" />
               <div>
-                <div className="font-medium">Referred Friends</div>
-                <div className="text-sm text-gray-500">
+                <div className="font-medium dark:text-gray-100">
+                  Referred Friends
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   Coming Soon: See who you've referred and your reward status.
                 </div>
               </div>
             </div>
-            <div className="bg-yellow-50 p-4 rounded text-yellow-800 text-center font-medium">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded text-yellow-800 dark:text-yellow-300 text-center font-medium">
               Reward tracking and redemption features are coming soon!
             </div>
           </CardContent>

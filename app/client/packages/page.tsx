@@ -673,7 +673,7 @@ function PackagesContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Single Session Modal */}
       <Dialog
         open={showSingleSessionModal}
@@ -902,7 +902,7 @@ function PackagesContent() {
         </DialogContent>
       </Dialog>
 
-      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
         <SidebarTrigger>
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-6 w-6" />
@@ -917,7 +917,7 @@ function PackagesContent() {
                 Back to Dashboard
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               Training Packages
             </h1>
           </div>
@@ -930,11 +930,11 @@ function PackagesContent() {
             <div key={section.title} className="space-y-4 sm:space-y-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <span>{section.icon}</span>
                     <span>{section.title}</span>
                   </h2>
-                  <p className="mt-1 sm:mt-2 text-base sm:text-lg text-gray-600">
+                  <p className="mt-1 sm:mt-2 text-base sm:text-lg text-gray-600 dark:text-gray-400">
                     {section.description}
                   </p>
                 </div>
@@ -953,34 +953,34 @@ function PackagesContent() {
                 {section.packages.map((pkg) => (
                   <Card key={pkg.id} className="flex flex-col">
                     <CardHeader className="pb-2 sm:pb-4">
-                      <CardTitle className="text-lg sm:text-xl">
+                      <CardTitle className="text-lg sm:text-xl dark:text-gray-100">
                         {pkg.name}
                       </CardTitle>
-                      <CardDescription className="text-sm sm:text-base">
+                      <CardDescription className="text-sm sm:text-base dark:text-gray-400">
                         ${pkg.hourlyRate}/hour • {pkg.monthlySessionCount}{" "}
                         sessions/month
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow pb-2 sm:pb-4">
                       <div className="space-y-2 sm:space-y-4">
-                        <div className="text-2xl sm:text-4xl font-bold text-gray-900">
+                        <div className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100">
                           {discountedPrices[pkg.id] != null ? (
                             <>
-                              <span className="line-through text-gray-400 mr-2">
+                              <span className="line-through text-gray-400 dark:text-gray-500 mr-2">
                                 ${pkg.monthlyPrice}
                               </span>
-                              <span className="text-green-700">
+                              <span className="text-green-700 dark:text-green-300">
                                 ${discountedPrices[pkg.id]}
                               </span>
                             </>
                           ) : (
                             <>${pkg.monthlyPrice}</>
                           )}
-                          <span className="text-xs sm:text-base font-normal text-gray-500">
+                          <span className="text-xs sm:text-base font-normal text-gray-500 dark:text-gray-400">
                             /month
                           </span>
                         </div>
-                        <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600">
+                        <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                           <li>• {pkg.sessionsPerWeek}x sessions per week</li>
                           <li>
                             • {pkg.monthlySessionCount} sessions per month
@@ -990,7 +990,7 @@ function PackagesContent() {
                         <div className="mt-2 flex items-center gap-2">
                           <label
                             htmlFor={`promo-code-${pkg.id}`}
-                            className="block text-xs font-medium text-gray-700 mb-1"
+                            className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
                           >
                             Promo Code (optional)
                           </label>
@@ -1006,7 +1006,7 @@ function PackagesContent() {
                                 [pkg.id]: e.target.value,
                               }));
                             }}
-                            className="w-full border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500 pr-10 placeholder:text-xs"
+                            className="w-full border border-gray-200 dark:border-gray-700 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500 pr-10 placeholder:text-xs dark:bg-gray-900 dark:text-gray-100"
                             placeholder="Enter promo code"
                             disabled={
                               isLoading === pkg.id || validatingPromo === pkg.id
@@ -1015,7 +1015,7 @@ function PackagesContent() {
                           />
                           <button
                             type="button"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-600 focus:outline-none"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 dark:text-gray-400 hover:text-red-600 focus:outline-none"
                             onClick={() => validatePromoCode(pkg, section)}
                             disabled={
                               isLoading === pkg.id ||
@@ -1026,14 +1026,14 @@ function PackagesContent() {
                             {validatingPromo === pkg.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : discountedPrices[pkg.id] != null ? (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-300" />
                             ) : (
                               <Search className="h-4 w-4" />
                             )}
                           </button>
                         </div>
                         {promoErrors[pkg.id] && (
-                          <div className="text-red-600 text-xs mt-1">
+                          <div className="text-red-600 dark:text-red-400 text-xs mt-1">
                             {promoErrors[pkg.id]}
                           </div>
                         )}
@@ -1065,10 +1065,12 @@ export default function PackagesPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin text-red-600 mx-auto" />
-            <p className="mt-2 text-gray-600">Loading packages...</p>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              Loading packages...
+            </p>
           </div>
         </div>
       }

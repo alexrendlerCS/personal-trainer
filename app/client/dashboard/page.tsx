@@ -152,15 +152,10 @@ interface PackageTypeCount {
   total: number;
 }
 
-// Add this helper function at the top with other helper functions
-const calculateExpirationDate = (purchaseDate: string) => {
-  const purchase = new Date(purchaseDate);
-  const nextMonth = new Date(
-    purchase.getFullYear(),
-    purchase.getMonth() + 1,
-    1
-  ); // 1st of next month
-  return nextMonth;
+// Expiration is always the 1st of the next calendar month from today
+const calculateExpirationDate = () => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + 1, 1);
 };
 
 const getDaysUntilExpiration = (expirationDate: Date) => {
@@ -562,7 +557,7 @@ export default function ClientDashboard() {
                 (pkg.sessions_included || 0) - (pkg.sessions_used || 0);
               if (remaining > 0) {
                 // Only consider expiration for packages with remaining sessions
-                const expiration = calculateExpirationDate(pkg.purchase_date);
+                const expiration = calculateExpirationDate();
                 if (!earliestExpiration || expiration < earliestExpiration) {
                   earliestExpiration = expiration;
                 }
@@ -794,7 +789,7 @@ export default function ClientDashboard() {
           onError={handleOAuthError}
         />
       </Suspense>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
           <SidebarTrigger>
             <Button variant="ghost" size="icon" className="md:hidden">
@@ -861,20 +856,22 @@ export default function ClientDashboard() {
                       upcomingSessions.map((session) => (
                         <div
                           key={session.id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                          className="flex items-center justify-between p-4 border rounded-lg border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
                         >
                           <div className="flex items-center space-x-4">
                             <div className="text-center">
                               <p className="font-medium text-red-600">
                                 {formatTime(session.start_time)}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {formatDate(session.date)}
                               </p>
                             </div>
                             <div>
-                              <p className="font-medium">{session.type}</p>
-                              <p className="text-sm text-gray-500">
+                              <p className="font-medium dark:text-gray-100">
+                                {session.type}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
                                 with {session.users.full_name}
                               </p>
                             </div>
@@ -884,10 +881,10 @@ export default function ClientDashboard() {
                               variant="default"
                               className={
                                 session.status === "confirmed"
-                                  ? "bg-green-100 text-green-800"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
                                   : session.status === "pending"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-gray-100 text-gray-800"
+                                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                                    : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
                               }
                             >
                               {session.status === "confirmed"
@@ -957,23 +954,23 @@ export default function ClientDashboard() {
                       paymentHistory.map((payment) => (
                         <div
                           key={payment.id}
-                          className="flex items-center justify-between p-3 border rounded-lg"
+                          className="flex items-center justify-between p-3 border rounded-lg border-gray-200 dark:border-gray-800"
                         >
                           <div>
                             <p className="font-medium">
                               {payment.session_count} Training Sessions
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                               {new Date(payment.paid_at).toLocaleDateString()}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold">
+                            <p className="font-bold dark:text-gray-100">
                               ${payment.amount.toFixed(2)}
                             </p>
                             <div className="flex items-center space-x-1">
                               <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span className="text-sm text-green-600">
+                              <span className="text-sm text-green-600 dark:text-green-400">
                                 {payment.status.charAt(0).toUpperCase() +
                                   payment.status.slice(1)}
                               </span>
@@ -982,7 +979,7 @@ export default function ClientDashboard() {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-6 text-gray-500">
+                      <div className="text-center py-6 text-gray-500 dark:text-gray-400">
                         No payment history available
                       </div>
                     )}
@@ -1003,7 +1000,7 @@ export default function ClientDashboard() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Sessions Remaining - Compact Display */}
-                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-12 h-12 rounded-full flex items-center justify-center ${
@@ -1027,10 +1024,10 @@ export default function ClientDashboard() {
                         </span>
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">
                           Sessions Remaining
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {totalSessionsRemaining === 0
                             ? "No sessions left!"
                             : totalSessionsRemaining <= 2
@@ -1055,7 +1052,7 @@ export default function ClientDashboard() {
 
                   {/* Package Breakdown - Compact */}
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-gray-900">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                       Current Packages
                     </h4>
                     <div className="space-y-2">
@@ -1063,7 +1060,7 @@ export default function ClientDashboard() {
                         sessionsByType.map((type, index) => (
                           <div
                             key={type.type}
-                            className="flex items-center justify-between p-2 bg-gray-50 rounded border"
+                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900/40 rounded border border-gray-200 dark:border-gray-800"
                           >
                             <div className="flex items-center gap-2">
                               <div
@@ -1077,17 +1074,17 @@ export default function ClientDashboard() {
                                         : "bg-purple-500"
                                 }`}
                               ></div>
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                 {type.type.split(" ")[0]}
                               </span>
                             </div>
-                            <span className="text-sm font-bold text-gray-900">
+                            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
                               {type.remaining}
                             </span>
                           </div>
                         ))
                       ) : (
-                        <div className="text-center py-2 text-gray-500 text-sm">
+                        <div className="text-center py-2 text-gray-500 dark:text-gray-400 text-sm">
                           No active packages
                         </div>
                       )}
@@ -1096,30 +1093,34 @@ export default function ClientDashboard() {
 
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center p-2 bg-white rounded border">
-                      <p className="text-lg font-bold text-gray-900">
+                    <div className="text-center p-2 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-800">
+                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {totalSessionsUsed}
                       </p>
-                      <p className="text-xs text-gray-500">Used</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Used
+                      </p>
                     </div>
-                    <div className="text-center p-2 bg-white rounded border">
-                      <p className="text-lg font-bold text-gray-900">
+                    <div className="text-center p-2 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-800">
+                      <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {totalSessionsRemaining + totalSessionsUsed}
                       </p>
-                      <p className="text-xs text-gray-500">Total</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Total
+                      </p>
                     </div>
                   </div>
 
                   {/* Expiration Info - Compact */}
                   {earliestExpirationDate && (
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-700">
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-semibold text-blue-900">
+                        <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">
                           Expires
                         </span>
                       </div>
-                      <p className="text-sm text-blue-700 mb-2">
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
                         {earliestExpirationDate.toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",

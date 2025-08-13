@@ -1187,18 +1187,20 @@ export default function BookingPage() {
   // Add loading state display
   if (isCheckingSession) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Checking session availability...</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Checking session availability...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
         <SidebarTrigger>
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-6 w-6" />
@@ -1213,7 +1215,9 @@ export default function BookingPage() {
                 Back to Dashboard
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">Book a Session</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              Book a Session
+            </h1>
           </div>
         </div>
       </div>
@@ -1258,7 +1262,7 @@ export default function BookingPage() {
                 {trainers.map((trainer) => (
                   <div
                     key={trainer.id}
-                    className="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                     onClick={() => handleTrainerSelect(trainer)}
                   >
                     <Avatar className="h-12 w-12">
@@ -1277,10 +1281,12 @@ export default function BookingPage() {
                       )}
                     </Avatar>
                     <div className="ml-4 flex-1">
-                      <h3 className="font-medium text-gray-900">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
                         {trainer.full_name}
                       </h3>
-                      <p className="text-sm text-gray-500">{trainer.email}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {trainer.email}
+                      </p>
                     </div>
                     <Button variant="ghost" size="icon">
                       <ArrowLeft className="h-4 w-4 rotate-180" />
@@ -1323,10 +1329,10 @@ export default function BookingPage() {
                       key={type.id}
                       className={`p-4 border rounded-lg transition-all ${
                         isDisabled
-                          ? "opacity-50 cursor-not-allowed border-gray-200"
+                          ? "opacity-50 cursor-not-allowed border-gray-200 dark:border-gray-700"
                           : selectedType === type.id
-                            ? "border-red-600 bg-red-50 cursor-pointer"
-                            : "border-gray-200 hover:border-gray-300 cursor-pointer"
+                            ? "border-red-600 dark:border-red-700 bg-red-50 dark:bg-red-900/20 cursor-pointer"
+                            : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
                       }`}
                       onClick={() => {
                         if (!isDisabled) {
@@ -1335,26 +1341,28 @@ export default function BookingPage() {
                       }}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium">{type.name}</h3>
+                        <h3 className="font-medium dark:text-gray-100">
+                          {type.name}
+                        </h3>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline">{type.duration}</Badge>
                           <Badge
                             variant={isDisabled ? "secondary" : "default"}
                             className={
                               isDisabled
-                                ? "bg-gray-100"
+                                ? "bg-gray-100 dark:bg-gray-800"
                                 : sessionsRemaining === 1
-                                  ? "bg-red-100 text-red-700"
+                                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
                                   : sessionsRemaining <= 3
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-green-100 text-green-700"
+                                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+                                    : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                             }
                           >
                             {sessionsRemaining} remaining
                           </Badge>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         {type.description}
                       </p>
                       {selectedType === type.id && !isDisabled && (
@@ -1370,13 +1378,13 @@ export default function BookingPage() {
           {/* Date & Time Selection */}
           {selectedTrainer && (
             <section>
-              <h2 className="text-lg font-semibold mb-4">
+              <h2 className="text-lg font-semibold mb-4 dark:text-gray-100">
                 2. Select Date & Time
               </h2>
               {loadingTimeSlots ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-                  <p className="mt-2 text-gray-600">
+                  <p className="mt-2 text-gray-600 dark:text-gray-400">
                     Loading available times...
                   </p>
                 </div>
@@ -1424,7 +1432,7 @@ export default function BookingPage() {
                   {/* Time Slots */}
                   {selectedDate && (
                     <div>
-                      <h3 className="text-lg font-medium mb-3">
+                      <h3 className="text-lg font-medium mb-3 dark:text-gray-100">
                         Available Time Slots
                       </h3>
                       {loadingTimeSlots ? (
@@ -1477,24 +1485,36 @@ export default function BookingPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                       Session Type
                     </p>
-                    <p className="text-base">
+                    <p className="text-base dark:text-gray-100">
                       {getSelectedSessionType()?.name}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Trainer</p>
-                    <p className="text-base">{selectedTrainer?.full_name}</p>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Trainer
+                    </p>
+                    <p className="text-base dark:text-gray-100">
+                      {selectedTrainer?.full_name}
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Date</p>
-                    <p className="text-base">{getFormattedBookingDate()}</p>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Date
+                    </p>
+                    <p className="text-base dark:text-gray-100">
+                      {getFormattedBookingDate()}
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Time</p>
-                    <p className="text-base">{getFormattedBookingTime()}</p>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Time
+                    </p>
+                    <p className="text-base dark:text-gray-100">
+                      {getFormattedBookingTime()}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -1527,7 +1547,7 @@ export default function BookingPage() {
                   </div>
                   <div>
                     <h4 className="font-medium">Session Type</h4>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {getSelectedSessionType()?.name} (
                       {getSelectedSessionType()?.duration})
                     </p>
@@ -1541,7 +1561,7 @@ export default function BookingPage() {
                   </div>
                   <div>
                     <h4 className="font-medium">Trainer</h4>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {selectedTrainer?.full_name}
                     </p>
                   </div>
@@ -1554,7 +1574,7 @@ export default function BookingPage() {
                   </div>
                   <div>
                     <h4 className="font-medium">Date</h4>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {getFormattedBookingDate()}
                     </p>
                   </div>
@@ -1567,7 +1587,7 @@ export default function BookingPage() {
                   </div>
                   <div>
                     <h4 className="font-medium">Time</h4>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {getFormattedBookingTime()}
                     </p>
                   </div>
@@ -1676,19 +1696,19 @@ export default function BookingPage() {
                   key={packageType.type}
                   className={`${
                     packageType.remaining >= 4
-                      ? "bg-green-50"
+                      ? "bg-green-50 dark:bg-green-900/20"
                       : packageType.remaining >= 2
-                        ? "bg-yellow-50"
-                        : "bg-red-50"
+                        ? "bg-yellow-50 dark:bg-yellow-900/20"
+                        : "bg-red-50 dark:bg-red-900/20"
                   } p-4 rounded-lg`}
                 >
                   <h3
                     className={`font-semibold ${
                       packageType.remaining >= 4
-                        ? "text-green-700"
+                        ? "text-green-700 dark:text-green-300"
                         : packageType.remaining >= 2
-                          ? "text-yellow-700"
-                          : "text-red-700"
+                          ? "text-yellow-700 dark:text-yellow-300"
+                          : "text-red-700 dark:text-red-300"
                     }`}
                   >
                     {packageType.type}
@@ -1697,10 +1717,10 @@ export default function BookingPage() {
                     <span
                       className={`text-sm ${
                         packageType.remaining >= 4
-                          ? "text-green-600"
+                          ? "text-green-600 dark:text-green-300"
                           : packageType.remaining >= 2
-                            ? "text-yellow-600"
-                            : "text-red-600"
+                            ? "text-yellow-600 dark:text-yellow-300"
+                            : "text-red-600 dark:text-red-300"
                       }`}
                     >
                       {packageType.remaining} remaining
@@ -1709,10 +1729,10 @@ export default function BookingPage() {
                       variant="secondary"
                       className={`${
                         packageType.remaining >= 4
-                          ? "bg-green-100"
+                          ? "bg-green-100 dark:bg-green-900/30 dark:text-green-300"
                           : packageType.remaining >= 2
-                            ? "bg-yellow-100"
-                            : "bg-red-100"
+                            ? "bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-300"
+                            : "bg-red-100 dark:bg-red-900/30 dark:text-red-300"
                       }`}
                     >
                       {packageType.remaining}/{packageType.total} sessions
@@ -1721,7 +1741,7 @@ export default function BookingPage() {
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-500 mt-4 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 text-center">
               Click continue to proceed with booking your next session.
             </p>
           </div>

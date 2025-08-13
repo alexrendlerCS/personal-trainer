@@ -723,7 +723,9 @@ export function TrainerSidebar() {
 
             <div className="space-y-6 mt-8">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className="dark:text-gray-100">
+                  Name
+                </Label>
                 <Input
                   id="name"
                   value={newName}
@@ -736,18 +738,24 @@ export function TrainerSidebar() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="dark:text-gray-100">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   value={userData.email}
                   disabled
-                  className="bg-gray-50"
+                  className="bg-gray-50 dark:bg-gray-900 dark:text-gray-100"
                 />
-                <p className="text-xs text-gray-500">Email cannot be changed</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Email cannot be changed
+                </p>
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Change Password</h3>
+                <h3 className="text-lg font-medium dark:text-gray-100">
+                  Change Password
+                </h3>
 
                 {/* Current Password */}
                 <div className="space-y-2">
@@ -775,7 +783,7 @@ export function TrainerSidebar() {
                           current: !prev.current,
                         }))
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     >
                       {showPasswords.current ? (
                         <EyeOff className="h-4 w-4" />
@@ -819,7 +827,7 @@ export function TrainerSidebar() {
                           new: !prev.new,
                         }))
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     >
                       {showPasswords.new ? (
                         <EyeOff className="h-4 w-4" />
@@ -862,7 +870,7 @@ export function TrainerSidebar() {
                           confirm: !prev.confirm,
                         }))
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     >
                       {showPasswords.confirm ? (
                         <EyeOff className="h-4 w-4" />

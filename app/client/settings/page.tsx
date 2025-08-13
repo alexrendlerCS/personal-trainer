@@ -181,19 +181,19 @@ function GoogleCalendarSection() {
           <Calendar className="h-5 w-5 text-red-600" />
           <span>Calendar Integration</span>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="dark:text-gray-400">
           Sync with your calendar for seamless scheduling
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
           <div className="flex items-center space-x-3">
             <div className="bg-blue-600 p-2 rounded">
               <Calendar className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="font-medium">Google Calendar</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium dark:text-gray-100">Google Calendar</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Sync your training sessions and reminders
               </p>
             </div>
@@ -203,7 +203,7 @@ function GoogleCalendarSection() {
               <>
                 <Badge
                   variant="outline"
-                  className="text-gray-600 border-gray-600 cursor-pointer hover:bg-gray-50"
+                  className="text-gray-600 dark:text-gray-300 border-gray-600 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
                   onClick={() => setShowSyncDialog(true)}
                 >
                   {isSyncing ? (
@@ -217,7 +217,7 @@ function GoogleCalendarSection() {
                 </Badge>
                 <Badge
                   variant="outline"
-                  className="text-green-600 border-green-600"
+                  className="text-green-600 dark:text-green-300 border-green-600 dark:border-green-700"
                 >
                   Connected
                 </Badge>
@@ -226,7 +226,7 @@ function GoogleCalendarSection() {
               <>
                 <Badge
                   variant="outline"
-                  className="text-orange-600 border-orange-600"
+                  className="text-orange-600 dark:text-orange-300 border-orange-600 dark:border-orange-700"
                 >
                   Not Connected
                 </Badge>
@@ -263,7 +263,7 @@ function GoogleCalendarSection() {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
                     <svg
@@ -279,10 +279,10 @@ function GoogleCalendarSection() {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium text-yellow-800">
+                    <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
                       Important Warning
                     </h3>
-                    <div className="mt-2 text-sm text-yellow-700">
+                    <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                       <ul className="list-disc list-inside space-y-1">
                         <li>
                           A new calendar called "My Training Sessions" will be
@@ -332,7 +332,7 @@ function GoogleCalendarSection() {
         {/* Sync Results Dialog */}
         {syncResult && (
           <Dialog open={!!syncResult} onOpenChange={() => setSyncResult(null)}>
-            <DialogContent>
+          <DialogContent>
               <DialogHeader>
                 <DialogTitle>
                   {syncResult.success ? "Sync Results" : "Sync Failed"}
@@ -345,10 +345,10 @@ function GoogleCalendarSection() {
               </DialogHeader>
               <div className="space-y-4">
                 {syncResult.success ? (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
                     <div className="flex items-center space-x-2">
                       <svg
-                        className="h-5 w-5 text-green-400"
+                      className="h-5 w-5 text-green-400"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -358,16 +358,16 @@ function GoogleCalendarSection() {
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span className="text-sm font-medium text-green-800">
+                      <span className="text-sm font-medium text-green-800 dark:text-green-300">
                         {syncResult.message}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
                     <div className="flex items-center space-x-2">
                       <svg
-                        className="h-5 w-5 text-red-400"
+                      className="h-5 w-5 text-red-400"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -377,7 +377,7 @@ function GoogleCalendarSection() {
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span className="text-sm font-medium text-red-800">
+                      <span className="text-sm font-medium text-red-800 dark:text-red-300">
                         {syncResult.error}
                       </span>
                     </div>
@@ -409,14 +409,14 @@ function GoogleCalendarSection() {
 
                 {syncResult.syncResults?.errors &&
                   syncResult.syncResults.errors.length > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-red-800 mb-2">
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
                         Errors:
                       </h4>
-                      <div className="text-xs text-red-700 space-y-1 max-h-32 overflow-y-auto">
+                      <div className="text-xs text-red-700 dark:text-red-300 space-y-1 max-h-32 overflow-y-auto">
                         {syncResult.syncResults.errors.map(
                           (error: string, index: number) => (
-                            <div key={index} className="p-2 bg-red-100 rounded">
+                            <div key={index} className="p-2 bg-red-100 dark:bg-red-900/30 rounded">
                               {error}
                             </div>
                           )
@@ -593,10 +593,10 @@ export default function ClientSettings() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
         <SidebarTrigger />
-        <h1 className="text-xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
       </div>
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
@@ -617,15 +617,15 @@ export default function ClientSettings() {
                 <Bell className="h-5 w-5 text-red-600" />
                 <span>Notifications</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-400">
                 Manage how you receive notifications
               </CardDescription>
             </CardHeader>
             <CardContent className="py-12 flex flex-col items-center justify-center">
-              <span className="text-gray-500 text-sm mb-2">
+              <span className="text-gray-500 dark:text-gray-400 text-sm mb-2">
                 Notifications functionality
               </span>
-              <span className="text-lg font-semibold text-gray-700">
+              <span className="text-lg font-semibold text-gray-700 dark:text-gray-100">
                 Coming Soon
               </span>
             </CardContent>
@@ -638,15 +638,15 @@ export default function ClientSettings() {
                 <CreditCard className="h-5 w-5 text-red-600" />
                 <span>Payment Methods</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-400">
                 Manage your payment methods and billing information
               </CardDescription>
             </CardHeader>
             <CardContent className="py-12 flex flex-col items-center justify-center">
-              <span className="text-gray-500 text-sm mb-2">
+              <span className="text-gray-500 dark:text-gray-400 text-sm mb-2">
                 Payment method management
               </span>
-              <span className="text-lg font-semibold text-gray-700">
+              <span className="text-lg font-semibold text-gray-700 dark:text-gray-100">
                 Coming Soon
               </span>
             </CardContent>
@@ -659,15 +659,15 @@ export default function ClientSettings() {
                 <Gift className="h-5 w-5 text-red-600" />
                 <span>Referral Program</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-400">
                 Earn rewards for referring friends and family
               </CardDescription>
             </CardHeader>
             <CardContent className="py-12 flex flex-col items-center justify-center">
-              <span className="text-gray-500 text-sm mb-2">
+              <span className="text-gray-500 dark:text-gray-400 text-sm mb-2">
                 Referral program functionality
               </span>
-              <span className="text-lg font-semibold text-gray-700">
+              <span className="text-lg font-semibold text-gray-700 dark:text-gray-100">
                 Coming Soon
               </span>
             </CardContent>

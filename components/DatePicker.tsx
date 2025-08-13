@@ -53,7 +53,7 @@ export function DatePicker({
         }
         readOnly
         placeholder={placeholder}
-        className="pr-10 pl-3 w-full h-10 cursor-pointer border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-sm font-normal"
+        className="pr-10 pl-3 w-full h-10 cursor-pointer border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors text-sm font-normal dark:bg-gray-900 dark:text-gray-100"
         onClick={() => setShow((s) => !s)}
         autoComplete="off"
       />
@@ -63,10 +63,10 @@ export function DatePicker({
         onClick={() => setShow((s) => !s)}
         tabIndex={-1}
       >
-        <Calendar className="h-4 w-4 text-gray-500" />
+        <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
       </button>
       {show && (
-        <div className="absolute z-50 bg-white border rounded shadow mt-2 left-0">
+        <div className="absolute z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded shadow mt-2 left-0">
           <DayPicker
             mode="single"
             selected={value ? parseLocalDateString(value) : undefined}
@@ -82,6 +82,19 @@ export function DatePicker({
             }}
             disabled={min ? { before: parseLocalDateString(min) } : undefined}
             initialFocus
+            className="p-2"
+            classNames={{
+              caption_label: "text-sm font-medium dark:text-gray-100",
+              head_cell: "text-gray-500 dark:text-gray-400 w-9 text-[0.8rem]",
+              day: "h-9 w-9 p-0 font-normal",
+              day_selected: "bg-red-600 text-white hover:bg-red-700",
+              day_today:
+                "bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-300 ring-1 ring-red-500 dark:ring-red-700",
+              day_outside: "text-gray-400 dark:text-gray-600",
+              months: "p-1",
+              table: "w-full border-collapse",
+              row: "flex w-full mt-2",
+            }}
           />
         </div>
       )}
