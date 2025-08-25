@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { LineChart, BarChart, PieChart } from "lucide-react";
 import {
   LineChart as RechartsLineChart,
@@ -34,7 +35,14 @@ import {
 } from "recharts";
 import { createClient } from "@/lib/supabaseClient";
 import { useEffect, useState, useRef } from "react";
-import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import {
+  format,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  subDays,
+  subYears,
+} from "date-fns";
 import { useSearchParams } from "next/navigation";
 
 interface RevenueData {
@@ -42,10 +50,14 @@ interface RevenueData {
   revenue: number;
 }
 
+type TimeRange = "week" | "month" | "year";
+
 export default function AnalyticsClientPage() {
   console.debug("TrainerAnalyticsPage mounted");
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [revenueLoading, setRevenueLoading] = useState(false);
+  const [revenueTimeRange, setRevenueTimeRange] = useState<TimeRange>("month");
   const [newClientsData, setNewClientsData] = useState<
     { month: string; count: number }[]
   >([]);
@@ -94,7 +106,7 @@ export default function AnalyticsClientPage() {
 
   useEffect(() => {
     console.debug("useEffect running in analytics page");
-    fetchRevenueData();
+    fetchRevenueData(revenueTimeRange);
     fetchNewClientsData();
     fetchWeekdaySessionsData();
     fetchPackageSessionsData();
@@ -102,7 +114,7 @@ export default function AnalyticsClientPage() {
     fetchTopSessionTimes();
     fetchRecentPayments();
     fetchRecentSessions();
-  }, []);
+  }, [revenueTimeRange]);
 
   useEffect(() => {
     const clientIdFromUrl = searchParams.get("client");
@@ -121,8 +133,9 @@ export default function AnalyticsClientPage() {
     }
   }, [searchParams]);
 
-  const fetchRevenueData = async () => {
-    console.debug("fetchRevenueData called");
+  const fetchRevenueData = async (timeRange: TimeRange = revenueTimeRange) => {
+    console.debug("fetchRevenueData called with timeRange:", timeRange);
+    setRevenueLoading(true);
     try {
       const {
         data: { session },
@@ -132,39 +145,101 @@ export default function AnalyticsClientPage() {
         console.debug("No session found, aborting revenue fetch");
         return;
       }
-      // Generate last 30 days
-      const days = [];
-      for (let i = 29; i >= 0; i--) {
-        const date = subMonths(new Date(), 0);
-        const day = new Date(date);
-        day.setDate(date.getDate() - i);
-        days.push({
-          day: format(day, "MMM dd"),
-          startDate:
-            startOfMonth(day).toISOString().slice(0, 10) + "T00:00:00.000Z",
-          endDate:
-            startOfMonth(day).toISOString().slice(0, 10) + "T23:59:59.999Z",
-          iso: day.toISOString().slice(0, 10),
-        });
+
+      let days: { day: string; iso: string }[] = [];
+      const now = new Date();
+
+      if (timeRange === "week") {
+        // Generate last 7 days
+        for (let i = 6; i >= 0; i--) {
+          const day = new Date(now);
+          day.setDate(now.getDate() - i);
+          days.push({
+            day: format(day, "EEE"),
+            iso: day.toISOString().slice(0, 10),
+          });
+        }
+      } else if (timeRange === "month") {
+        // Generate last 30 days
+        for (let i = 29; i >= 0; i--) {
+          const day = new Date(now);
+          day.setDate(now.getDate() - i);
+          days.push({
+            day: format(day, "MMM dd"),
+            iso: day.toISOString().slice(0, 10),
+          });
+        }
+      } else if (timeRange === "year") {
+        // Generate last 12 months
+        for (let i = 11; i >= 0; i--) {
+          const day = new Date(now);
+          day.setMonth(now.getMonth() - i);
+          days.push({
+            day: format(day, "MMM yyyy"),
+            iso: day.toISOString().slice(0, 7), // Just YYYY-MM for year view
+          });
+        }
       }
+
       console.debug("Days for revenue trend:", days);
+
+      // Debug: Check what payments exist for this trainer
+      const { data: allPayments, error: debugError } = await supabase
+        .from("payments")
+        .select("id, amount, paid_at, status, trainer_id")
+        .eq("trainer_id", session.user.id);
+      console.debug(
+        `Found ${allPayments?.length || 0} total payments for trainer ${session.user.id}:`,
+        allPayments
+      );
+
+      // Also check all payments to see if there are any at all
+      const { data: allPaymentsNoFilter, error: debugError2 } = await supabase
+        .from("payments")
+        .select("id, amount, paid_at, status, trainer_id");
+      console.debug(
+        `Found ${allPaymentsNoFilter?.length || 0} total payments in database:`,
+        allPaymentsNoFilter
+      );
+
       // Fetch revenue data for each day
       const revenuePromises = days.map(async ({ day, iso }) => {
+        let startDate, endDate;
+
+        if (timeRange === "year") {
+          // For year view, get the entire month
+          const [year, month] = iso.split("-");
+          const monthStart = new Date(parseInt(year), parseInt(month) - 1, 1);
+          const monthEnd = new Date(parseInt(year), parseInt(month), 0);
+          startDate = monthStart.toISOString().slice(0, 10) + "T00:00:00.000Z";
+          endDate = monthEnd.toISOString().slice(0, 10) + "T23:59:59.999Z";
+        } else {
+          // For week and month views, get the specific day
+          startDate = iso + "T00:00:00.000Z";
+          endDate = iso + "T23:59:59.999Z";
+        }
+
+        console.debug(
+          `Fetching revenue for ${day}: ${startDate} to ${endDate}`
+        );
         const { data, error } = await supabase
           .from("payments")
           .select("amount, paid_at, status")
           .eq("status", "completed")
-          .gte("paid_at", iso + "T00:00:00.000Z")
-          .lte("paid_at", iso + "T23:59:59.999Z");
+          .eq("trainer_id", session.user.id)
+          .gte("paid_at", startDate)
+          .lte("paid_at", endDate);
         if (error) {
           console.error("Error fetching revenue data:", error);
           return { day, revenue: 0 };
         }
+        console.debug(`Found ${data?.length || 0} payments for ${day}:`, data);
         const totalRevenue =
           data?.reduce(
             (sum, payment) => sum + (parseFloat(payment.amount) || 0),
             0
           ) || 0;
+        console.debug(`Total revenue for ${day}: $${totalRevenue}`);
         return { day, revenue: totalRevenue };
       });
       const revenueResults = await Promise.all(revenuePromises);
@@ -172,7 +247,7 @@ export default function AnalyticsClientPage() {
     } catch (error) {
       console.error("Error fetching revenue data:", error);
     } finally {
-      setLoading(false);
+      setRevenueLoading(false);
     }
   };
 
@@ -570,12 +645,34 @@ export default function AnalyticsClientPage() {
               <CardTitle className="flex items-center gap-2">
                 <LineChart className="h-5 w-5 text-blue-600" /> Revenue Trend
               </CardTitle>
-              <CardDescription>
-                Revenue trends over the past month
-              </CardDescription>
+              <CardDescription>Revenue trends over time</CardDescription>
             </CardHeader>
             <CardContent>
-              {loading ? (
+              {/* Time Range Toggle Buttons */}
+              <div className="flex gap-2 mb-4">
+                <Button
+                  variant={revenueTimeRange === "week" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setRevenueTimeRange("week")}
+                >
+                  Week
+                </Button>
+                <Button
+                  variant={revenueTimeRange === "month" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setRevenueTimeRange("month")}
+                >
+                  Month
+                </Button>
+                <Button
+                  variant={revenueTimeRange === "year" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setRevenueTimeRange("year")}
+                >
+                  Year
+                </Button>
+              </div>
+              {revenueLoading ? (
                 <div className="h-40 flex items-center justify-center text-gray-400">
                   Loading...
                 </div>
@@ -596,7 +693,15 @@ export default function AnalyticsClientPage() {
                       />
                       <Tooltip
                         formatter={(value: number) => [`$${value}`, "Revenue"]}
-                        labelFormatter={(label) => `Month: ${label}`}
+                        labelFormatter={(label) => {
+                          if (revenueTimeRange === "year") {
+                            return `Month: ${label}`;
+                          } else if (revenueTimeRange === "week") {
+                            return `Day: ${label}`;
+                          } else {
+                            return `Date: ${label}`;
+                          }
+                        }}
                       />
                       <Line
                         type="monotone"
