@@ -67,6 +67,8 @@ type PackageTypeCounts = {
   [K in PackageType]: PackageTypeCount;
 };
 
+type PurchaseOption = "prorated" | "current_month" | "next_month";
+
 const packageSections: PackageSection[] = [
   {
     title: "In-Person Training",
@@ -268,6 +270,17 @@ function PackagesContent() {
     monthlySessionCount: 1,
     priceId: "single-session",
   };
+
+  // Purchase options modal state
+  const [showPurchaseOptionsModal, setShowPurchaseOptionsModal] =
+    useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [selectedSection, setSelectedSection] = useState<PackageSection | null>(
+    null
+  );
+  const [selectedPurchaseOption, setSelectedPurchaseOption] =
+    useState<PurchaseOption | null>(null);
+
   // Promo code state per package
   const [promoCodes, setPromoCodes] = useState<{ [pkgId: string]: string }>({});
   const [promoErrors, setPromoErrors] = useState<{ [pkgId: string]: string }>(
@@ -613,31 +626,38 @@ function PackagesContent() {
   );
 
   const handleCheckout = async (pkg: Package, section: PackageSection) => {
-    try {
-      if (!user?.id) {
-        console.error("User not logged in");
-        router.push("/login");
-        return;
-      }
+    // Show purchase options modal instead of going directly to checkout
+    setSelectedPackage(pkg);
+    setSelectedSection(section);
+    setSelectedPurchaseOption(null);
+    setShowPurchaseOptionsModal(true);
+  };
 
-      setIsLoading(pkg.id);
+  const handlePurchaseOption = async (purchaseOption: PurchaseOption) => {
+    if (!selectedPackage || !selectedSection || !user?.id) {
+      return;
+    }
+
+    try {
+      setIsLoading(selectedPackage.id);
 
       // Ensure the package type is correctly formatted
-      const packageType = section.title.endsWith("Training")
-        ? section.title
-        : `${section.title} Training`;
+      const packageType = selectedSection.title.endsWith("Training")
+        ? selectedSection.title
+        : `${selectedSection.title} Training`;
 
       console.log("🛍️ Creating checkout session with:", {
         userId: user.id,
         packageType,
-        sessionsIncluded: pkg.monthlySessionCount,
-        sectionTitle: section.title,
+        sessionsIncluded: selectedPackage.monthlySessionCount,
+        purchaseOption,
+        sectionTitle: selectedSection.title,
         validTypes: [
           "In-Person Training",
           "Virtual Training",
           "Partner Training",
         ],
-        promoCode: promoCodes[pkg.id],
+        promoCode: promoCodes[selectedPackage.id],
       });
 
       const response = await fetch("/api/stripe/checkout-session", {
@@ -648,8 +668,9 @@ function PackagesContent() {
         body: JSON.stringify({
           userId: user.id,
           packageType: packageType,
-          sessionsIncluded: pkg.monthlySessionCount,
-          promoCode: promoCodes[pkg.id]?.trim() || undefined,
+          sessionsIncluded: selectedPackage.monthlySessionCount,
+          purchaseOption: purchaseOption,
+          promoCode: promoCodes[selectedPackage.id]?.trim() || undefined,
         }),
       });
 
@@ -669,6 +690,10 @@ function PackagesContent() {
       router.push("/login");
     } finally {
       setIsLoading(null);
+      setShowPurchaseOptionsModal(false);
+      setSelectedPackage(null);
+      setSelectedSection(null);
+      setSelectedPurchaseOption(null);
     }
   };
 
@@ -729,6 +754,133 @@ function PackagesContent() {
               }}
             >
               Continue to Checkout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Purchase Options Modal */}
+      <Dialog
+        open={showPurchaseOptionsModal}
+        onOpenChange={setShowPurchaseOptionsModal}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center mb-2 dark:text-gray-100">
+              Choose Your Package Option
+            </DialogTitle>
+            <DialogDescription className="text-center text-base text-gray-700 dark:text-gray-300 mb-4">
+              {selectedPackage && selectedSection && (
+                <>
+                  <strong className="dark:text-gray-100">
+                    {selectedPackage.name}
+                  </strong>{" "}
+                  - {selectedSection.title}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            {/* Option 1: Prorated Package */}
+            <div
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                selectedPurchaseOption === "prorated"
+                  ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
+                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+              }`}
+              onClick={() => setSelectedPurchaseOption("prorated")}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div className="font-semibold text-lg dark:text-gray-100">
+                  Prorated Package
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Best Value
+                </div>
+              </div>
+              <div className="text-gray-700 dark:text-gray-300 mb-2">
+                Only pay for the sessions you'll use this month. Perfect if
+                you're starting mid-month.
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Sessions: Calculated based on remaining weeks
+              </div>
+            </div>
+
+            {/* Option 2: Full Package for Current Month */}
+            <div
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                selectedPurchaseOption === "current_month"
+                  ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
+                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+              }`}
+              onClick={() => setSelectedPurchaseOption("current_month")}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div className="font-semibold text-lg dark:text-gray-100">
+                  Full Package - This Month
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Most Sessions
+                </div>
+              </div>
+              <div className="text-gray-700 dark:text-gray-300 mb-2">
+                Get all sessions for the current month. Great for intensive
+                training.
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                Sessions: {selectedPackage?.monthlySessionCount} sessions
+              </div>
+              <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-700">
+                ⚠️ Note: If purchased mid-month, you'll have less time to use all of your sessions for the month.
+              </div>
+            </div>
+
+            {/* Option 3: Full Package for Next Month */}
+            <div
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                selectedPurchaseOption === "next_month"
+                  ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
+                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+              }`}
+              onClick={() => setSelectedPurchaseOption("next_month")}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div className="font-semibold text-lg dark:text-gray-100">
+                  Full Package - Next Month
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Full Month
+                </div>
+              </div>
+              <div className="text-gray-700 dark:text-gray-300 mb-2">
+                Purchase the full package for the upcoming month. Perfect for
+                planning ahead.
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Sessions: {selectedPackage?.monthlySessionCount} sessions
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              className="w-full bg-red-600 hover:bg-red-700 text-lg py-3"
+              disabled={
+                !selectedPurchaseOption || isLoading === selectedPackage?.id
+              }
+              onClick={() =>
+                selectedPurchaseOption &&
+                handlePurchaseOption(selectedPurchaseOption)
+              }
+            >
+              {isLoading === selectedPackage?.id ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Continue to Checkout"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

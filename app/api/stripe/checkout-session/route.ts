@@ -9,13 +9,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { userId, packageType, sessionsIncluded, promoCode } =
+    const { userId, packageType, sessionsIncluded, promoCode, purchaseOption } =
       await req.json();
 
     console.log("🛒 Creating Stripe checkout session:", {
       userId,
       packageType,
       sessionsIncluded,
+      purchaseOption,
     });
 
     // Define valid pricing structure (cents)
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Calculate prorated pricing based on remaining weeks in the month
+    // Calculate pricing based on purchase option
     const today = new Date();
     const nextMonthStart = new Date(
       today.getFullYear(),
@@ -72,25 +73,60 @@ export async function POST(req: Request) {
       1
     );
 
-    // Sessions per week (assume original sessions over 4 weeks)
-    const sessionsPerWeek = sessionsIncluded / 4;
-    const proratedSessions = Math.round(weeksRemaining * sessionsPerWeek);
+    let actualSessions = sessionsIncluded;
+    let amount = baseAmount;
+    let isProrated = false;
+    let expiryDate = nextMonthStart;
 
-    // Rate per session (in cents)
-    const ratePerSession = baseAmount / sessionsIncluded;
-    const amount = Math.round(ratePerSession * proratedSessions);
+    // Determine pricing based on purchase option
+    switch (purchaseOption) {
+      case "prorated":
+        // Prorated package: only sessions for remaining weeks
+        const sessionsPerWeek = sessionsIncluded / 4;
+        actualSessions = Math.round(weeksRemaining * sessionsPerWeek);
+        const ratePerSession = baseAmount / sessionsIncluded;
+        amount = Math.round(ratePerSession * actualSessions);
+        isProrated = true;
+        break;
 
-    // Log prorated pricing details
-    console.log("📉 Prorated Pricing Applied:", {
+      case "current_month":
+        // Full package for current month: all sessions (not prorated)
+        actualSessions = sessionsIncluded;
+        amount = baseAmount;
+        isProrated = false;
+        break;
+
+      case "next_month":
+        // Full package for next month: all sessions
+        actualSessions = sessionsIncluded;
+        amount = baseAmount;
+        isProrated = false;
+        // Set expiry to end of next month
+        expiryDate = new Date(today.getFullYear(), today.getMonth() + 2, 1);
+        break;
+
+      default:
+        // Fallback to original prorated logic for backward compatibility
+        const fallbackSessionsPerWeek = sessionsIncluded / 4;
+        actualSessions = Math.round(weeksRemaining * fallbackSessionsPerWeek);
+        const fallbackRatePerSession = baseAmount / sessionsIncluded;
+        amount = Math.round(fallbackRatePerSession * actualSessions);
+        isProrated = true;
+        break;
+    }
+
+    // Log pricing details
+    console.log("💰 Pricing Calculation:", {
+      purchaseOption,
       today: today.toISOString(),
       nextMonthStart: nextMonthStart.toISOString(),
       weeksRemaining,
-      sessionsPerWeek,
       originalSessions: sessionsIncluded,
-      proratedSessions,
+      actualSessions,
       originalAmount: baseAmount,
-      proratedAmount: amount,
-      ratePerSession,
+      finalAmount: amount,
+      isProrated,
+      expiryDate: expiryDate.toISOString(),
     });
 
     const origin =
@@ -139,7 +175,7 @@ export async function POST(req: Request) {
         }
       };
 
-      // Format currency for prorated descriptions
+      // Format currency for descriptions
       const formatPrice = (cents: number) =>
         `$${(cents / 100).toLocaleString("en-US", {
           minimumFractionDigits: 2,
@@ -194,8 +230,8 @@ export async function POST(req: Request) {
 
     const packageDetails = getPackageDetails(
       packageType,
-      proratedSessions,
-      nextMonthStart
+      actualSessions,
+      expiryDate
     );
 
     // Validate promo code if provided
@@ -230,9 +266,9 @@ export async function POST(req: Request) {
             currency: "usd",
             product_data: {
               name:
-                proratedSessions === sessionsIncluded
-                  ? `Transform with ${proratedSessions} ${packageType} Sessions 💪`
-                  : `Prorated Package: ${proratedSessions} of ${sessionsIncluded} ${packageType} Sessions 💪`,
+                actualSessions === sessionsIncluded
+                  ? `Transform with ${actualSessions} ${packageType} Sessions 💪`
+                  : `Prorated Package: ${actualSessions} of ${sessionsIncluded} ${packageType} Sessions 💪`,
               description: packageDetails.description,
             },
             unit_amount: amount,
@@ -251,11 +287,11 @@ export async function POST(req: Request) {
 
       metadata: {
         user_id: userId,
-        sessions_included: proratedSessions.toString(), // actual # of sessions this user is buying
+        sessions_included: actualSessions.toString(), // actual # of sessions this user is buying
         original_sessions: sessionsIncluded.toString(), // original full package size
-        is_prorated: proratedSessions !== sessionsIncluded ? "true" : "false",
+        is_prorated: isProrated ? "true" : "false",
         package_type: packageType,
-        expiry_date: nextMonthStart.toISOString(),
+        expiry_date: expiryDate.toISOString(),
         ...(promoCode ? { promo_code: promoCode } : {}),
       },
       ...(promotionCodeId
