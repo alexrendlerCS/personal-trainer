@@ -832,7 +832,8 @@ function PackagesContent() {
                 Sessions: {selectedPackage?.monthlySessionCount} sessions
               </div>
               <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-700">
-                ⚠️ Note: If purchased mid-month, you'll have less time to use all of your sessions for the month.
+                ⚠️ Note: If purchased mid-month, you'll have less time to use
+                all of your sessions for the month.
               </div>
             </div>
 
