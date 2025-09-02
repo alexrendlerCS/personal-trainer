@@ -318,6 +318,7 @@ export default function BookingPage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [overlapWarning, setOverlapWarning] = useState<string>("");
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [sessionsRemaining, setSessionsRemaining] = useState<number>(0);
@@ -338,6 +339,38 @@ export default function BookingPage() {
   const [recurringWeeks, setRecurringWeeks] = useState(0);
 
   const supabase = createClient();
+
+  // Check for overlaps when recurring sessions change
+  useEffect(() => {
+    const checkOverlaps = async () => {
+      if (
+        isRecurring &&
+        selectedTrainer &&
+        (recurringSessions.length > 0 || recurringWeeks > 0)
+      ) {
+        const overlapCheck = await checkRecurringSessionOverlaps();
+        if (overlapCheck.hasOverlaps) {
+          const overlapDetails = overlapCheck.overlaps
+            .map((overlap) => `${overlap.date} at ${overlap.time}`)
+            .join("\n");
+          setOverlapWarning(overlapDetails);
+        } else {
+          setOverlapWarning("");
+        }
+      } else {
+        setOverlapWarning("");
+      }
+    };
+
+    checkOverlaps();
+  }, [
+    recurringSessions,
+    recurringWeeks,
+    selectedTrainer,
+    isRecurring,
+    selectedDate,
+    selectedTimeSlot,
+  ]);
 
   useEffect(() => {
     const fetchAvailableTimeSlots = async () => {
@@ -816,6 +849,111 @@ export default function BookingPage() {
     return { isValid: true, message: "" };
   };
 
+  // Check for overlapping sessions with existing sessions
+  const checkRecurringSessionOverlaps = async (): Promise<{
+    hasOverlaps: boolean;
+    overlaps: Array<{ date: string; time: string; reason: string }>;
+  }> => {
+    if (!selectedTrainer || (!isRecurring && recurringSessions.length === 0)) {
+      return { hasOverlaps: false, overlaps: [] };
+    }
+
+    const overlaps: Array<{ date: string; time: string; reason: string }> = [];
+
+    // Determine what to check for overlaps
+    let sessionsToCheck: Array<{
+      dayOfWeek: number;
+      time: string;
+      weeks: number;
+      startDate: string;
+    }> = [];
+
+    if (recurringSessions.length > 0) {
+      // Use confirmed recurring sessions
+      sessionsToCheck = recurringSessions;
+    } else if (
+      isRecurring &&
+      recurringWeeks > 0 &&
+      selectedDate &&
+      selectedTimeSlot
+    ) {
+      // Use configured recurring weeks (not yet confirmed)
+      sessionsToCheck = [
+        {
+          dayOfWeek: new Date(selectedDate).getDay(),
+          time: selectedTimeSlot.startTime,
+          weeks: recurringWeeks,
+          startDate: selectedDate,
+        },
+      ];
+    }
+
+    // Generate all the individual session dates and times
+    for (const recurringSession of sessionsToCheck) {
+      const startDate = parseLocalDateString(recurringSession.startDate);
+
+      for (let week = 0; week < recurringSession.weeks; week++) {
+        const sessionDate = new Date(startDate);
+        sessionDate.setDate(startDate.getDate() + week * 7);
+
+        const dateString = formatLocalDate(sessionDate);
+        const startTime = recurringSession.time;
+        const endTime = addMinutes(new Date(`2000-01-01T${startTime}`), 60)
+          .toTimeString()
+          .slice(0, 5);
+
+        // Check for overlaps with existing sessions
+        const { data: existingSessions, error } = await supabase
+          .from("sessions")
+          .select("date, start_time, end_time, client_id, trainer_id")
+          .eq("trainer_id", selectedTrainer.id)
+          .eq("date", dateString)
+          .neq("status", "cancelled");
+
+        if (error) {
+          console.error("Error checking for overlaps:", error);
+          continue;
+        }
+
+        // Check if any existing session overlaps with this time slot
+        const hasOverlap = existingSessions?.some((existingSession) => {
+          const existingStart = timeToMinutes(existingSession.start_time);
+          const existingEnd = timeToMinutes(existingSession.end_time);
+          const newStart = timeToMinutes(startTime);
+          const newEnd = timeToMinutes(endTime);
+
+          // Check for time overlap
+          const timeOverlaps = !(
+            newEnd <= existingStart || newStart >= existingEnd
+          );
+
+          if (timeOverlaps) {
+            // Check if it's the same client (allow client to book multiple sessions)
+            if (existingSession.client_id === userProfile?.id) {
+              return false; // Same client, no conflict
+            }
+            return true; // Different client, conflict
+          }
+
+          return false;
+        });
+
+        if (hasOverlap) {
+          overlaps.push({
+            date: dateString,
+            time: startTime,
+            reason: "Time slot already booked by another client",
+          });
+        }
+      }
+    }
+
+    return {
+      hasOverlaps: overlaps.length > 0,
+      overlaps,
+    };
+  };
+
   const addRecurringSession = () => {
     if (
       tempRecurringSession.dayOfWeek !== undefined &&
@@ -912,15 +1050,11 @@ export default function BookingPage() {
     // Create all recurring sessions
     const sessionPromises = recurringSessions.flatMap((session) => {
       const sessions = [];
-      const startDate = new Date(session.startDate);
+      const startDate = parseLocalDateString(session.startDate);
 
       for (let week = 0; week < session.weeks; week++) {
         const sessionDate = new Date(startDate);
-        sessionDate.setDate(
-          startDate.getDate() +
-            week * 7 +
-            ((session.dayOfWeek - startDate.getDay() + 7) % 7)
-        );
+        sessionDate.setDate(startDate.getDate() + week * 7);
 
         const dateString = formatLocalDate(sessionDate);
         const startTime = session.time;
@@ -1228,6 +1362,19 @@ export default function BookingPage() {
         Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Denver";
 
       if (isRecurring) {
+        // Check for overlapping sessions before booking
+        const overlapCheck = await checkRecurringSessionOverlaps();
+        if (overlapCheck.hasOverlaps) {
+          const overlapDetails = overlapCheck.overlaps
+            .map((overlap) => `${overlap.date} at ${overlap.time}`)
+            .join(", ");
+
+          throw new Error(
+            `Cannot book recurring sessions due to conflicts: ${overlapDetails}. ` +
+              `These time slots are already booked by other clients. Please choose different dates or times.`
+          );
+        }
+
         // Handle recurring sessions
         await handleRecurringSessions(
           session.user.id,
@@ -2005,9 +2152,10 @@ export default function BookingPage() {
                                     Array.from(
                                       { length: recurringWeeks },
                                       (_, index) => {
-                                        const sessionDate = new Date(
-                                          selectedDate
-                                        );
+                                        // Use the same date parsing logic as the single session booking summary
+                                        const sessionDate =
+                                          parseLocalDateString(selectedDate);
+                                        // Simply add weeks to the selected date for the preview
                                         sessionDate.setDate(
                                           sessionDate.getDate() + index * 7
                                         );
@@ -2045,6 +2193,40 @@ export default function BookingPage() {
                                   )}
                                 </p>
 
+                                {/* Overlap Error */}
+                                {overlapWarning && (
+                                  <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                                    <div className="flex items-start space-x-2">
+                                      <span className="text-red-600 text-lg">
+                                        ❌
+                                      </span>
+                                      <div className="text-sm text-red-800 dark:text-red-200">
+                                        <p className="font-medium mb-1">
+                                          Trainer already has sessions for these
+                                          times:
+                                        </p>
+                                        <div className="space-y-1">
+                                          {overlapWarning
+                                            .split("\n")
+                                            .map((overlap, index) => (
+                                              <div key={index} className="ml-2">
+                                                • {overlap}
+                                              </div>
+                                            ))}
+                                        </div>
+                                        <p className="mt-2 text-xs">
+                                          These time slots may already be booked
+                                          or the trainer will be busy.
+                                        </p>
+                                        <p className="mt-1 text-xs">
+                                          Please choose different dates or times
+                                          to avoid conflicts.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
                                 {recurringWeeks > 0 && (
                                   <div className="mt-4 space-y-2">
                                     <Button
@@ -2068,11 +2250,13 @@ export default function BookingPage() {
                                       disabled={
                                         !selectedDate ||
                                         !selectedTimeSlot ||
-                                        recurringWeeks <= 0
+                                        recurringWeeks <= 0 ||
+                                        overlapWarning !== ""
                                       }
                                     >
-                                      Confirm {recurringWeeks} Recurring Session
-                                      {recurringWeeks !== 1 ? "s" : ""}
+                                      {overlapWarning !== ""
+                                        ? "Resolve Conflicts First"
+                                        : `Confirm ${recurringWeeks} Recurring Session${recurringWeeks !== 1 ? "s" : ""}`}
                                     </Button>
 
                                     {recurringSessions.length > 0 && (
