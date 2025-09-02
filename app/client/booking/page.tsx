@@ -1047,85 +1047,139 @@ export default function BookingPage() {
       );
     }
 
-    // Create all recurring sessions
-    const sessionPromises = recurringSessions.flatMap((session) => {
-      const sessions = [];
-      const startDate = parseLocalDateString(session.startDate);
+    // Store created session IDs for potential rollback
+    const createdSessionIds: string[] = [];
+    let packageUpdated = false;
 
-      for (let week = 0; week < session.weeks; week++) {
-        const sessionDate = new Date(startDate);
-        sessionDate.setDate(startDate.getDate() + week * 7);
+    try {
+      // Create all recurring sessions
+      const sessionPromises = recurringSessions.flatMap((session) => {
+        const sessions = [];
+        const startDate = parseLocalDateString(session.startDate);
 
-        const dateString = formatLocalDate(sessionDate);
-        const startTime = session.time;
-        const endTime = addMinutes(new Date(`2000-01-01T${startTime}`), 60)
-          .toTimeString()
-          .slice(0, 5);
+        for (let week = 0; week < session.weeks; week++) {
+          const sessionDate = new Date(startDate);
+          sessionDate.setDate(startDate.getDate() + week * 7);
 
-        sessions.push(
-          supabase
-            .from("sessions")
-            .insert({
-              client_id: clientId,
-              trainer_id: trainer.id,
-              date: dateString,
-              start_time: startTime,
-              end_time: endTime,
-              type: selectedType,
-              status: "confirmed",
-              timezone: timezone,
-              is_recurring: true,
-            })
-            .select()
-            .single()
+          const dateString = formatLocalDate(sessionDate);
+          const startTime = session.time;
+          const endTime = addMinutes(new Date(`2000-01-01T${startTime}`), 60)
+            .toTimeString()
+            .slice(0, 5);
+
+          sessions.push(
+            supabase
+              .from("sessions")
+              .insert({
+                client_id: clientId,
+                trainer_id: trainer.id,
+                date: dateString,
+                start_time: startTime,
+                end_time: endTime,
+                type: selectedType,
+                status: "confirmed",
+                timezone: timezone,
+                is_recurring: true,
+              })
+              .select()
+              .single()
+          );
+        }
+        return sessions;
+      });
+
+      // Execute all session creation promises
+      const sessionResults = await Promise.all(sessionPromises);
+
+      // Check for errors
+      const errors = sessionResults.filter((result) => result.error);
+      if (errors.length > 0) {
+        throw new Error(
+          `Failed to create ${errors.length} sessions: ${errors[0]?.error?.message}`
         );
       }
-      return sessions;
-    });
 
-    // Execute all session creation promises
-    const sessionResults = await Promise.all(sessionPromises);
+      // Store created session IDs for potential rollback
+      sessionResults.forEach((result) => {
+        if (result.data) {
+          createdSessionIds.push(result.data.id);
+        }
+      });
 
-    // Check for errors
-    const errors = sessionResults.filter((result) => result.error);
-    if (errors.length > 0) {
-      throw new Error(
-        `Failed to create ${errors.length} sessions: ${errors[0]?.error?.message}`
+      // Update package sessions_used
+      const { error: updateError } = await supabase
+        .from("packages")
+        .update({
+          sessions_used: (packageToUpdate.sessions_used || 0) + totalSessions,
+        })
+        .eq("id", packageToUpdate.id);
+
+      if (updateError) {
+        throw new Error(`Failed to update package: ${updateError.message}`);
+      }
+
+      packageUpdated = true;
+
+      // Create calendar events for all sessions
+      for (const sessionResult of sessionResults) {
+        if (sessionResult.data) {
+          const session = sessionResult.data;
+          await createCalendarEvents(
+            session,
+            trainer,
+            profile,
+            selectedPackageType
+          );
+        }
+      }
+
+      // Send email notifications
+      await sendRecurringSessionEmails(
+        trainer,
+        profile,
+        recurringSessions,
+        selectedPackageType
       );
-    }
+    } catch (error) {
+      console.error("Error in handleRecurringSessions:", error);
 
-    // Update package sessions_used
-    const { error: updateError } = await supabase
-      .from("packages")
-      .update({
-        sessions_used: (packageToUpdate.sessions_used || 0) + totalSessions,
-      })
-      .eq("id", packageToUpdate.id);
-
-    if (updateError) {
-      throw new Error(`Failed to update package: ${updateError.message}`);
-    }
-
-    // Create calendar events for all sessions
-    for (const sessionResult of sessionResults) {
-      if (sessionResult.data) {
-        const session = sessionResult.data;
-        await createCalendarEvents(
-          session,
-          trainer,
-          profile,
-          selectedPackageType
+      // Rollback: Delete all created sessions if package was updated
+      if (packageUpdated && createdSessionIds.length > 0) {
+        console.log(
+          "Rolling back created sessions due to error:",
+          createdSessionIds
         );
-      }
-    }
+        const { error: rollbackError } = await supabase
+          .from("sessions")
+          .delete()
+          .in("id", createdSessionIds);
 
-    // Send email notifications
-    await sendRecurringSessionEmails(
-      trainer,
-      profile,
-      recurringSessions,
-      selectedPackageType
-    );
+        if (rollbackError) {
+          console.error("Failed to rollback sessions:", rollbackError);
+        }
+      }
+
+      // Rollback: Revert package update if it was updated
+      if (packageUpdated) {
+        console.log("Rolling back package update due to error");
+        const { error: packageRollbackError } = await supabase
+          .from("packages")
+          .update({
+            sessions_used: packageToUpdate.sessions_used || 0,
+          })
+          .eq("id", packageToUpdate.id);
+
+        if (packageRollbackError) {
+          console.error(
+            "Failed to rollback package update:",
+            packageRollbackError
+          );
+        }
+      }
+
+      // Re-throw the error to be handled by the caller
+      throw error;
+    }
   };
 
   const createCalendarEvents = async (
@@ -1392,7 +1446,12 @@ export default function BookingPage() {
           throw new Error("Time slot is required for single sessions");
         }
 
-        const { data: sessionData, error: sessionError } = await supabase
+        let sessionData: any = null;
+        let packageUpdated = false;
+        let currentPackage: any = null;
+        let packageToUpdate: any = null;
+
+        const { data: newSessionData, error: sessionError } = await supabase
           .from("sessions")
           .insert({
             client_id: session.user.id,
@@ -1411,6 +1470,8 @@ export default function BookingPage() {
         if (sessionError) {
           throw sessionError;
         }
+
+        sessionData = newSessionData;
 
         // Find the corresponding package type for the session
         const sessionType = sessionTypes.find((t) => t.id === selectedType);
@@ -1463,7 +1524,7 @@ export default function BookingPage() {
         });
 
         // Find the first package with remaining sessions
-        const packageToUpdate = userPackages?.find(
+        packageToUpdate = userPackages?.find(
           (pkg) => (pkg.sessions_included || 0) - (pkg.sessions_used || 0) > 0
         );
 
@@ -1480,11 +1541,12 @@ export default function BookingPage() {
         });
 
         // First get the current value to ensure we have the latest
-        const { data: currentPackage, error: getCurrentError } = await supabase
-          .from("packages")
-          .select("sessions_used")
-          .eq("id", packageToUpdate.id)
-          .single();
+        const { data: currentPackageData, error: getCurrentError } =
+          await supabase
+            .from("packages")
+            .select("sessions_used")
+            .eq("id", packageToUpdate.id)
+            .single();
 
         if (getCurrentError) {
           throw new Error(
@@ -1492,6 +1554,7 @@ export default function BookingPage() {
           );
         }
 
+        currentPackage = currentPackageData;
         console.log("Current package state:", currentPackage);
 
         // Directly update the sessions_used count
@@ -1510,27 +1573,10 @@ export default function BookingPage() {
         });
 
         if (updateError) {
-          // If package update fails, delete the session to maintain consistency
-          console.error("Failed to update package:", {
-            error: updateError,
-            packageId: packageToUpdate.id,
-            currentValue: currentPackage?.sessions_used,
-          });
-
-          const { error: deleteError } = await supabase
-            .from("sessions")
-            .delete()
-            .eq("id", sessionData.id);
-
-          if (deleteError) {
-            console.error(
-              "Failed to delete session after package update failure:",
-              deleteError
-            );
-          }
-
           throw new Error(`Failed to update package: ${updateError.message}`);
         }
+
+        packageUpdated = true;
 
         // Verify the update was successful
         const { data: verifyData, error: verifyError } = await supabase
@@ -1554,10 +1600,6 @@ export default function BookingPage() {
           !verifyError &&
           verifyData?.sessions_used !== (currentPackage?.sessions_used || 0) + 1
         ) {
-          console.error(
-            "Package update verification failed - rolling back session"
-          );
-          await supabase.from("sessions").delete().eq("id", sessionData.id);
           throw new Error(
             "Failed to verify package update - session has been rolled back"
           );
@@ -1748,6 +1790,44 @@ export default function BookingPage() {
       } // Close the else block for single session
     } catch (error) {
       console.error("Error during booking:", error);
+
+      // Rollback logic for single sessions
+      if (!isRecurring && sessionData && packageUpdated) {
+        try {
+          // Delete the created session
+          console.log(
+            "Rolling back created session due to error:",
+            sessionData.id
+          );
+          const { error: rollbackError } = await supabase
+            .from("sessions")
+            .delete()
+            .eq("id", sessionData.id);
+
+          if (rollbackError) {
+            console.error("Failed to rollback session:", rollbackError);
+          }
+
+          // Revert package update
+          console.log("Rolling back package update due to error");
+          const { error: packageRollbackError } = await supabase
+            .from("packages")
+            .update({
+              sessions_used: currentPackage?.sessions_used || 0,
+            })
+            .eq("id", packageToUpdate.id);
+
+          if (packageRollbackError) {
+            console.error(
+              "Failed to rollback package update:",
+              packageRollbackError
+            );
+          }
+        } catch (rollbackError) {
+          console.error("Error during rollback:", rollbackError);
+        }
+      }
+
       setErrorMessage(
         error instanceof Error
           ? error.message
