@@ -106,7 +106,6 @@ export default function TrainerPaymentsPage() {
         error,
       } = await supabase.auth.getUser();
       if (error || !user) {
-        console.error("Auth error:", error);
         return;
       }
 
@@ -117,7 +116,6 @@ export default function TrainerPaymentsPage() {
         .single();
 
       if (userError || userData?.role !== "trainer") {
-        console.error("User is not a trainer:", userData?.role);
         return;
       }
 
@@ -126,6 +124,11 @@ export default function TrainerPaymentsPage() {
 
     checkAuth();
   }, [supabase]);
+
+  // Debug: Log availableClients when it changes
+  useEffect(() => {
+    console.log("🔍 Available clients updated:", availableClients);
+  }, [availableClients]);
 
   // Handle client search from URL query parameter
   useEffect(() => {
@@ -152,12 +155,15 @@ export default function TrainerPaymentsPage() {
         setLoading(false);
         return;
       }
+      console.log("✅ Payments data fetched:", paymentsData);
       setPayments(paymentsData || []);
       // Fetch all clients referenced in payments
       const clientIds = Array.from(
         new Set((paymentsData || []).map((p) => p.client_id))
       );
+      console.log("🔍 Unique client IDs found:", clientIds);
       if (clientIds.length > 0) {
+        console.log("🔍 Fetching clients for IDs:", clientIds);
         const { data: usersData, error: usersError } = await supabase
           .from("users")
           .select("id, full_name")
@@ -165,6 +171,8 @@ export default function TrainerPaymentsPage() {
 
         if (usersError) {
           console.error("❌ Error fetching users:", usersError);
+        } else {
+          console.log("✅ Users data fetched:", usersData);
         }
 
         const map: ClientMap = {};
@@ -176,8 +184,12 @@ export default function TrainerPaymentsPage() {
             full_name: u.full_name,
           });
         });
+        console.log("📋 Client map:", map);
+        console.log("📋 Available clients list:", clientsList);
         setClientMap(map);
         setAvailableClients(clientsList);
+      } else {
+        console.log("⚠️ No client IDs found in payments");
       }
       setLoading(false);
     }

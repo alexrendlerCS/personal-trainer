@@ -3,20 +3,27 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(request: NextRequest) {
   try {
+    console.log("DELETE /api/trainer/delete-payment called");
+
     const supabase = createClient();
+    console.log("Supabase client created");
 
     // Get the current user to verify they're a trainer
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
+    console.log("Auth result:", { user: user?.id, error: authError });
 
     if (authError || !user) {
+      console.error("Auth error:", authError);
       return NextResponse.json(
         { error: "Unauthorized - No user found" },
         { status: 400 }
       );
     }
+
+    console.log("User authenticated:", user.id);
 
     // Verify the user is a trainer
     const { data: userData, error: userError } = await supabase
@@ -26,6 +33,7 @@ export async function DELETE(request: NextRequest) {
       .single();
 
     if (userError) {
+      console.error("User lookup error:", userError);
       return NextResponse.json(
         { error: "Failed to verify user role" },
         { status: 500 }
@@ -33,13 +41,18 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (userData?.role !== "trainer") {
+      console.error("User is not a trainer:", userData?.role);
       return NextResponse.json(
         { error: "Forbidden: Trainers only" },
         { status: 403 }
       );
     }
 
+    console.log("User verified as trainer");
+
     const body = await request.json();
+    console.log("Request body:", body);
+
     const { paymentId } = body;
     if (!paymentId) {
       return NextResponse.json(
@@ -47,6 +60,8 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    console.log("Processing payment deletion for ID:", paymentId);
 
     // Start a transaction to ensure data consistency
     const { data: payment, error: paymentError } = await supabase
@@ -59,10 +74,18 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
+    console.log("Payment data retrieved:", {
+      id: payment.id,
+      client_id: payment.client_id,
+      package_type: payment.package_type,
+      session_count: payment.session_count,
+      paid_at: payment.paid_at,
+      method: payment.method,
+      amount: payment.amount,
+    });
+
     // Get the package associated with this payment
     let packageToUpdate = null;
-
-    // First try to find package by package_id if it exists
     if (payment.package_id) {
       const { data: packageData, error: packageError } = await supabase
         .from("packages")
@@ -75,140 +98,106 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
-    // If no package found by ID, try to find by client_id, package_type, and transaction_id
-    if (!packageToUpdate && payment.transaction_id) {
-      const { data: packageData, error: packageError } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("client_id", payment.client_id)
-        .eq("package_type", payment.package_type)
-        .eq("transaction_id", payment.transaction_id)
-        .single();
+    // IMPORTANT: Sessions are NOT automatically created when payments are made
+    // They are only created when trainers actually schedule sessions
+    // So we don't need to delete sessions from the sessions table
+    // Instead, we just need to update the package to reduce available sessions
+    let sessionsToDelete: any[] = []; // This will always be empty since no sessions exist yet
 
-      if (!packageError && packageData) {
-        packageToUpdate = packageData;
-      }
-    }
+    console.log(
+      "🔍 Debug: No sessions to delete - sessions are only created when scheduled"
+    );
 
-    // If still no package found, try to find by client_id and package_type (most recent)
+    // If no package_id, we need to intelligently select the best package
     if (!packageToUpdate) {
-      const { data: packageData, error: packageError } = await supabase
-        .from("packages")
-        .select("*")
-        .eq("client_id", payment.client_id)
-        .eq("package_type", payment.package_type)
-        .order("purchase_date", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (!packageError && packageData) {
-        packageToUpdate = packageData;
-      }
-    }
-
-
-
-    // Find sessions that were created after this payment for the same client and package type
-    // Since session_payments table is not populated, we need to find sessions by date and package type
-    let sessionsToDelete: any[] = [];
-
-    if (payment.package_type) {
-              // Find sessions for this client with the same package type created after the payment date
-
-      const { data: sessions, error: sessionsError } = await supabase
-        .from("sessions")
-        .select("id, status, date, start_time, type, created_at")
-        .eq("client_id", payment.client_id)
-        .gte("created_at", payment.paid_at)
-        .order("created_at", { ascending: true });
-
-      if (sessionsError) {
-        console.error("Error fetching sessions:", sessionsError);
-        return NextResponse.json(
-          {
-            error: "Failed to fetch associated sessions",
-          },
-          { status: 500 }
-        );
-      }
-
-
-
-      // Filter sessions by package type and limit to session_count
-      const packageTypeMapping: { [key: string]: string } = {
-        "In-Person Training": "In-Person Training",
-        "Virtual Training": "Virtual Training",
-        "Partner Training": "Partner Training",
-      };
-
-
-
-      const relevantSessions = sessions.filter((s) => 
-        packageTypeMapping[s.type] === payment.package_type
+      console.log(
+        "🔍 Debug: No package_id, intelligently selecting best package"
       );
 
-      // Take only the first session_count sessions (the ones that were "paid for")
-      sessionsToDelete = relevantSessions.slice(0, payment.session_count);
-
-
-
-      // If no sessions found by date, try to find sessions by package type regardless of date
-      if (sessionsToDelete.length === 0) {
-        const { data: fallbackSessions, error: fallbackError } = await supabase
-          .from("sessions")
-          .select("id, status, date, start_time, type, created_at")
+      // Try to find by client_id, package_type, and transaction_id first
+      if (payment.transaction_id) {
+        const { data: packageData, error: packageError } = await supabase
+          .from("packages")
+          .select("*")
           .eq("client_id", payment.client_id)
-          .eq("type", payment.package_type)
-          .order("created_at", { ascending: true });
+          .eq("package_type", payment.package_type)
+          .eq("transaction_id", payment.transaction_id)
+          .single();
 
-        if (!fallbackError && fallbackSessions) {
-          sessionsToDelete = fallbackSessions.slice(0, payment.session_count);
-        }
-      }
-
-      // Check if any sessions are already completed or in progress
-      const completedOrInProgressSessions = sessionsToDelete.filter(
-        (s) => s.status === "completed" || s.status === "in_progress"
-      );
-
-      if (completedOrInProgressSessions.length > 0) {
-        const sessionDetails = completedOrInProgressSessions
-          .map((s) => `${s.date} at ${s.start_time} (${s.status})`)
-          .join(", ");
-
-        return NextResponse.json(
-          {
-            error: `Cannot delete payment: ${completedOrInProgressSessions.length} session(s) are already completed or in progress: ${sessionDetails}`,
-          },
-          { status: 400 }
-        );
-      }
-
-      // Delete the sessions that were paid for by this payment
-      if (sessionsToDelete.length > 0) {
-        const sessionIds = sessionsToDelete.map((s) => s.id);
-
-        const { error: deleteSessionsError } = await supabase
-          .from("sessions")
-          .delete()
-          .in("id", sessionIds);
-
-        if (deleteSessionsError) {
-          console.error("Error deleting sessions:", deleteSessionsError);
-          return NextResponse.json(
-            {
-              error: "Failed to delete associated sessions",
-            },
-            { status: 500 }
+        if (!packageError && packageData) {
+          packageToUpdate = packageData;
+          console.log(
+            "🔍 Debug: Found package by transaction_id:",
+            packageData.id
           );
         }
+      }
 
+      // If still no package found, get ALL packages for this client and package type
+      if (!packageToUpdate) {
+        const { data: allPackages, error: packagesError } = await supabase
+          .from("packages")
+          .select("*")
+          .eq("client_id", payment.client_id)
+          .eq("package_type", payment.package_type)
+          .order("purchase_date", { ascending: false });
 
+        if (packagesError) {
+          console.log(
+            "🔍 Debug: Error fetching packages:",
+            packagesError.message
+          );
+        } else if (allPackages && allPackages.length > 0) {
+          console.log(
+            "🔍 Debug: Found",
+            allPackages.length,
+            "packages for client"
+          );
+
+          // Find the best package to update based on session availability
+          let bestPackage = null;
+          let bestScore = -1;
+
+          for (const pkg of allPackages) {
+            const availableSessions =
+              (pkg.sessions_included || 0) - (pkg.sessions_used || 0);
+            const canRemoveSessions =
+              availableSessions >= payment.session_count;
+
+            console.log(
+              `🔍 Debug: Package ${pkg.id}: available=${availableSessions}, can_remove=${canRemoveSessions}`
+            );
+
+            if (canRemoveSessions) {
+              // Prefer packages with more available sessions (better utilization)
+              const score = availableSessions;
+              if (score > bestScore) {
+                bestScore = score;
+                bestPackage = pkg;
+              }
+            }
+          }
+
+          if (bestPackage) {
+            packageToUpdate = bestPackage;
+            console.log(
+              "🔍 Debug: Selected best package:",
+              bestPackage.id,
+              "with",
+              bestScore,
+              "available sessions"
+            );
+          } else {
+            console.log(
+              "🔍 Debug: No suitable package found - all packages have insufficient available sessions"
+            );
+          }
+        }
+      }
     }
 
     // 2. Update the package if it exists
     if (packageToUpdate) {
-
       // Calculate how many sessions were actually used from this package
       const sessionsUsedFromPackage = Math.min(
         payment.session_count,
@@ -233,8 +222,6 @@ export async function DELETE(request: NextRequest) {
             ? "completed"
             : "active";
 
-
-
       const { error: updatePackageError } = await supabase
         .from("packages")
         .update({
@@ -253,8 +240,7 @@ export async function DELETE(request: NextRequest) {
           { status: 500 }
         );
       }
-
-
+    }
 
     // 3. Finally, delete the payment record
     const { error: deletePaymentError } = await supabase
@@ -275,7 +261,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Payment deleted successfully",
-      deletedSessions: sessionsToDelete.length,
+      deletedSessions: payment.session_count, // This represents sessions removed from the package
       packageUpdated: !!packageToUpdate,
     });
   } catch (error) {
