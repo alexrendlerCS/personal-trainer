@@ -28,6 +28,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DollarSign,
   Download,
   Search,
@@ -35,6 +54,9 @@ import {
   CreditCard,
   TrendingUp,
   Filter,
+  Trash2,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabaseClient";
 import { startOfMonth, subMonths, endOfMonth } from "date-fns";
@@ -66,13 +88,44 @@ export default function TrainerPaymentsPage() {
   const [selectedClientFilter, setSelectedClientFilter] =
     useState<string>("all");
   const [availableClients, setAvailableClients] = useState<any[]>([]);
+  const [deletingPayment, setDeletingPayment] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [paymentToDelete, setPaymentToDelete] = useState<Payment | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   const supabase = createClient();
 
-  // Debug: Log availableClients when it changes
+  // Check authentication and user role
   useEffect(() => {
-    console.log("🔍 Available clients updated:", availableClients);
-  }, [availableClients]);
+    const checkAuth = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (error || !user) {
+        console.error("Auth error:", error);
+        return;
+      }
+
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (userError || userData?.role !== "trainer") {
+        console.error("User is not a trainer:", userData?.role);
+        return;
+      }
+
+      setUser(user);
+    };
+
+    checkAuth();
+  }, [supabase]);
 
   // Handle client search from URL query parameter
   useEffect(() => {
@@ -99,15 +152,12 @@ export default function TrainerPaymentsPage() {
         setLoading(false);
         return;
       }
-      console.log("✅ Payments data fetched:", paymentsData);
       setPayments(paymentsData || []);
       // Fetch all clients referenced in payments
       const clientIds = Array.from(
         new Set((paymentsData || []).map((p) => p.client_id))
       );
-      console.log("🔍 Unique client IDs found:", clientIds);
       if (clientIds.length > 0) {
-        console.log("🔍 Fetching clients for IDs:", clientIds);
         const { data: usersData, error: usersError } = await supabase
           .from("users")
           .select("id, full_name")
@@ -115,8 +165,6 @@ export default function TrainerPaymentsPage() {
 
         if (usersError) {
           console.error("❌ Error fetching users:", usersError);
-        } else {
-          console.log("✅ Users data fetched:", usersData);
         }
 
         const map: ClientMap = {};
@@ -128,12 +176,8 @@ export default function TrainerPaymentsPage() {
             full_name: u.full_name,
           });
         });
-        console.log("📋 Client map:", map);
-        console.log("📋 Available clients list:", clientsList);
         setClientMap(map);
         setAvailableClients(clientsList);
-      } else {
-        console.log("⚠️ No client IDs found in payments");
       }
       setLoading(false);
     }
@@ -277,6 +321,54 @@ export default function TrainerPaymentsPage() {
     a.download = "payments.csv";
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleDeletePayment = async (payment: Payment) => {
+    setPaymentToDelete(payment);
+  };
+
+  const confirmDeletePayment = async () => {
+    if (!paymentToDelete) return;
+    if (!user) {
+      setErrorMessage("You must be logged in to delete payments.");
+      setShowErrorModal(true);
+      return;
+    }
+
+    setDeletingPayment(paymentToDelete.id);
+    try {
+      const response = await fetch("/api/trainer/delete-payment", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ paymentId: paymentToDelete.id }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Remove the payment from the local state
+        setPayments((prev) => prev.filter((p) => p.id !== paymentToDelete.id));
+
+        // Show success modal
+        setSuccessMessage(
+          `Payment deleted successfully. ${result.deletedSessions} sessions were removed and package was updated.`
+        );
+        setShowSuccessModal(true);
+      } else {
+        // Show error modal
+        setErrorMessage(`Error deleting payment: ${result.error}`);
+        setShowErrorModal(true);
+      }
+    } catch (error) {
+      console.error("Error deleting payment:", error);
+      setErrorMessage("Failed to delete payment. Please try again.");
+      setShowErrorModal(true);
+    } finally {
+      setDeletingPayment(null);
+      setPaymentToDelete(null);
+    }
   };
 
   return (
@@ -507,6 +599,108 @@ export default function TrainerPaymentsPage() {
                             Retry
                           </Button>
                         )}
+                        <AlertDialog
+                          open={paymentToDelete?.id === payment.id}
+                          onOpenChange={(open) =>
+                            !open && setPaymentToDelete(null)
+                          }
+                        >
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700"
+                              disabled={deletingPayment === payment.id}
+                              onClick={() => handleDeletePayment(payment)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              {deletingPayment === payment.id
+                                ? "Deleting..."
+                                : "Delete"}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Delete Payment
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this payment?
+                                This action cannot be undone and will:
+                              </AlertDialogDescription>
+
+                              <div className="mt-4 space-y-4">
+                                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
+                                  <li>Remove the payment record</li>
+                                  <li>Delete any associated sessions</li>
+                                  <li>Update package session counts</li>
+                                  <li>
+                                    Potentially cancel the package if no
+                                    sessions remain
+                                  </li>
+                                </ul>
+
+                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                  <p className="text-sm text-blue-800 font-medium">
+                                    📋 Payment Details:
+                                  </p>
+                                  <div className="text-xs text-blue-700 mt-1 space-y-1">
+                                    <p>
+                                      <strong>Client:</strong>{" "}
+                                      {clientMap[payment.client_id] ||
+                                        "Unknown Client"}
+                                    </p>
+                                    <p>
+                                      <strong>Amount:</strong> ${payment.amount}
+                                    </p>
+                                    <p>
+                                      <strong>Sessions:</strong>{" "}
+                                      {payment.session_count}
+                                    </p>
+                                    <p>
+                                      <strong>Method:</strong> {payment.method}
+                                    </p>
+                                    <p>
+                                      <strong>Date:</strong>{" "}
+                                      {new Date(
+                                        payment.paid_at
+                                      ).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                  <p className="text-sm text-yellow-800 font-medium">
+                                    ⚠️ Impact Warning:
+                                  </p>
+                                  <p className="text-xs text-yellow-700 mt-1">
+                                    Deleting this payment will affect the
+                                    client's session availability and package
+                                    status. This action is irreversible and
+                                    should only be used for correcting errors or
+                                    refunds.
+                                  </p>
+                                </div>
+                              </div>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel
+                                onClick={() => setPaymentToDelete(null)}
+                              >
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => confirmDeletePayment()}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={deletingPayment === payment.id}
+                              >
+                                {deletingPayment === payment.id
+                                  ? "Deleting..."
+                                  : "Delete Payment"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -516,6 +710,38 @@ export default function TrainerPaymentsPage() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Payment Deleted Successfully
+            </DialogTitle>
+            <DialogDescription>{successMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setShowSuccessModal(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Modal */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600" />
+              Error Deleting Payment
+            </DialogTitle>
+            <DialogDescription>{errorMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setShowErrorModal(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
