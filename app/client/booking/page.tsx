@@ -1334,6 +1334,12 @@ export default function BookingPage() {
     console.log("Starting booking process...");
     setIsBooking(true);
 
+    // Declare variables at function level for rollback access
+    let sessionData: any = null;
+    let packageUpdated = false;
+    let currentPackage: any = null;
+    let packageToUpdate: any = null;
+
     try {
       // Get the current session
       const {
@@ -1445,11 +1451,6 @@ export default function BookingPage() {
         if (!selectedTimeSlot) {
           throw new Error("Time slot is required for single sessions");
         }
-
-        let sessionData: any = null;
-        let packageUpdated = false;
-        let currentPackage: any = null;
-        let packageToUpdate: any = null;
 
         const { data: newSessionData, error: sessionError } = await supabase
           .from("sessions")
