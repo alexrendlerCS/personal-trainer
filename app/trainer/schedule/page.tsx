@@ -37,6 +37,7 @@ import {
   Edit,
   Move,
   Calendar,
+  Trash2,
 } from "lucide-react";
 import { GoogleCalendarBanner } from "@/components/GoogleCalendarBanner";
 import { createClient } from "@/lib/supabaseClient";
@@ -227,6 +228,11 @@ export default function TrainerSchedulePage() {
   const [editingSession, setEditingSession] = useState<DatabaseSession | null>(
     null
   );
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DatabaseSession | null>(
+    null
+  );
+  const [deleteSuccessMessage, setDeleteSuccessMessage] = useState("");
   const [editSessionData, setEditSessionData] = useState({
     date: "",
     startTime: "",
@@ -1375,14 +1381,31 @@ export default function TrainerSchedulePage() {
       }
     };
 
+    const handleDeleteClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setDeleteTarget(event);
+      setShowDeleteDialog(true);
+    };
+
     return (
       <div
         key={event.id}
         className={`rounded-md p-2 ${clientColor.bg} ${clientColor.border} border shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-[1.02] ${
           isEditMode ? "cursor-pointer" : "cursor-grab"
-        }`}
+        } relative group`}
         onClick={handleSessionClick}
       >
+        {/* Delete button - only show in edit mode */}
+        {isEditMode && (
+          <button
+            onClick={handleDeleteClick}
+            className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 shadow-lg hover:shadow-xl hover:scale-110"
+            title="Delete session"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        )}
+
         <div
           className={`text-xs font-bold ${clientColor.text} mb-1 leading-tight`}
         >
@@ -1409,6 +1432,45 @@ export default function TrainerSchedulePage() {
         )}
       </div>
     );
+  };
+
+  // Function to confirm and delete a session
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      const response = await fetch(`/api/sessions/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        const clientName = getClientName(deleteTarget);
+        const sessionType = getSessionType(deleteTarget);
+        setDeleteSuccessMessage(
+          `The ${sessionType.toLowerCase()} session with ${clientName} has been deleted successfully. One session has been restored to their package.`
+        );
+        setShowDeleteDialog(false);
+        setShowSuccessDialog(true);
+        // Refresh the events to update the UI
+        fetchEvents();
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to delete session",
+          variant: "destructive",
+        });
+        setShowDeleteDialog(false);
+      }
+    } catch (error) {
+      console.error("Error deleting session:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete session. Please try again.",
+        variant: "destructive",
+      });
+      setShowDeleteDialog(false);
+    }
   };
 
   const handleDragStart = (event: any) => {
@@ -2749,6 +2811,46 @@ export default function TrainerSchedulePage() {
                 "Update Session"
               )}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Session</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this session? This action cannot
+              be undone and will restore one session to the client's package.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete Session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              Session Deleted Successfully
+            </DialogTitle>
+            <DialogDescription>{deleteSuccessMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setShowSuccessDialog(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
