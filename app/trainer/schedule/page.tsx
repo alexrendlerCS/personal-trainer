@@ -316,22 +316,23 @@ export default function TrainerSchedulePage() {
         .from("sessions")
         .select(
           `
-          id,
-          client_id,
-          trainer_id,
-          date,
-          start_time,
-          end_time,
-          type,
-          status,
-          notes,
-          session_notes,
-          created_at,
-          users!sessions_client_id_fkey (
-            full_name,
-            email
-          )
-        `
+           id,
+           client_id,
+           trainer_id,
+           date,
+           start_time,
+           end_time,
+           type,
+           status,
+           notes,
+           session_notes,
+           created_at,
+           timezone,
+           users!sessions_client_id_fkey (
+             full_name,
+             email
+           )
+         `
         )
         .eq("trainer_id", session.user.id)
         .in("status", ["confirmed", "pending"])
@@ -354,9 +355,11 @@ export default function TrainerSchedulePage() {
           description: session.session_notes || session.notes || "",
           start: {
             dateTime: `${session.date}T${session.start_time}`,
+            timeZone: session.timezone || "America/Denver", // Include timezone info
           },
           end: {
             dateTime: `${session.date}T${session.end_time}`,
+            timeZone: session.timezone || "America/Denver", // Include timezone info
           },
           status: session.status,
           attendees: [
@@ -373,6 +376,7 @@ export default function TrainerSchedulePage() {
             type: session.type,
             notes: session.session_notes || session.notes,
             duration_minutes: session._dbData?.duration_minutes,
+            timezone: session.timezone || "America/Denver", // Store timezone in _dbData
           },
         })) || [];
 
@@ -2118,7 +2122,7 @@ export default function TrainerSchedulePage() {
     return !packageInfo.hasPackage || !packageInfo.canBookSession;
   };
 
-  // Overlap check helper
+  // Timezone-aware overlap check helper
   function isOverlap(
     sessions: any[],
     newDate: string,
@@ -2127,38 +2131,158 @@ export default function TrainerSchedulePage() {
     sessionId: string,
     trainerId: string
   ): boolean {
-    // Helper function to convert time string to minutes since midnight
-    const timeToMinutes = (timeStr: string): number => {
-      const [hours, minutes] = timeStr.split(":").map(Number);
-      return hours * 60 + minutes;
+    // Get current user's timezone
+    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // Helper function to convert session date/time to UTC for comparison
+    const convertToUTC = (
+      dateStr: string,
+      timeStr: string,
+      timezone?: string
+    ): Date => {
+      // If no timezone provided, assume current user's timezone
+      const sessionTimezone = timezone || currentTimezone;
+
+      // Create date in the session's timezone
+      const dateTimeStr = `${dateStr}T${timeStr}`;
+
+      // For proper timezone handling, we need to account for the timezone offset
+      // This is a simplified approach - for production, consider using a library like date-fns-tz
+
+      try {
+        // Try to create a date with timezone information
+        // If the timezone is different from current, we need to adjust
+        const localDate = new Date(dateTimeStr);
+
+        // Get timezone offset for the session timezone vs current timezone
+        // This is an approximation - proper timezone handling would use Intl.DateTimeFormat
+        const sessionOffset = getTimezoneOffset(sessionTimezone);
+        const currentOffset = getTimezoneOffset(currentTimezone);
+        const offsetDifference = (sessionOffset - currentOffset) * 60 * 1000; // Convert to milliseconds
+
+        // Adjust the date by the timezone difference
+        return new Date(localDate.getTime() - offsetDifference);
+      } catch (error) {
+        console.warn(
+          `Timezone conversion error for ${sessionTimezone}:`,
+          error
+        );
+        // Fallback to treating as local time
+        return new Date(dateTimeStr);
+      }
     };
 
-    // Only check sessions for the same trainer, on the same date, excluding the current session
+    // Helper function to get approximate timezone offset (in minutes)
+    // This is a simplified implementation - for production use a proper timezone library
+    const getTimezoneOffset = (timezone: string): number => {
+      try {
+        // Use Intl.DateTimeFormat to get timezone offset
+        const now = new Date();
+        const utc = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+        const targetTime = new Date(
+          utc.toLocaleString("en-US", { timeZone: timezone })
+        );
+        const localTime = new Date(
+          utc.toLocaleString("en-US", { timeZone: currentTimezone })
+        );
+
+        return (targetTime.getTime() - localTime.getTime()) / (60 * 1000);
+      } catch (error) {
+        console.warn(
+          `Could not determine offset for timezone ${timezone}:`,
+          error
+        );
+        // Fallback: common timezone offsets
+        const timezoneOffsets: { [key: string]: number } = {
+          "America/Denver": -420, // MST: UTC-7
+          "America/Phoenix": -420, // MST (no DST): UTC-7
+          "America/Los_Angeles": -480, // PST: UTC-8
+          "America/New_York": -300, // EST: UTC-5
+          "America/Chicago": -360, // CST: UTC-6
+        };
+        return timezoneOffsets[timezone] || 0;
+      }
+    };
+
+    // Convert new session times to UTC
+    const newStartUTC = convertToUTC(newDate, newStartTime, currentTimezone);
+    const newEndUTC = convertToUTC(newDate, newEndTime, currentTimezone);
+
+    // Only check sessions for the same trainer, excluding the current session
     return sessions.some((s: any) => {
       if (s.id === sessionId) return false;
       if (s._dbData?.trainer_id !== trainerId) return false;
-      if (s.start.dateTime.split("T")[0] !== newDate) return false;
 
-      const sStart = s.start.dateTime.split("T")[1]?.slice(0, 5) || "";
-      const sEnd = s.end.dateTime.split("T")[1]?.slice(0, 5) || "";
+      // Extract existing session data
+      const existingDate = s.start.dateTime.split("T")[0];
+      const existingStartTime =
+        s.start.dateTime.split("T")[1]?.slice(0, 8) || ""; // Get HH:MM:SS
+      const existingEndTime = s.end.dateTime.split("T")[1]?.slice(0, 8) || "";
+      const existingTimezone =
+        s._dbData?.timezone || s.start.timeZone || currentTimezone;
 
-      // Convert all times to minutes for proper comparison
-      const sStartMins = timeToMinutes(sStart);
-      const sEndMins = timeToMinutes(sEnd);
-      const newStartMins = timeToMinutes(newStartTime);
-      const newEndMins = timeToMinutes(newEndTime);
+      // Convert existing session times to UTC
+      const existingStartUTC = convertToUTC(
+        existingDate,
+        existingStartTime,
+        existingTimezone
+      );
+      const existingEndUTC = convertToUTC(
+        existingDate,
+        existingEndTime,
+        existingTimezone
+      );
+
+      // Check for date overlap first (accounting for timezone differences)
+      // Sessions could be on different calendar dates but still overlap due to timezone differences
+      const timeDiffHours =
+        Math.abs(newStartUTC.getTime() - existingStartUTC.getTime()) /
+        (1000 * 60 * 60);
+
+      // If sessions are more than 24 hours apart, they definitely don't overlap
+      if (timeDiffHours > 24) {
+        return false;
+      }
+
+      // Check for time overlap using UTC timestamps
+      const newStartTime_ms = newStartUTC.getTime();
+      const newEndTime_ms = newEndUTC.getTime();
+      const existingStartTime_ms = existingStartUTC.getTime();
+      const existingEndTime_ms = existingEndUTC.getTime();
 
       // Sessions overlap if one doesn't end before the other starts
-      const overlaps = !(newEndMins <= sStartMins || sEndMins <= newStartMins);
+      const overlaps = !(
+        newEndTime_ms <= existingStartTime_ms ||
+        existingEndTime_ms <= newStartTime_ms
+      );
 
-      // Debug logging for troubleshooting
+      // Enhanced debug logging for timezone troubleshooting
       if (overlaps) {
+        console.debug(`🚨 TIMEZONE-AWARE OVERLAP DETECTED:`);
         console.debug(
-          `Overlap detected: ${newStartTime}-${newEndTime} vs ${sStart}-${sEnd}`
+          `  New Session: ${newDate} ${newStartTime}-${newEndTime} (${currentTimezone})`
         );
         console.debug(
-          `  Times in minutes: ${newStartMins}-${newEndMins} vs ${sStartMins}-${sEndMins}`
+          `  Existing Session: ${existingDate} ${existingStartTime}-${existingEndTime} (${existingTimezone})`
         );
+        console.debug(`  UTC Conversion:`);
+        console.debug(
+          `    New: ${newStartUTC.toISOString()} - ${newEndUTC.toISOString()}`
+        );
+        console.debug(
+          `    Existing: ${existingStartUTC.toISOString()} - ${existingEndUTC.toISOString()}`
+        );
+        console.debug(`  Time difference: ${timeDiffHours.toFixed(2)} hours`);
+        console.debug(
+          `  Session ID: ${s.id}, Trainer ID: ${s._dbData?.trainer_id}`
+        );
+      } else {
+        // Debug log for non-overlapping sessions (only if they're close in time)
+        if (timeDiffHours < 2) {
+          console.debug(
+            `✅ No overlap: ${newDate} ${newStartTime} (${currentTimezone}) vs ${existingDate} ${existingStartTime} (${existingTimezone})`
+          );
+        }
       }
 
       return overlaps;
