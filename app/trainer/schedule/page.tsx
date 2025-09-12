@@ -2127,15 +2127,41 @@ export default function TrainerSchedulePage() {
     sessionId: string,
     trainerId: string
   ): boolean {
+    // Helper function to convert time string to minutes since midnight
+    const timeToMinutes = (timeStr: string): number => {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+
     // Only check sessions for the same trainer, on the same date, excluding the current session
     return sessions.some((s: any) => {
       if (s.id === sessionId) return false;
       if (s._dbData?.trainer_id !== trainerId) return false;
       if (s.start.dateTime.split("T")[0] !== newDate) return false;
+
       const sStart = s.start.dateTime.split("T")[1]?.slice(0, 5) || "";
       const sEnd = s.end.dateTime.split("T")[1]?.slice(0, 5) || "";
-      // Overlap if not (end <= start2 or end2 <= start)
-      return !(newEndTime <= sStart || sEnd <= newStartTime);
+
+      // Convert all times to minutes for proper comparison
+      const sStartMins = timeToMinutes(sStart);
+      const sEndMins = timeToMinutes(sEnd);
+      const newStartMins = timeToMinutes(newStartTime);
+      const newEndMins = timeToMinutes(newEndTime);
+
+      // Sessions overlap if one doesn't end before the other starts
+      const overlaps = !(newEndMins <= sStartMins || sEndMins <= newStartMins);
+
+      // Debug logging for troubleshooting
+      if (overlaps) {
+        console.debug(
+          `Overlap detected: ${newStartTime}-${newEndTime} vs ${sStart}-${sEnd}`
+        );
+        console.debug(
+          `  Times in minutes: ${newStartMins}-${newEndMins} vs ${sStartMins}-${sEndMins}`
+        );
+      }
+
+      return overlaps;
     });
   }
 
