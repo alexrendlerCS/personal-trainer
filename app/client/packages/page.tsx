@@ -764,12 +764,12 @@ function PackagesContent() {
         open={showPurchaseOptionsModal}
         onOpenChange={setShowPurchaseOptionsModal}
       >
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center mb-2 dark:text-gray-100">
+        <DialogContent className="sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col p-3 sm:p-6 m-4 sm:m-0 overflow-hidden">
+          <DialogHeader className="flex-shrink-0 pb-2">
+            <DialogTitle className="text-lg sm:text-2xl font-bold text-center mb-1 sm:mb-2 dark:text-gray-100">
               Choose Your Package Option
             </DialogTitle>
-            <DialogDescription className="text-center text-base text-gray-700 dark:text-gray-300 mb-4">
+            <DialogDescription className="text-center text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-2 sm:mb-4">
               {selectedPackage && selectedSection && (
                 <>
                   <strong className="dark:text-gray-100">
@@ -780,58 +780,66 @@ function PackagesContent() {
               )}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-4 py-4">
+          <div className="relative flex flex-col gap-2 sm:gap-4 overflow-y-auto flex-1 min-h-0 -mx-3 sm:mx-0 px-3 sm:px-0 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
+            {/* Top fade indicator */}
+            <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-white to-transparent dark:from-gray-900 pointer-events-none z-10"></div>
+            {/* Bottom fade indicator */}
+            <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white to-transparent dark:from-gray-900 pointer-events-none z-10"></div>
+            {/* Scroll hint for mobile */}
+            <div className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 text-xs opacity-50 sm:hidden pointer-events-none">
+              ↕️
+            </div>
             {/* Option 1: Prorated Package */}
             <div
-              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all mt-2 ${
                 selectedPurchaseOption === "prorated"
                   ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
                   : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
               }`}
               onClick={() => setSelectedPurchaseOption("prorated")}
             >
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-semibold text-lg dark:text-gray-100">
+              <div className="flex justify-between items-start mb-1 sm:mb-2">
+                <div className="font-semibold text-sm sm:text-lg dark:text-gray-100">
                   Prorated Package
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-xs text-gray-600 dark:text-gray-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
                   Best Value
                 </div>
               </div>
-              <div className="text-gray-700 dark:text-gray-300 mb-2">
+              <div className="text-xs sm:text-base text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                 Only pay for the sessions you'll use this month. Perfect if
                 you're starting mid-month.
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-xs text-gray-600 dark:text-gray-400">
                 Sessions: Calculated based on remaining weeks
               </div>
             </div>
 
             {/* Option 2: Full Package for Current Month */}
             <div
-              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                 selectedPurchaseOption === "current_month"
                   ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
                   : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
               }`}
               onClick={() => setSelectedPurchaseOption("current_month")}
             >
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-semibold text-lg dark:text-gray-100">
+              <div className="flex justify-between items-start mb-1 sm:mb-2">
+                <div className="font-semibold text-sm sm:text-lg dark:text-gray-100">
                   Full Package - This Month
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-xs text-gray-600 dark:text-gray-400 bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
                   Most Sessions
                 </div>
               </div>
-              <div className="text-gray-700 dark:text-gray-300 mb-2">
+              <div className="text-xs sm:text-base text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                 Get all sessions for the current month. Great for intensive
                 training.
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">
                 Sessions: {selectedPackage?.monthlySessionCount} sessions
               </div>
-              <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-700">
+              <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-1.5 sm:p-2 rounded border border-amber-200 dark:border-amber-700">
                 ⚠️ Note: If purchased mid-month, you'll have less time to use
                 all of your sessions for the month.
               </div>
@@ -839,33 +847,33 @@ function PackagesContent() {
 
             {/* Option 3: Full Package for Next Month */}
             <div
-              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all mb-2 ${
                 selectedPurchaseOption === "next_month"
                   ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
                   : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
               }`}
               onClick={() => setSelectedPurchaseOption("next_month")}
             >
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-semibold text-lg dark:text-gray-100">
+              <div className="flex justify-between items-start mb-1 sm:mb-2">
+                <div className="font-semibold text-sm sm:text-lg dark:text-gray-100">
                   Full Package - Next Month
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-xs text-gray-600 dark:text-gray-400 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
                   Full Month
                 </div>
               </div>
-              <div className="text-gray-700 dark:text-gray-300 mb-2">
+              <div className="text-xs sm:text-base text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                 Purchase the full package for the upcoming month. Perfect for
                 planning ahead.
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-xs text-gray-600 dark:text-gray-400">
                 Sessions: {selectedPackage?.monthlySessionCount} sessions
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0 pt-2 sm:pt-4 border-t border-gray-200 dark:border-gray-700 mt-2 sm:mt-0">
             <Button
-              className="w-full bg-red-600 hover:bg-red-700 text-lg py-3"
+              className="w-full bg-red-600 hover:bg-red-700 text-sm sm:text-lg py-2.5 sm:py-4"
               disabled={
                 !selectedPurchaseOption || isLoading === selectedPackage?.id
               }

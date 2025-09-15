@@ -7,6 +7,11 @@ import buffer from "@/lib/raw-body";
 // 💡 RECOMMENDATION: Add a unique constraint to packages.transaction_id in Supabase
 // for additional safety against duplicate package creation:
 // ALTER TABLE packages ADD CONSTRAINT packages_transaction_id_unique UNIQUE (transaction_id);
+//
+// 🔧 WEBHOOK LOGIC:
+// - Only add sessions to existing Stripe packages (packages with transaction_id)
+// - Always create new packages for manual/free packages (packages without transaction_id)
+// - This prevents data corruption and maintains package source separation
 
 // Use the appropriate webhook secret based on environment
 // In development, use STRIPE_CLI_WEBHOOK_SECRET (from Stripe CLI)
@@ -292,104 +297,79 @@ export async function POST(req: Request) {
               newTransactionId: session.id,
             });
 
-            // If the package has no transaction_id, treat it as a new package
-            if (!existingPackage.transaction_id) {
-              console.log(
-                "🆕 Existing package has no transaction_id, treating as new package"
-              );
-
-              const { data: updatedPackage, error: updateError } =
-                await supabaseAdmin
-                  .from("packages")
-                  .update({
-                    sessions_included: parseInt(
-                      session.metadata.sessions_included
-                    ),
-                    transaction_id: session.id,
-                    purchase_date: currentDate,
-                  })
-                  .eq("id", existingPackage.id)
-                  .select()
-                  .single();
-
-              if (updateError) {
-                console.error("❌ Failed to update package:", {
-                  error: updateError,
-                  packageId: existingPackage.id,
-                  attemptedSessions: parseInt(
-                    session.metadata.sessions_included
-                  ),
-                });
-                console.warn(
-                  "⚠️ Package update failed but payment was recorded"
+            // Only add sessions to existing Stripe packages (packages with transaction_id)
+            if (existingPackage.transaction_id) {
+              // If it's the same transaction, skip update
+              if (existingPackage.transaction_id === session.id) {
+                console.log(
+                  "⚠️ Transaction already processed, skipping update"
                 );
-              } else {
-                console.log("✅ Successfully updated package:", {
-                  id: existingPackage.id,
-                  oldSessions: existingPackage.sessions_included,
-                  newSessions: updatedPackage.sessions_included,
-                  operation: "set",
-                });
+                packageId = existingPackage.id;
               }
-              packageId = existingPackage.id;
-            }
-            // If it's the same transaction, skip update
-            else if (existingPackage.transaction_id === session.id) {
-              console.log("⚠️ Transaction already processed, skipping update");
-              packageId = existingPackage.id;
-            }
-            // If it has a different transaction_id, add sessions
-            else {
-              const newSessionCount =
-                existingPackage.sessions_included +
-                parseInt(session.metadata.sessions_included);
+              // If it has a different transaction_id, add sessions
+              else {
+                const newSessionCount =
+                  existingPackage.sessions_included +
+                  parseInt(session.metadata.sessions_included);
 
-              console.log("🔢 Adding sessions to existing package:", {
-                currentSessions: existingPackage.sessions_included,
-                currentOriginalSessions: existingPackage.original_sessions,
-                addingSessions: parseInt(session.metadata.sessions_included),
-                newTotal: newSessionCount,
-                newOriginalSessions:
-                  existingPackage.original_sessions + sessionsIncluded,
-                operation: "add",
-              });
-
-              const { data: updatedPackage, error: updateError } =
-                await supabaseAdmin
-                  .from("packages")
-                  .update({
-                    sessions_included: newSessionCount,
-                    original_sessions:
-                      existingPackage.original_sessions + sessionsIncluded,
-                    transaction_id: session.id,
-                    purchase_date: currentDate,
-                  })
-                  .eq("id", existingPackage.id)
-                  .select()
-                  .single();
-
-              if (updateError) {
-                console.error("❌ Failed to update package:", {
-                  error: updateError,
-                  packageId: existingPackage.id,
+                console.log("🔢 Adding sessions to existing Stripe package:", {
                   currentSessions: existingPackage.sessions_included,
-                  attemptedAdd: parseInt(session.metadata.sessions_included),
-                });
-                console.warn(
-                  "⚠️ Package update failed but payment was recorded"
-                );
-              } else {
-                console.log("✅ Successfully updated package:", {
-                  id: existingPackage.id,
-                  oldSessions: existingPackage.sessions_included,
-                  addedSessions: parseInt(session.metadata.sessions_included),
-                  newTotal: updatedPackage.sessions_included,
+                  currentOriginalSessions: existingPackage.original_sessions,
+                  addingSessions: parseInt(session.metadata.sessions_included),
+                  newTotal: newSessionCount,
+                  newOriginalSessions:
+                    existingPackage.original_sessions + sessionsIncluded,
                   operation: "add",
                 });
+
+                const { data: updatedPackage, error: updateError } =
+                  await supabaseAdmin
+                    .from("packages")
+                    .update({
+                      sessions_included: newSessionCount,
+                      original_sessions:
+                        existingPackage.original_sessions + sessionsIncluded,
+                      transaction_id: session.id,
+                      purchase_date: currentDate,
+                    })
+                    .eq("id", existingPackage.id)
+                    .select()
+                    .single();
+
+                if (updateError) {
+                  console.error("❌ Failed to update package:", {
+                    error: updateError,
+                    packageId: existingPackage.id,
+                    currentSessions: existingPackage.sessions_included,
+                    attemptedAdd: parseInt(session.metadata.sessions_included),
+                  });
+                  console.warn(
+                    "⚠️ Package update failed but payment was recorded"
+                  );
+                } else {
+                  console.log("✅ Successfully updated package:", {
+                    id: existingPackage.id,
+                    oldSessions: existingPackage.sessions_included,
+                    addedSessions: parseInt(session.metadata.sessions_included),
+                    newTotal: updatedPackage.sessions_included,
+                    operation: "add",
+                  });
+                }
+                packageId = existingPackage.id;
               }
-              packageId = existingPackage.id;
+            } else {
+              // Existing package has no transaction_id (manual/free package)
+              // Create a new package instead of updating the existing one
+              console.log(
+                "🆕 Existing package has no transaction_id (manual/free), creating new package"
+              );
+
+              // Fall through to create new package logic below
             }
-          } else {
+          }
+
+          // Create new package if no existing package OR existing package is manual/free
+          if (!existingPackage || !existingPackage.transaction_id) {
             // Create new package
             console.log("🆕 Creating new package:", {
               type: packageType,

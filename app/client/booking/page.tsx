@@ -880,7 +880,7 @@ export default function BookingPage() {
       // Use configured recurring weeks (not yet confirmed)
       sessionsToCheck = [
         {
-          dayOfWeek: new Date(selectedDate).getDay(),
+          dayOfWeek: parseLocalDateString(selectedDate).getDay(),
           time: selectedTimeSlot.startTime,
           weeks: recurringWeeks,
           startDate: selectedDate,
@@ -2315,9 +2315,10 @@ export default function BookingPage() {
                                         // Create recurring sessions based on the selected date, time, and weeks
                                         const newRecurringSessions = [
                                           {
-                                            dayOfWeek: new Date(
-                                              selectedDate
-                                            ).getDay(),
+                                            dayOfWeek:
+                                              parseLocalDateString(
+                                                selectedDate
+                                              ).getDay(),
                                             time: selectedTimeSlot.startTime,
                                             weeks: recurringWeeks,
                                             startDate: selectedDate,
