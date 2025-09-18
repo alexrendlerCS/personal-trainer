@@ -2427,7 +2427,7 @@ export default function TrainerSchedulePage() {
 
       {/* Add Session Dialog */}
       <Dialog open={isAddSessionOpen} onOpenChange={setIsAddSessionOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Session</DialogTitle>
             <DialogDescription>
@@ -3150,6 +3150,3 @@ async function syncGoogleCalendarEvents(
 
   console.log("[Calendar Sync] Sync completed successfully");
 }
-
-
-
