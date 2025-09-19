@@ -422,7 +422,6 @@ function PackagesContent() {
 
       const sessionTypesArray = Object.values(packageTypes);
       setSessionsByType(sessionTypesArray);
-      console.log("✅ Sessions by type:", sessionTypesArray);
 
       return true;
     } catch (error) {
@@ -439,25 +438,14 @@ function PackagesContent() {
     const success = searchParams.get("success");
     const canceled = searchParams.get("canceled");
 
-    console.log("🔄 Initial mount effect:", {
-      success,
-      canceled,
-      hasShownMessage,
-      isClient,
-      hasUser: !!user,
-      userId: user?.id,
-    });
-
     setIsClient(true);
 
     if (!hasShownMessage) {
       if (success === "true") {
-        console.log("✨ Success parameter detected on mount - showing dialog");
         setShowSuccessDialog(true);
         setHasShownMessage(true);
         setShouldFetchPackages(true);
       } else if (canceled === "true") {
-        console.log("❌ Canceled parameter detected on mount");
         setShowCanceledDialog(true);
         setHasShownMessage(true);
       }
@@ -466,15 +454,7 @@ function PackagesContent() {
 
   // Effect to watch for user data and fetch packages when ready
   useEffect(() => {
-    console.log("👤 User state changed:", {
-      hasUser: !!user,
-      userId: user?.id,
-      shouldFetch: shouldFetchPackages,
-      retryCount,
-    });
-
     if (user?.id && shouldFetchPackages) {
-      console.log("✅ User data available, fetching packages...");
       fetchPackageInformation().then((foundPackages) => {
         // If no packages found and we haven't exceeded retries, try again
         if (
@@ -501,23 +481,12 @@ function PackagesContent() {
     const success = searchParams.get("success");
     const canceled = searchParams.get("canceled");
 
-    console.log("🔄 URL parameters changed:", {
-      success,
-      canceled,
-      hasShownMessage,
-      showSuccessDialog,
-      hasUser: !!user,
-      userId: user?.id,
-    });
-
     if (!hasShownMessage) {
       if (success === "true") {
-        console.log("✨ Success parameter detected from URL change");
         setShowSuccessDialog(true);
         setHasShownMessage(true);
         setShouldFetchPackages(true);
       } else if (canceled === "true") {
-        console.log("❌ Canceled parameter detected from URL change");
         setShowCanceledDialog(true);
         setHasShownMessage(true);
       }
@@ -899,15 +868,6 @@ function PackagesContent() {
       <Dialog
         open={showSuccessDialog}
         onOpenChange={(open) => {
-          console.log("🔄 Dialog state changing:", {
-            open,
-            loadingPackages,
-            hasPackages: sessionsByType.length > 0,
-            purchasedPackage,
-            hasUser: !!user,
-            userId: user?.id,
-          });
-
           if (!open) {
             setShowSuccessDialog(false);
             window.history.replaceState({}, "", "/client/packages");

@@ -201,8 +201,6 @@ export default function ClientCalendarPage() {
           return;
         }
 
-        console.log("Fetched sessions from database:", sessionsData);
-
         // Convert database sessions to the format expected by the UI
         const convertedEvents =
           sessionsData?.map((session: any) => ({
@@ -306,8 +304,6 @@ export default function ClientCalendarPage() {
   const days = getDaysInMonth(currentDate);
 
   const renderEvent = (event: DatabaseSession) => {
-    console.log("Rendering event:", event);
-
     // Default values
     let colors = defaultColorScheme;
     let sessionType = "Unknown Session";
@@ -340,34 +336,30 @@ export default function ClientCalendarPage() {
       const trainerHash = getHashCode(trainerName);
       colors = trainerColorPalette[trainerHash % trainerColorPalette.length];
 
-      console.log("Event processing:", {
-        summary: event?.summary,
-        sessionType,
-        trainerName,
-        colors,
-        dbData: event._dbData,
-      });
-
       return (
         <div
           key={event.id}
-          className={`group relative p-2 mb-1 rounded-lg border ${colors.border} ${colors.bg} ${colors.hover} transition-all duration-200 shadow-sm hover:shadow-md`}
+          className={`group relative p-2 sm:p-3 mb-2 rounded-lg border ${colors.border} ${colors.bg} ${colors.hover} transition-all duration-200 shadow-sm hover:shadow-md`}
         >
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 sm:gap-1.5">
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-semibold ${colors.text}`}>
+              <span className={`text-sm font-semibold ${colors.text}`}>
                 {formatEventTime(event.start.dateTime)}
               </span>
-              <span className={`text-xs ${colors.text} opacity-75`}>
+              <span
+                className={`text-xs ${colors.text} opacity-75 hidden sm:block`}
+              >
                 {formatEventDuration(event.start.dateTime, event.end.dateTime)}
               </span>
             </div>
-            <div className={`font-medium ${colors.text} text-sm truncate`}>
+            <div
+              className={`font-medium ${colors.text} text-sm sm:text-base truncate`}
+            >
               {sessionType}
             </div>
-            <div className="flex items-center gap-2">
-              <User className={`h-3 w-3 ${colors.text} opacity-75`} />
-              <span className={`text-xs ${colors.text} opacity-75 truncate`}>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <User className={`h-4 w-4 ${colors.text} opacity-75`} />
+              <span className={`text-sm ${colors.text} opacity-75 truncate`}>
                 {trainerName}
               </span>
             </div>
@@ -462,9 +454,10 @@ export default function ClientCalendarPage() {
         </SidebarTrigger>
         <div className="flex items-center justify-between w-full">
           <Link href="/client/dashboard">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
+            <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
+              <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
             </Button>
           </Link>
           <div className="flex items-center space-x-2">
@@ -499,14 +492,15 @@ export default function ClientCalendarPage() {
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <h2 className="text-2xl font-bold tracking-tight dark:text-gray-100">
+                <h2 className="text-lg sm:text-2xl font-bold tracking-tight dark:text-gray-100">
                   {months[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </h2>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <Button
                   variant="outline"
                   size="icon"
+                  className="h-8 w-8 sm:h-10 sm:w-10"
                   onClick={() => navigateMonth("prev")}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -514,6 +508,7 @@ export default function ClientCalendarPage() {
                 <Button
                   variant="outline"
                   size="icon"
+                  className="h-8 w-8 sm:h-10 sm:w-10"
                   onClick={() => navigateMonth("next")}
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -523,12 +518,12 @@ export default function ClientCalendarPage() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden min-w-[600px]">
+              <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden w-full min-w-0">
                 {/* Day headers */}
                 {daysOfWeek.map((day) => (
                   <div
                     key={day}
-                    className="bg-gray-50 dark:bg-gray-900/40 p-1 sm:p-2 text-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+                    className="bg-gray-50 dark:bg-gray-900/40 p-2 sm:p-3 text-center text-sm font-semibold text-gray-600 dark:text-gray-300"
                   >
                     {day}
                   </div>
@@ -538,7 +533,7 @@ export default function ClientCalendarPage() {
                 {days.map((day, index) => (
                   <div
                     key={`day-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
-                    className={`relative p-1 sm:p-2 min-h-[90px] sm:min-h-[120px] ${
+                    className={`relative p-2 sm:p-3 min-h-[150px] sm:min-h-[180px] ${
                       !day
                         ? "bg-gray-50 dark:bg-gray-900/40"
                         : isToday(day)
@@ -549,13 +544,15 @@ export default function ClientCalendarPage() {
                     {day && (
                       <>
                         <div
-                          className={`font-medium text-xs sm:text-sm mb-1 sm:mb-2 sticky top-0 z-10 ${
-                            isToday(day) ? "text-red-900 dark:text-red-300 font-semibold" : "dark:text-gray-100"
+                          className={`font-semibold text-sm mb-2 sticky top-0 z-10 ${
+                            isToday(day)
+                              ? "text-red-900 dark:text-red-300 font-bold"
+                              : "dark:text-gray-100"
                           }`}
                         >
                           {day}
                         </div>
-                        <div className="space-y-1 sm:space-y-2 max-h-[80px] sm:max-h-[100px] overflow-y-auto">
+                        <div className="space-y-2 max-h-[120px] sm:max-h-[140px] overflow-y-auto">
                           {getSessionsForDate(day).map((event) =>
                             renderEvent(event)
                           )}

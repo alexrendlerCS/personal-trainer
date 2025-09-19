@@ -384,15 +384,6 @@ export default function BookingPage() {
         const jsDay = dateObj.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
         const selectedDayOfWeek = jsDay;
 
-        console.log("[DEBUG] fetchAvailableTimeSlots:", {
-          selectedDate,
-          dateObj: dateObj.toString(),
-          jsDay,
-          selectedDayOfWeek,
-          dayName: getDayName(jsDay),
-          trainerId: selectedTrainer.id,
-        });
-
         // 1. Get trainer's regular availability for this day
         const { data: availabilityData, error: availabilityError } =
           await supabase
@@ -400,12 +391,6 @@ export default function BookingPage() {
             .select("*")
             .eq("trainer_id", selectedTrainer.id)
             .eq("weekday", selectedDayOfWeek);
-
-        console.log("[DEBUG] DB availability query result:", {
-          weekdayQueried: selectedDayOfWeek,
-          availabilityData,
-          availabilityError,
-        });
 
         if (availabilityError) throw availabilityError;
 
@@ -417,34 +402,19 @@ export default function BookingPage() {
             .eq("trainer_id", selectedTrainer.id)
             .eq("date", selectedDate);
 
-        console.log("[DEBUG] DB unavailability query result:", {
-          unavailabilityData,
-          unavailabilityError,
-        });
-
         if (unavailabilityError) throw unavailabilityError;
 
         // 3. Get existing sessions for the selected date
+        // FIXED: Remove trainer_id filter to check all sessions for time slot conflicts
         const { data: sessionData, error: sessionError } = await supabase
           .from("sessions")
           .select("start_time, end_time")
-          .eq("trainer_id", selectedTrainer.id)
           .eq("date", selectedDate)
           .neq("status", "cancelled"); // Exclude cancelled sessions
-
-        console.log("[DEBUG] DB sessions query result:", {
-          sessionData,
-          sessionError,
-        });
 
         if (sessionError) throw sessionError;
 
         if (!availabilityData?.length) {
-          console.log("[DEBUG] No availability found for this day", {
-            selectedDayOfWeek,
-            dayName: getDayName(selectedDayOfWeek),
-            selectedDate,
-          });
           setAvailableTimeSlots([]);
           setLoadingTimeSlots(false);
           return;
@@ -468,8 +438,6 @@ export default function BookingPage() {
           );
           allSlots = [...allSlots, ...windowSlots];
         }
-
-        console.log("[DEBUG] Generated time slots:", allSlots);
 
         setAvailableTimeSlots(allSlots);
         setLoadingTimeSlots(false);
@@ -511,12 +479,6 @@ export default function BookingPage() {
           throw new Error("Not authenticated - no user found");
         }
 
-        console.log("Authenticated as user:", {
-          id: user.id,
-          email: user.email,
-          role: user.user_metadata?.role,
-        });
-
         // Get current user's role first
         const { data: userData, error: userError } = await supabase
           .from("users")
@@ -528,8 +490,6 @@ export default function BookingPage() {
           console.error("Error fetching user role:", userError);
           throw new Error("Failed to verify user role: " + userError.message);
         }
-
-        console.log("Current user role:", userData?.role);
 
         // Then fetch trainers
         const { data: trainersData, error: trainersError } = await supabase
@@ -547,14 +507,11 @@ export default function BookingPage() {
           throw new Error("Failed to fetch trainers: " + trainersError.message);
         }
 
-        console.log("Fetched trainers count:", trainersData?.length);
-
         // Only ensure required fields
         const validTrainers = (trainersData || []).filter(
           (trainer) => trainer.full_name && trainer.email
         );
 
-        console.log("Valid trainers count:", validTrainers.length);
         setTrainers(validTrainers);
       } catch (err) {
         console.error("Error fetching trainers (full error):", {
@@ -579,11 +536,8 @@ export default function BookingPage() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) {
-        console.log("No user found for profile fetch");
         return;
       }
-
-      console.log("Fetching user profile for ID:", user.id);
 
       const { data: profile, error } = await supabase
         .from("users")
@@ -614,17 +568,10 @@ export default function BookingPage() {
   }, [user, supabase]);
 
   // Add an additional effect to monitor profile state
-  useEffect(() => {
-    console.log("User profile state updated:", {
-      exists: !!userProfile,
-      id: userProfile?.id,
-      name: userProfile?.full_name,
-    });
-  }, [userProfile]);
+  useEffect(() => {}, [userProfile]);
 
   useEffect(() => {
     const checkRemainingSession = async () => {
-      console.log("Starting session check...");
       setIsCheckingSession(true);
 
       try {
@@ -632,10 +579,7 @@ export default function BookingPage() {
           data: { user },
         } = await supabase.auth.getUser();
 
-        console.log("Auth check result:", { userId: user?.id });
-
         if (!user) {
-          console.log("No authenticated user found");
           setIsCheckingSession(false);
           return;
         }
@@ -655,8 +599,6 @@ export default function BookingPage() {
           setIsCheckingSession(false);
           return;
         }
-
-        console.log("Fetched packages:", packages);
 
         // Group packages by type and calculate remaining sessions
         const packageTypes: PackageTypeCounts = {
@@ -692,7 +634,6 @@ export default function BookingPage() {
         // Convert to array and include all types
         const sessionSummary = Object.values(packageTypes);
 
-        console.log("Sessions by type:", sessionSummary);
         setSessionsByType(sessionSummary);
 
         // Calculate total remaining sessions
@@ -903,10 +844,10 @@ export default function BookingPage() {
           .slice(0, 5);
 
         // Check for overlaps with existing sessions
+        // FIXED: Remove trainer_id filter to check all sessions for time slot conflicts
         const { data: existingSessions, error } = await supabase
           .from("sessions")
           .select("date, start_time, end_time, client_id, trainer_id")
-          .eq("trainer_id", selectedTrainer.id)
           .eq("date", dateString)
           .neq("status", "cancelled");
 
@@ -1353,7 +1294,6 @@ export default function BookingPage() {
       // If profile is missing, fetch it
       let currentProfile = userProfile;
       if (!currentProfile) {
-        console.log("Fetching user profile...");
         const { data: profile, error: profileError } = await supabase
           .from("users")
           .select("*")
@@ -1686,7 +1626,6 @@ export default function BookingPage() {
               "Trainer calendar event created successfully:",
               trainerEventId
             );
-            console.log("Trainer event response data:", trainerEventData);
           }
         } catch (error) {
           console.warn("Error creating trainer calendar event:", {
@@ -1728,7 +1667,6 @@ export default function BookingPage() {
               "Client calendar event created successfully:",
               clientEventId
             );
-            console.log("Client event response data:", clientEventData);
           }
         } catch (error) {
           console.warn("Error creating client calendar event:", error);

@@ -218,14 +218,12 @@ export function ClientSidebar() {
         if (data) {
           // Get the avatar URL using getPublicUrl
           let avatarUrl = data.avatar_url;
-          console.log("Original avatar_url from database:", avatarUrl);
 
           if (avatarUrl) {
             const { data: publicUrl } = supabase.storage
               .from("avatars")
               .getPublicUrl(avatarUrl);
             avatarUrl = publicUrl.publicUrl;
-            console.log("Constructed public URL:", avatarUrl);
           }
 
           setUserData({

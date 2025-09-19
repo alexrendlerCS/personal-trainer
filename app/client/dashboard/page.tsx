@@ -284,7 +284,6 @@ export default function ClientDashboard() {
   // Move fetchUpcomingSessions to component scope
   const fetchUpcomingSessions = async (userId: string) => {
     try {
-      console.log("Fetching upcoming sessions for user:", userId);
       const { data: rawSessions, error } = await supabase
         .from("sessions")
         .select(
@@ -311,8 +310,6 @@ export default function ClientDashboard() {
         console.error("Error fetching sessions:", error);
         return;
       }
-
-      console.log("Raw sessions data:", rawSessions);
 
       const typedSessions =
         (rawSessions as any[])?.map((rawSession) => {
@@ -349,7 +346,6 @@ export default function ClientDashboard() {
           return session;
         }) || [];
 
-      console.log("Processed sessions:", typedSessions);
       setUpcomingSessions(typedSessions);
     } catch (error) {
       console.error("Error in fetchUpcomingSessions:", error);
@@ -380,12 +376,9 @@ export default function ClientDashboard() {
       } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        console.log("No session found, redirecting to login");
         router.push("/login");
         return;
       }
-
-      console.log("Fetching user data for auth ID:", session.user.id);
 
       // Force cache revalidation by adding nocache parameter
       const { data: userData, error } = await supabase
@@ -400,8 +393,6 @@ export default function ClientDashboard() {
         console.error("Error fetching user data:", error);
         return;
       }
-
-      console.log("User data from Supabase:", userData);
 
       if (userData) {
         const contractAccepted =
@@ -421,13 +412,6 @@ export default function ClientDashboard() {
             .getPublicUrl(avatarUrl);
           avatarUrl = publicUrl.publicUrl;
         }
-
-        console.log("Setting user status with:", {
-          contractAccepted,
-          googleConnected,
-          userName: userData.full_name || "Client",
-          avatarUrl,
-        });
 
         setUserStatus({
           contractAccepted,
@@ -452,7 +436,6 @@ export default function ClientDashboard() {
           setShowCalendarPopup(true);
           setShowSuccessDialog(false);
         } else {
-          console.log("Both contract accepted and Google connected");
           setShowContractModal(false);
           setShowCalendarPopup(false);
         }
@@ -613,13 +596,6 @@ export default function ClientDashboard() {
 
     fetchPaymentHistory();
   }, [supabase]);
-
-  console.log("Rendering dashboard:", {
-    loading,
-    showContractModal,
-    contractAccepted: userStatus.contractAccepted,
-    googleConnected: userStatus.googleConnected,
-  });
 
   // Get initials from user name
   const initials = userStatus.userName
@@ -893,22 +869,6 @@ export default function ClientDashboard() {
                                   ? "Pending"
                                   : session.status}
                             </Badge>
-                            {session.status === "confirmed" &&
-                              (() => {
-                                // Check if session is within 24 hours
-                                // Temporarily disabled reschedule functionality
-                                return (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={true}
-                                    className="flex items-center gap-1 opacity-50 cursor-not-allowed"
-                                  >
-                                    <CalendarDays className="h-3 w-3" />
-                                    Reschedule (Coming Soon)
-                                  </Button>
-                                );
-                              })()}
                             {/* Temporarily disabled reschedule status badge
                             {session.reschedule_status === "pending" && (
                               <Badge

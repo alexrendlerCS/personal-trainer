@@ -103,13 +103,9 @@ function GoogleCalendarSection() {
 
   const handleSyncCalendar = async () => {
     try {
-      console.log("[DEBUG] Starting client calendar sync process");
       setIsSyncing(true);
       setShowSyncDialog(false);
 
-      console.log(
-        "[DEBUG] Making API call to /api/google/calendar/sync/client"
-      );
       const response = await fetch("/api/google/calendar/sync/client", {
         method: "POST",
         headers: {
@@ -117,12 +113,9 @@ function GoogleCalendarSection() {
         },
       });
 
-      console.log("[DEBUG] API response status:", response.status);
       const result = await response.json();
-      console.log("[DEBUG] API response data:", result);
 
       if (response.ok) {
-        console.log("[DEBUG] Sync successful, setting result:", result);
         setSyncResult(result);
         toast({
           title: "Calendar Sync Complete",
@@ -169,7 +162,6 @@ function GoogleCalendarSection() {
         variant: "destructive",
       });
     } finally {
-      console.log("[DEBUG] Sync process completed, setting isSyncing to false");
       setIsSyncing(false);
     }
   };
@@ -332,7 +324,7 @@ function GoogleCalendarSection() {
         {/* Sync Results Dialog */}
         {syncResult && (
           <Dialog open={!!syncResult} onOpenChange={() => setSyncResult(null)}>
-          <DialogContent>
+            <DialogContent>
               <DialogHeader>
                 <DialogTitle>
                   {syncResult.success ? "Sync Results" : "Sync Failed"}
@@ -345,10 +337,10 @@ function GoogleCalendarSection() {
               </DialogHeader>
               <div className="space-y-4">
                 {syncResult.success ? (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
                     <div className="flex items-center space-x-2">
                       <svg
-                      className="h-5 w-5 text-green-400"
+                        className="h-5 w-5 text-green-400"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -364,10 +356,10 @@ function GoogleCalendarSection() {
                     </div>
                   </div>
                 ) : (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
                     <div className="flex items-center space-x-2">
                       <svg
-                      className="h-5 w-5 text-red-400"
+                        className="h-5 w-5 text-red-400"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -416,7 +408,10 @@ function GoogleCalendarSection() {
                       <div className="text-xs text-red-700 dark:text-red-300 space-y-1 max-h-32 overflow-y-auto">
                         {syncResult.syncResults.errors.map(
                           (error: string, index: number) => (
-                            <div key={index} className="p-2 bg-red-100 dark:bg-red-900/30 rounded">
+                            <div
+                              key={index}
+                              className="p-2 bg-red-100 dark:bg-red-900/30 rounded"
+                            >
                               {error}
                             </div>
                           )
@@ -596,7 +591,9 @@ export default function ClientSettings() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
         <SidebarTrigger />
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          Settings
+        </h1>
       </div>
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
