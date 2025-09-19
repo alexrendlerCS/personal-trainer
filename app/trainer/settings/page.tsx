@@ -199,20 +199,20 @@ function GoogleCalendarSection() {
           Sync with your calendar for seamless scheduling
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between p-4 border rounded-lg border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <CardContent className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-3 sm:space-y-0">
           <div className="flex items-center space-x-3">
             <div className="bg-blue-600 p-2 rounded">
-              <Calendar className="h-5 w-5 text-white" />
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
             <div>
-              <p className="font-medium dark:text-gray-100">Google Calendar</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="font-medium dark:text-gray-100 text-sm sm:text-base">Google Calendar</p>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Sync your availability and bookings
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isGoogleConnected ? (
               <>
                 <Badge
@@ -268,7 +268,7 @@ function GoogleCalendarSection() {
 
         {/* Sync Confirmation Dialog */}
         <Dialog open={showSyncDialog} onOpenChange={setShowSyncDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-md mx-auto">
             <DialogHeader>
               <DialogTitle>Sync Calendar</DialogTitle>
               <DialogDescription>
@@ -317,18 +317,19 @@ function GoogleCalendarSection() {
                 </div>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 onClick={() => setShowSyncDialog(false)}
                 disabled={isSyncing}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSyncCalendar}
                 disabled={isSyncing}
-                className="bg-red-600 hover:bg-red-700"
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
               >
                 {isSyncing ? (
                   <>
@@ -346,7 +347,7 @@ function GoogleCalendarSection() {
         {/* Sync Results Dialog */}
         {syncResult && (
           <Dialog open={!!syncResult} onOpenChange={() => setSyncResult(null)}>
-            <DialogContent>
+            <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {syncResult.success ? "Sync Results" : "Sync Failed"}
@@ -443,7 +444,10 @@ function GoogleCalendarSection() {
                   )}
               </div>
               <DialogFooter>
-                <Button onClick={() => setSyncResult(null)}>
+                <Button 
+                  onClick={() => setSyncResult(null)}
+                  className="w-full sm:w-auto"
+                >
                   {syncResult.success ? "Close" : "Try Again"}
                 </Button>
               </DialogFooter>
@@ -537,73 +541,124 @@ function ClientContractsSection() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div>Loading contracts...</div>
+          <div className="text-sm">Loading contracts...</div>
         ) : contracts.length === 0 ? (
-          <div className="text-gray-500">No contracts found.</div>
+          <div className="text-sm text-gray-500">No contracts found.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                    Client
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                    Email
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                    Date Signed
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-                {contracts.map((contract) => (
-                  <tr
-                    key={contract.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/70"
-                  >
-                    <td className="px-4 py-2 whitespace-nowrap text-gray-900 dark:text-gray-200">
-                      {contract.user?.full_name || contract.user_id}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">
-                      {contract.user?.email || "-"}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">
-                      {contract.signed_at
-                        ? new Date(contract.signed_at).toLocaleDateString()
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleView(contract.pdf_url)}
-                        disabled={!contract.pdf_url}
-                      >
-                        <Eye className="h-4 w-4 mr-1" /> View
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleDownload(
-                            contract.pdf_url,
-                            contract.user?.full_name || contract.user_id
-                          )
-                        }
-                        disabled={!contract.pdf_url}
-                      >
-                        <Download className="h-4 w-4 mr-1" /> Download
-                      </Button>
-                    </td>
+          <>
+            {/* Mobile Card Layout */}
+            <div className="block sm:hidden space-y-3">
+              {contracts.map((contract) => (
+                <div key={contract.id} className="border rounded-lg p-3 bg-white dark:bg-gray-900">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                        {contract.user?.full_name || contract.user_id}
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {contract.user?.email || "-"}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Signed: {contract.signed_at
+                          ? new Date(contract.signed_at).toLocaleDateString()
+                          : "-"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleView(contract.pdf_url)}
+                      disabled={!contract.pdf_url}
+                      className="flex-1 text-xs h-8"
+                    >
+                      <Eye className="h-3 w-3 mr-1" /> View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handleDownload(
+                          contract.pdf_url,
+                          contract.user?.full_name || contract.user_id
+                        )
+                      }
+                      disabled={!contract.pdf_url}
+                      className="flex-1 text-xs h-8"
+                    >
+                      <Download className="h-3 w-3 mr-1" /> Download
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                      Client
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                      Email
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                      Date Signed
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                  {contracts.map((contract) => (
+                    <tr
+                      key={contract.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800/70"
+                    >
+                      <td className="px-4 py-2 whitespace-nowrap text-gray-900 dark:text-gray-200">
+                        {contract.user?.full_name || contract.user_id}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                        {contract.user?.email || "-"}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                        {contract.signed_at
+                          ? new Date(contract.signed_at).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleView(contract.pdf_url)}
+                          disabled={!contract.pdf_url}
+                        >
+                          <Eye className="h-4 w-4 mr-1" /> View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleDownload(
+                              contract.pdf_url,
+                              contract.user?.full_name || contract.user_id
+                            )
+                          }
+                          disabled={!contract.pdf_url}
+                        >
+                          <Download className="h-4 w-4 mr-1" /> Download
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
@@ -721,7 +776,7 @@ function AddSessionsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
           <DialogTitle>Add Sessions to User</DialogTitle>
           <DialogDescription>
@@ -786,7 +841,7 @@ function AddSessionsModal({
       </DialogContent>
       {/* Confirmation Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle>Confirm Add Sessions</DialogTitle>
             <DialogDescription>
@@ -802,12 +857,16 @@ function AddSessionsModal({
               ? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirm(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowConfirm(false)}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
             <Button
-              className="w-full bg-red-600 hover:bg-red-700 text-white"
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white"
               onClick={handleSubmit}
               disabled={submitting}
             >
@@ -818,7 +877,7 @@ function AddSessionsModal({
       </Dialog>
       {/* Success Dialog */}
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-md mx-auto">
           <DialogHeader className="text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
               <svg
@@ -993,7 +1052,7 @@ function CustomPaymentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
           <DialogTitle>Record Custom Payment</DialogTitle>
           <DialogDescription>
@@ -1084,7 +1143,7 @@ function CustomPaymentModal({
       </DialogContent>
       {/* Confirmation Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle>Confirm Payment Recording</DialogTitle>
             <DialogDescription>
@@ -1100,12 +1159,16 @@ function CustomPaymentModal({
               ? This will create a package and payment record.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirm(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowConfirm(false)}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
             <Button
-              className="w-full bg-red-600 hover:bg-red-700 text-white"
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white"
               onClick={handleSubmit}
               disabled={submitting}
             >
@@ -1116,7 +1179,7 @@ function CustomPaymentModal({
       </Dialog>
       {/* Success Dialog */}
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-md mx-auto">
           <DialogHeader className="text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
               <svg
@@ -1220,7 +1283,7 @@ function CreatePromoCodeModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle>Create Promo Code</DialogTitle>
             <DialogDescription>
@@ -1285,16 +1348,17 @@ function CreatePromoCodeModal({
               </div>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={submitting}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
-              className="bg-red-600 hover:bg-red-700"
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
               onClick={handleSubmit}
               disabled={submitting || !code || !value}
             >
@@ -1314,7 +1378,7 @@ function CreatePromoCodeModal({
           }
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-w-lg mx-auto">
           <DialogHeader>
             <DialogTitle>Promo Code Created!</DialogTitle>
             <DialogDescription>
@@ -1342,7 +1406,7 @@ function CreatePromoCodeModal({
           </ul>
           <DialogFooter>
             <Button
-              className="bg-red-600 hover:bg-red-700"
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
               onClick={() => {
                 setShowHowTo(false);
                 onOpenChange(false);
@@ -1440,102 +1504,167 @@ function PromoCodesTable({ trainerId }: { trainerId: string }) {
     return <div className="py-4 text-gray-500">No promo codes found.</div>;
 
   return (
-    <div className="overflow-x-auto mt-6">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-        <thead className="bg-gray-50 dark:bg-gray-900/40">
-          <tr>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Code
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Type
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Value
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Max Redemptions
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Expiry
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-              Status
-            </th>
-            <th className="px-4 py-2"></th>
-            <th className="px-4 py-2"></th>
-          </tr>
-        </thead>
-        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-          {codes.map((c) => {
-            const isExpired =
-              c.expires_at && new Date(c.expires_at) < new Date();
-            return (
-              <tr
-                key={c.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-800/70"
-              >
-                <td className="px-4 py-2 font-mono text-base text-gray-900 dark:text-gray-200">
-                  {c.code}
-                </td>
-                <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
-                  {c.percent_off ? "Percent" : "Amount"}
-                </td>
-                <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
-                  {c.percent_off
-                    ? `${c.percent_off}%`
-                    : typeof c.amount_off === "number"
-                      ? `$${(c.amount_off / 100).toFixed(2)}`
-                      : ""}
-                </td>
-                <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
-                  {c.max_redemptions || "-"}
-                </td>
-                <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
-                  {c.expires_at
-                    ? new Date(c.expires_at).toLocaleDateString()
-                    : "-"}
-                </td>
-                <td className="px-4 py-2">
+    <div className="mt-4 sm:mt-6">
+      {/* Mobile Card Layout */}
+      <div className="block sm:hidden space-y-3">
+        {codes.map((c) => {
+          const isExpired =
+            c.expires_at && new Date(c.expires_at) < new Date();
+          return (
+            <div key={c.id} className="border rounded-lg p-3 bg-white dark:bg-gray-900">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-mono text-sm font-medium text-gray-900 dark:text-gray-200">
+                    {c.code}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {c.percent_off ? "Percent" : "Amount"} - {c.percent_off
+                      ? `${c.percent_off}%`
+                      : typeof c.amount_off === "number"
+                        ? `$${(c.amount_off / 100).toFixed(2)}`
+                        : ""}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Max: {c.max_redemptions || "∞"} | Expires: {c.expires_at
+                      ? new Date(c.expires_at).toLocaleDateString()
+                      : "Never"}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-1">
                   {isExpired ? (
-                    <span className="text-red-600 dark:text-red-400 font-medium">
+                    <span className="text-red-600 dark:text-red-400 text-xs font-medium">
                       Expired
                     </span>
                   ) : (
-                    <span className="text-green-600 dark:text-green-400 font-medium">
+                    <span className="text-green-600 dark:text-green-400 text-xs font-medium">
                       Active
                     </span>
                   )}
-                </td>
-                <td className="px-4 py-2 text-right">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => copyToClipboard(c.code)}
-                  >
-                    Copy
-                  </Button>
-                </td>
-                <td className="px-4 py-2 text-right">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => confirmDelete(c.id)}
-                    disabled={deletingId === c.id}
-                    aria-label="Delete promo code"
-                  >
-                    <Trash2 className="h-5 w-5 text-red-600" />
-                  </Button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(c.code)}
+                  className="flex-1 text-xs h-7"
+                >
+                  Copy
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => confirmDelete(c.id)}
+                  disabled={deletingId === c.id}
+                  className="flex-1 text-xs h-7 text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table Layout */}
+      <div className="hidden sm:block overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+          <thead className="bg-gray-50 dark:bg-gray-900/40">
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                Code
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                Type
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                Value
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                Max Redemptions
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                Expiry
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                Status
+              </th>
+              <th className="px-4 py-2"></th>
+              <th className="px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+            {codes.map((c) => {
+              const isExpired =
+                c.expires_at && new Date(c.expires_at) < new Date();
+              return (
+                <tr
+                  key={c.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/70"
+                >
+                  <td className="px-4 py-2 font-mono text-base text-gray-900 dark:text-gray-200">
+                    {c.code}
+                  </td>
+                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
+                    {c.percent_off ? "Percent" : "Amount"}
+                  </td>
+                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
+                    {c.percent_off
+                      ? `${c.percent_off}%`
+                      : typeof c.amount_off === "number"
+                        ? `$${(c.amount_off / 100).toFixed(2)}`
+                        : ""}
+                  </td>
+                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
+                    {c.max_redemptions || "-"}
+                  </td>
+                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
+                    {c.expires_at
+                      ? new Date(c.expires_at).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {isExpired ? (
+                      <span className="text-red-600 dark:text-red-400 font-medium">
+                        Expired
+                      </span>
+                    ) : (
+                      <span className="text-green-600 dark:text-green-400 font-medium">
+                        Active
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(c.code)}
+                    >
+                      Copy
+                    </Button>
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => confirmDelete(c.id)}
+                      disabled={deletingId === c.id}
+                      aria-label="Delete promo code"
+                    >
+                      <Trash2 className="h-5 w-5 text-red-600" />
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
       {/* Confirm Delete Dialog */}
       {showConfirm && (
         <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="max-w-md mx-auto">
             <DialogHeader>
               <DialogTitle>Delete Promo Code?</DialogTitle>
               <DialogDescription>
@@ -1543,16 +1672,17 @@ function PromoCodesTable({ trainerId }: { trainerId: string }) {
                 cannot be undone.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 onClick={() => setShowConfirm(false)}
                 disabled={deletingId !== null}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
-                className="bg-red-600 hover:bg-red-700"
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
                 onClick={() => pendingDelete && handleDelete(pendingDelete)}
                 disabled={deletingId !== null}
               >
@@ -1587,17 +1717,17 @@ export default function TrainerSettings() {
 
   return (
     <>
-      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-6 py-4">
-        <div className="flex items-center space-x-4">
+      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           <SidebarTrigger />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
             Settings
           </h1>
         </div>
       </header>
 
-      <main className="p-6 max-w-4xl mx-auto">
-        <div className="space-y-8">
+      <main className="p-3 sm:p-6 max-w-4xl mx-auto">
+        <div className="space-y-4 sm:space-y-8">
           {/* Calendar Integration */}
           <Suspense fallback={<div>Loading calendar settings...</div>}>
             <GoogleCalendarSection />
@@ -1641,8 +1771,52 @@ export default function TrainerSettings() {
                 clients
               </CardDescription>
             </CardHeader>
-            <CardContent className="py-8">
-              <div className="overflow-x-auto">
+            <CardContent className="py-4 sm:py-8">
+              {/* Mobile Card Layout */}
+              <div className="block sm:hidden space-y-3">
+                <div className="border rounded-lg p-3 bg-white dark:bg-gray-900">
+                  <div className="flex flex-col space-y-2">
+                    <h3 className="font-medium text-sm text-gray-800 dark:text-gray-200">
+                      Record Custom Payment
+                    </h3>
+                    <Button
+                      className="bg-red-600 hover:bg-red-700 text-white text-xs h-8"
+                      onClick={() => setShowCustomPayment(true)}
+                    >
+                      Record Payment
+                    </Button>
+                  </div>
+                </div>
+                <div className="border rounded-lg p-3 bg-white dark:bg-gray-900">
+                  <div className="flex flex-col space-y-2">
+                    <h3 className="font-medium text-sm text-gray-800 dark:text-gray-200">
+                      Add Free Sessions
+                    </h3>
+                    <Button
+                      className="bg-red-600 hover:bg-red-700 text-white text-xs h-8"
+                      onClick={() => setShowAddSessions(true)}
+                    >
+                      Add Sessions to User
+                    </Button>
+                  </div>
+                </div>
+                <div className="border rounded-lg p-3 bg-white dark:bg-gray-900">
+                  <div className="flex flex-col space-y-2">
+                    <h3 className="font-medium text-sm text-gray-800 dark:text-gray-200">
+                      Create a Promo Code
+                    </h3>
+                    <Button
+                      className="bg-red-600 hover:bg-red-700 text-white text-xs h-8"
+                      onClick={() => setShowCreatePromo(true)}
+                    >
+                      Create Promo Code
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden sm:block overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
                   <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                     <tr>
