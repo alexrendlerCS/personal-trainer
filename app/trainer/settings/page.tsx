@@ -206,7 +206,9 @@ function GoogleCalendarSection() {
               <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
             <div>
-              <p className="font-medium dark:text-gray-100 text-sm sm:text-base">Google Calendar</p>
+              <p className="font-medium dark:text-gray-100 text-sm sm:text-base">
+                Google Calendar
+              </p>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Sync your availability and bookings
               </p>
@@ -444,7 +446,7 @@ function GoogleCalendarSection() {
                   )}
               </div>
               <DialogFooter>
-                <Button 
+                <Button
                   onClick={() => setSyncResult(null)}
                   className="w-full sm:w-auto"
                 >
@@ -549,7 +551,10 @@ function ClientContractsSection() {
             {/* Mobile Card Layout */}
             <div className="block sm:hidden space-y-3">
               {contracts.map((contract) => (
-                <div key={contract.id} className="border rounded-lg p-3 bg-white dark:bg-gray-900">
+                <div
+                  key={contract.id}
+                  className="border rounded-lg p-3 bg-white dark:bg-gray-900"
+                >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
@@ -559,7 +564,8 @@ function ClientContractsSection() {
                         {contract.user?.email || "-"}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Signed: {contract.signed_at
+                        Signed:{" "}
+                        {contract.signed_at
                           ? new Date(contract.signed_at).toLocaleDateString()
                           : "-"}
                       </p>
@@ -858,8 +864,8 @@ function AddSessionsModal({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowConfirm(false)}
               className="w-full sm:w-auto"
             >
@@ -1160,8 +1166,8 @@ function CustomPaymentModal({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowConfirm(false)}
               className="w-full sm:w-auto"
             >
@@ -1508,24 +1514,28 @@ function PromoCodesTable({ trainerId }: { trainerId: string }) {
       {/* Mobile Card Layout */}
       <div className="block sm:hidden space-y-3">
         {codes.map((c) => {
-          const isExpired =
-            c.expires_at && new Date(c.expires_at) < new Date();
+          const isExpired = c.expires_at && new Date(c.expires_at) < new Date();
           return (
-            <div key={c.id} className="border rounded-lg p-3 bg-white dark:bg-gray-900">
+            <div
+              key={c.id}
+              className="border rounded-lg p-3 bg-white dark:bg-gray-900"
+            >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-mono text-sm font-medium text-gray-900 dark:text-gray-200">
                     {c.code}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {c.percent_off ? "Percent" : "Amount"} - {c.percent_off
+                    {c.percent_off ? "Percent" : "Amount"} -{" "}
+                    {c.percent_off
                       ? `${c.percent_off}%`
                       : typeof c.amount_off === "number"
                         ? `$${(c.amount_off / 100).toFixed(2)}`
                         : ""}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Max: {c.max_redemptions || "∞"} | Expires: {c.expires_at
+                    Max: {c.max_redemptions || "∞"} | Expires:{" "}
+                    {c.expires_at
                       ? new Date(c.expires_at).toLocaleDateString()
                       : "Never"}
                   </p>
