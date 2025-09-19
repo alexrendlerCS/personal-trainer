@@ -53,7 +53,6 @@ interface RevenueData {
 type TimeRange = "week" | "month" | "year";
 
 export default function AnalyticsClientPage() {
-  console.debug("TrainerAnalyticsPage mounted");
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
   const [revenueLoading, setRevenueLoading] = useState(false);
@@ -105,7 +104,6 @@ export default function AnalyticsClientPage() {
   const recentSessionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.debug("useEffect running in analytics page");
     fetchRevenueData(revenueTimeRange);
     fetchNewClientsData();
     fetchWeekdaySessionsData();
@@ -134,15 +132,12 @@ export default function AnalyticsClientPage() {
   }, [searchParams]);
 
   const fetchRevenueData = async (timeRange: TimeRange = revenueTimeRange) => {
-    console.debug("fetchRevenueData called with timeRange:", timeRange);
     setRevenueLoading(true);
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      console.debug("Result of supabase.auth.getSession():", session);
       if (!session) {
-        console.debug("No session found, aborting revenue fetch");
         return;
       }
 
@@ -181,26 +176,17 @@ export default function AnalyticsClientPage() {
         }
       }
 
-      console.debug("Days for revenue trend:", days);
 
       // Debug: Check what payments exist for this trainer
       const { data: allPayments, error: debugError } = await supabase
         .from("payments")
         .select("id, amount, paid_at, status, trainer_id")
         .eq("trainer_id", session.user.id);
-      console.debug(
-        `Found ${allPayments?.length || 0} total payments for trainer ${session.user.id}:`,
-        allPayments
-      );
 
       // Also check all payments to see if there are any at all
       const { data: allPaymentsNoFilter, error: debugError2 } = await supabase
         .from("payments")
         .select("id, amount, paid_at, status, trainer_id");
-      console.debug(
-        `Found ${allPaymentsNoFilter?.length || 0} total payments in database:`,
-        allPaymentsNoFilter
-      );
 
       // Fetch revenue data for each day
       const revenuePromises = days.map(async ({ day, iso }) => {
@@ -219,9 +205,6 @@ export default function AnalyticsClientPage() {
           endDate = iso + "T23:59:59.999Z";
         }
 
-        console.debug(
-          `Fetching revenue for ${day}: ${startDate} to ${endDate}`
-        );
         const { data, error } = await supabase
           .from("payments")
           .select("amount, paid_at, status")
@@ -233,13 +216,11 @@ export default function AnalyticsClientPage() {
           console.error("Error fetching revenue data:", error);
           return { day, revenue: 0 };
         }
-        console.debug(`Found ${data?.length || 0} payments for ${day}:`, data);
         const totalRevenue =
           data?.reduce(
             (sum, payment) => sum + (parseFloat(payment.amount) || 0),
             0
           ) || 0;
-        console.debug(`Total revenue for ${day}: $${totalRevenue}`);
         return { day, revenue: totalRevenue };
       });
       const revenueResults = await Promise.all(revenuePromises);
@@ -511,10 +492,6 @@ export default function AnalyticsClientPage() {
       if (!session) return;
       // Fetch ALL sessions for debugging
       const now = new Date();
-      console.log(
-        "[DEBUG] Current date/time for filtering:",
-        now.toISOString()
-      );
       const { data: sessions, error: sessionsError } = await supabase
         .from("sessions")
         .select(
@@ -524,25 +501,14 @@ export default function AnalyticsClientPage() {
         .order("start_time", { ascending: false }); // no limit
       if (sessionsError) {
         setRecentSessions([]);
-        console.log("[DEBUG] Error fetching sessions:", sessionsError);
         return;
       }
-      console.log(
-        "[DEBUG] Raw sessions from Supabase (count):",
-        sessions?.length,
-        sessions
-      );
       // Filter for sessions before now (existing logic)
       const filtered = sessions.filter((s) => {
         if (!s.date || !s.start_time) return false;
         const sessionDate = new Date(`${s.date}T${s.start_time}`);
         return sessionDate < now;
       });
-      console.log(
-        "[DEBUG] Filtered sessions (past, count):",
-        filtered.length,
-        filtered
-      );
       // Fetch client names
       const clientIds = Array.from(
         new Set(filtered.map((s) => s.client_id).filter(Boolean))
@@ -596,12 +562,10 @@ export default function AnalyticsClientPage() {
             : "",
         status: s.status,
       }));
-      console.log("[DEBUG] Final mapped session data:", data);
       setRecentSessions(data);
       setCurrentSessionPage(1); // Reset to first page on fetch
     } catch (error) {
       setRecentSessions([]);
-      console.log("[DEBUG] Exception in fetchRecentSessions:", error);
     }
   };
 

@@ -125,11 +125,6 @@ export default function TrainerPaymentsPage() {
     checkAuth();
   }, [supabase]);
 
-  // Debug: Log availableClients when it changes
-  useEffect(() => {
-    console.log("🔍 Available clients updated:", availableClients);
-  }, [availableClients]);
-
   // Handle client search from URL query parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -155,15 +150,12 @@ export default function TrainerPaymentsPage() {
         setLoading(false);
         return;
       }
-      console.log("✅ Payments data fetched:", paymentsData);
       setPayments(paymentsData || []);
       // Fetch all clients referenced in payments
       const clientIds = Array.from(
         new Set((paymentsData || []).map((p) => p.client_id))
       );
-      console.log("🔍 Unique client IDs found:", clientIds);
       if (clientIds.length > 0) {
-        console.log("🔍 Fetching clients for IDs:", clientIds);
         const { data: usersData, error: usersError } = await supabase
           .from("users")
           .select("id, full_name")
@@ -171,8 +163,6 @@ export default function TrainerPaymentsPage() {
 
         if (usersError) {
           console.error("❌ Error fetching users:", usersError);
-        } else {
-          console.log("✅ Users data fetched:", usersData);
         }
 
         const map: ClientMap = {};
@@ -184,12 +174,8 @@ export default function TrainerPaymentsPage() {
             full_name: u.full_name,
           });
         });
-        console.log("📋 Client map:", map);
-        console.log("📋 Available clients list:", clientsList);
         setClientMap(map);
         setAvailableClients(clientsList);
-      } else {
-        console.log("⚠️ No client IDs found in payments");
       }
       setLoading(false);
     }
@@ -385,35 +371,38 @@ export default function TrainerPaymentsPage() {
 
   return (
     <div className="flex-1">
-      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+          <div className="flex items-center space-x-3 sm:space-x-4">
             <SidebarTrigger />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
               Payments
             </h1>
           </div>
-          <Button onClick={exportToCSV} className="bg-red-600 hover:bg-red-700">
+          <Button
+            onClick={exportToCSV}
+            className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
+          >
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
         </div>
       </header>
 
-      <main className="p-6">
+      <main className="p-4 sm:p-6 max-w-7xl mx-auto">
         {/* Revenue Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-gray-600 truncate">
                     Total Revenue
                   </p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-lg font-bold text-green-600">
                     ${revenueThisMonth.toLocaleString()}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 truncate">
                     {revenueLastMonth === 0
                       ? "No revenue last month"
                       : revenueDiff >= 0
@@ -421,25 +410,25 @@ export default function TrainerPaymentsPage() {
                         : `-$${Math.abs(revenueDiff).toLocaleString()} from last month`}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
+                <DollarSign className="h-5 w-5 text-green-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-gray-600 truncate">
                     Post-Tax Revenue
                   </p>
-                  <p className="text-2xl font-bold text-purple-600">
+                  <p className="text-lg font-bold text-purple-600">
                     $
                     {postTaxRevenueThisMonth.toLocaleString(undefined, {
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     })}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 truncate">
                     {postTaxRevenueLastMonth === 0
                       ? "No revenue last month"
                       : postTaxRevenueDiff >= 0
@@ -447,107 +436,121 @@ export default function TrainerPaymentsPage() {
                         : `-$${Math.abs(postTaxRevenueDiff).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} from last month`}
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-purple-600" />
+                <TrendingUp className="h-5 w-5 text-purple-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-gray-600 truncate">
+                    Completed
+                  </p>
+                  <p className="text-lg font-bold text-blue-600">
                     {completedPayments}
                   </p>
-                  <p className="text-xs text-gray-500">Successful payments</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    Successful payments
+                  </p>
                 </div>
-                <CreditCard className="h-8 w-8 text-blue-600" />
+                <CreditCard className="h-5 w-5 text-blue-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Failed</p>
-                  <p className="text-2xl font-bold text-red-600">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-gray-600 truncate">
+                    Failed
+                  </p>
+                  <p className="text-lg font-bold text-red-600">
                     {failedPayments}
                   </p>
-                  <p className="text-xs text-gray-500">Need attention</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    Need attention
+                  </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-red-600" />
+                <TrendingUp className="h-5 w-5 text-red-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Payment Filters</CardTitle>
-            <CardDescription>Search and filter payment records</CardDescription>
+        <Card className="mb-3 sm:mb-4">
+          <CardHeader className="pb-2 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">
+              Payment Filters
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              Search and filter payment records
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search by client name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 w-full h-9"
                 />
               </div>
-              <Select
-                value={statusFilter}
-                onValueChange={(value: any) => setStatusFilter(value)}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Date range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="quarter">This Quarter</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value: any) => setStatusFilter(value)}
+                >
+                  <SelectTrigger className="w-full sm:w-40 h-9">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={dateRange} onValueChange={setDateRange}>
+                  <SelectTrigger className="w-full sm:w-40 h-9">
+                    <SelectValue placeholder="Date range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="quarter">This Quarter</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Payments Table */}
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="pb-2 sm:pb-4">
+            <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <CardTitle>
+                <CardTitle className="text-base sm:text-lg">
                   Payment Records ({filteredPayments.length})
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                   Complete history of all payment transactions
                 </CardDescription>
               </div>
               {/* Client Filter */}
               <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 text-gray-500" />
+                <Filter className="h-4 w-4 text-gray-500 flex-shrink-0" />
                 <Select
                   value={selectedClientFilter}
                   onValueChange={setSelectedClientFilter}
                 >
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[180px] h-9">
                     <SelectValue placeholder="Filter by client" />
                   </SelectTrigger>
                   <SelectContent>
@@ -562,195 +565,378 @@ export default function TrainerPaymentsPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead>Sessions</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Transaction ID</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPayments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">
-                      {clientMap[payment.client_id] || "Unknown Client"}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(payment.paid_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="font-bold">
-                      ${payment.amount}
-                    </TableCell>
-                    <TableCell>{payment.method}</TableCell>
-                    <TableCell>{payment.session_count}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(payment.status)}>
+          <CardContent className="p-2 sm:p-6">
+            {/* Mobile Card Layout */}
+            <div className="block sm:hidden space-y-3">
+              {filteredPayments.map((payment) => (
+                <div
+                  key={payment.id}
+                  className="border rounded-lg p-3 bg-white"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm truncate">
+                        {clientMap[payment.client_id] || "Unknown Client"}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {new Date(payment.paid_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-sm">${payment.amount}</p>
+                      <Badge
+                        className={`${getStatusColor(payment.status)} text-xs px-2 py-1`}
+                      >
                         {getStatusText(payment.status)}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {payment.transaction_id}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          View
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-gray-600 mb-2">
+                    <span>Method: {payment.method}</span>
+                    <span>Sessions: {payment.session_count}</span>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs h-6 px-2 flex-1"
+                    >
+                      View
+                    </Button>
+                    {payment.status === "failed" && (
+                      <Button
+                        size="sm"
+                        className="bg-red-600 hover:bg-red-700 text-xs h-6 px-2 flex-1"
+                      >
+                        Retry
+                      </Button>
+                    )}
+                    <AlertDialog
+                      open={paymentToDelete?.id === payment.id}
+                      onOpenChange={(open) => !open && setPaymentToDelete(null)}
+                    >
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700 text-xs h-6 px-2"
+                          disabled={deletingPayment === payment.id}
+                          onClick={() => handleDeletePayment(payment)}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          {deletingPayment === payment.id
+                            ? "Deleting..."
+                            : "Delete"}
                         </Button>
-                        {payment.status === "failed" && (
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-lg">
+                            Delete Payment
+                          </AlertDialogTitle>
+                          <AlertDialogDescription className="text-sm">
+                            Are you sure you want to delete this payment? This
+                            action cannot be undone and will:
+                          </AlertDialogDescription>
+                          <div className="mt-4 space-y-4">
+                            <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
+                              <li>Remove the payment record</li>
+                              <li>Delete any associated sessions</li>
+                              <li>Update package session counts</li>
+                              <li>
+                                Potentially cancel the package if no sessions
+                                remain
+                              </li>
+                            </ul>
+                            <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-md">
+                              <p className="text-sm text-blue-800 font-medium">
+                                📋 Payment Details:
+                              </p>
+                              <div className="text-xs sm:text-sm text-blue-700 mt-1 space-y-1">
+                                <p>
+                                  <strong>Client:</strong>{" "}
+                                  {clientMap[payment.client_id] ||
+                                    "Unknown Client"}
+                                </p>
+                                <p>
+                                  <strong>Amount:</strong> ${payment.amount}
+                                </p>
+                                <p>
+                                  <strong>Sessions:</strong>{" "}
+                                  {payment.session_count}
+                                </p>
+                                <p>
+                                  <strong>Method:</strong> {payment.method}
+                                </p>
+                                <p>
+                                  <strong>Date:</strong>{" "}
+                                  {new Date(
+                                    payment.paid_at
+                                  ).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                              <p className="text-sm text-yellow-800 font-medium">
+                                ⚠️ Impact Warning:
+                              </p>
+                              <p className="text-xs sm:text-sm text-yellow-700 mt-1">
+                                Deleting this payment will affect the client's
+                                session availability and package status. This
+                                action is irreversible and should only be used
+                                for correcting errors or refunds.
+                              </p>
+                            </div>
+                          </div>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+                          <AlertDialogCancel
+                            onClick={() => setPaymentToDelete(null)}
+                            className="w-full sm:w-auto"
+                          >
+                            Cancel
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => confirmDeletePayment()}
+                            className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                            disabled={deletingPayment === payment.id}
+                          >
+                            {deletingPayment === payment.id
+                              ? "Deleting..."
+                              : "Delete Payment"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden sm:block overflow-x-auto -mx-2 sm:mx-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs py-2">Client</TableHead>
+                    <TableHead className="text-xs py-2">Date</TableHead>
+                    <TableHead className="text-xs py-2">Amount</TableHead>
+                    <TableHead className="text-xs py-2">Method</TableHead>
+                    <TableHead className="text-xs py-2">Sessions</TableHead>
+                    <TableHead className="text-xs py-2">Status</TableHead>
+                    <TableHead className="text-xs py-2 hidden sm:table-cell">
+                      Transaction ID
+                    </TableHead>
+                    <TableHead className="text-xs py-2">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPayments.map((payment) => (
+                    <TableRow key={payment.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium text-xs py-2">
+                        <div className="truncate max-w-[100px] sm:max-w-none">
+                          {clientMap[payment.client_id] || "Unknown Client"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs py-2">
+                        {new Date(payment.paid_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="font-bold text-xs py-2">
+                        ${payment.amount}
+                      </TableCell>
+                      <TableCell className="text-xs py-2">
+                        {payment.method}
+                      </TableCell>
+                      <TableCell className="text-xs py-2">
+                        {payment.session_count}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <Badge
+                          className={`${getStatusColor(payment.status)} text-xs px-2 py-1`}
+                        >
+                          {getStatusText(payment.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs hidden sm:table-cell py-2">
+                        <div className="truncate max-w-[80px]">
+                          {payment.transaction_id}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
                           <Button
                             size="sm"
-                            className="bg-red-600 hover:bg-red-700"
+                            variant="outline"
+                            className="text-xs h-6 px-2"
                           >
-                            Retry
+                            View
                           </Button>
-                        )}
-                        <AlertDialog
-                          open={paymentToDelete?.id === payment.id}
-                          onOpenChange={(open) =>
-                            !open && setPaymentToDelete(null)
-                          }
-                        >
-                          <AlertDialogTrigger asChild>
+                          {payment.status === "failed" && (
                             <Button
                               size="sm"
-                              variant="outline"
-                              className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700"
-                              disabled={deletingPayment === payment.id}
-                              onClick={() => handleDeletePayment(payment)}
+                              className="bg-red-600 hover:bg-red-700 text-xs h-6 px-2"
                             >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              {deletingPayment === payment.id
-                                ? "Deleting..."
-                                : "Delete"}
+                              Retry
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Delete Payment
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this payment?
-                                This action cannot be undone and will:
-                              </AlertDialogDescription>
+                          )}
+                          <AlertDialog
+                            open={paymentToDelete?.id === payment.id}
+                            onOpenChange={(open) =>
+                              !open && setPaymentToDelete(null)
+                            }
+                          >
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700 text-xs h-6 px-2"
+                                disabled={deletingPayment === payment.id}
+                                onClick={() => handleDeletePayment(payment)}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                {deletingPayment === payment.id
+                                  ? "Deleting..."
+                                  : "Delete"}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-lg">
+                                  Delete Payment
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-sm">
+                                  Are you sure you want to delete this payment?
+                                  This action cannot be undone and will:
+                                </AlertDialogDescription>
 
-                              <div className="mt-4 space-y-4">
-                                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                                  <li>Remove the payment record</li>
-                                  <li>Delete any associated sessions</li>
-                                  <li>Update package session counts</li>
-                                  <li>
-                                    Potentially cancel the package if no
-                                    sessions remain
-                                  </li>
-                                </ul>
+                                <div className="mt-4 space-y-4">
+                                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
+                                    <li>Remove the payment record</li>
+                                    <li>Delete any associated sessions</li>
+                                    <li>Update package session counts</li>
+                                    <li>
+                                      Potentially cancel the package if no
+                                      sessions remain
+                                    </li>
+                                  </ul>
 
-                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                                  <p className="text-sm text-blue-800 font-medium">
-                                    📋 Payment Details:
-                                  </p>
-                                  <div className="text-xs text-blue-700 mt-1 space-y-1">
-                                    <p>
-                                      <strong>Client:</strong>{" "}
-                                      {clientMap[payment.client_id] ||
-                                        "Unknown Client"}
+                                  <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-md">
+                                    <p className="text-sm text-blue-800 font-medium">
+                                      📋 Payment Details:
                                     </p>
-                                    <p>
-                                      <strong>Amount:</strong> ${payment.amount}
+                                    <div className="text-xs sm:text-sm text-blue-700 mt-1 space-y-1">
+                                      <p>
+                                        <strong>Client:</strong>{" "}
+                                        {clientMap[payment.client_id] ||
+                                          "Unknown Client"}
+                                      </p>
+                                      <p>
+                                        <strong>Amount:</strong> $
+                                        {payment.amount}
+                                      </p>
+                                      <p>
+                                        <strong>Sessions:</strong>{" "}
+                                        {payment.session_count}
+                                      </p>
+                                      <p>
+                                        <strong>Method:</strong>{" "}
+                                        {payment.method}
+                                      </p>
+                                      <p>
+                                        <strong>Date:</strong>{" "}
+                                        {new Date(
+                                          payment.paid_at
+                                        ).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                                    <p className="text-sm text-yellow-800 font-medium">
+                                      ⚠️ Impact Warning:
                                     </p>
-                                    <p>
-                                      <strong>Sessions:</strong>{" "}
-                                      {payment.session_count}
-                                    </p>
-                                    <p>
-                                      <strong>Method:</strong> {payment.method}
-                                    </p>
-                                    <p>
-                                      <strong>Date:</strong>{" "}
-                                      {new Date(
-                                        payment.paid_at
-                                      ).toLocaleDateString()}
+                                    <p className="text-xs sm:text-sm text-yellow-700 mt-1">
+                                      Deleting this payment will affect the
+                                      client's session availability and package
+                                      status. This action is irreversible and
+                                      should only be used for correcting errors
+                                      or refunds.
                                     </p>
                                   </div>
                                 </div>
-
-                                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                                  <p className="text-sm text-yellow-800 font-medium">
-                                    ⚠️ Impact Warning:
-                                  </p>
-                                  <p className="text-xs text-yellow-700 mt-1">
-                                    Deleting this payment will affect the
-                                    client's session availability and package
-                                    status. This action is irreversible and
-                                    should only be used for correcting errors or
-                                    refunds.
-                                  </p>
-                                </div>
-                              </div>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel
-                                onClick={() => setPaymentToDelete(null)}
-                              >
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => confirmDeletePayment()}
-                                className="bg-red-600 hover:bg-red-700"
-                                disabled={deletingPayment === payment.id}
-                              >
-                                {deletingPayment === payment.id
-                                  ? "Deleting..."
-                                  : "Delete Payment"}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+                                <AlertDialogCancel
+                                  onClick={() => setPaymentToDelete(null)}
+                                  className="w-full sm:w-auto"
+                                >
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => confirmDeletePayment()}
+                                  className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                                  disabled={deletingPayment === payment.id}
+                                >
+                                  {deletingPayment === payment.id
+                                    ? "Deleting..."
+                                    : "Delete Payment"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </main>
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-md mx-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-lg">
               <CheckCircle className="h-5 w-5 text-green-600" />
               Payment Deleted Successfully
             </DialogTitle>
-            <DialogDescription>{successMessage}</DialogDescription>
+            <DialogDescription className="text-sm">
+              {successMessage}
+            </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setShowSuccessModal(false)}>Close</Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full sm:w-auto"
+            >
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Error Modal */}
       <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-md mx-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-lg">
               <XCircle className="h-5 w-5 text-red-600" />
               Error Deleting Payment
             </DialogTitle>
-            <DialogDescription>{errorMessage}</DialogDescription>
+            <DialogDescription className="text-sm">
+              {errorMessage}
+            </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setShowErrorModal(false)}>Close</Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              onClick={() => setShowErrorModal(false)}
+              className="w-full sm:w-auto"
+            >
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

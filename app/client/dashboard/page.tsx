@@ -815,6 +815,9 @@ export default function ClientDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Sessions & Calendar */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Package Expiration Reminder - Mobile Only */}
+              <div className="lg:hidden">{renderPaymentReminder()}</div>
+
               {/* Upcoming Sessions */}
               <Card>
                 <CardHeader>
@@ -950,6 +953,8 @@ export default function ClientDashboard() {
 
             {/* Right Column - Payment Summary */}
             <div className="space-y-4">
+              {/* Package Expiration Reminder - Desktop Only */}
+              <div className="hidden lg:block">{renderPaymentReminder()}</div>
               {/* Payment Summary */}
               <Card>
                 <CardHeader className="pb-3">
@@ -1143,8 +1148,6 @@ export default function ClientDashboard() {
                   </div>
                 </CardContent>
               </Card>
-
-              {renderPaymentReminder()}
 
               <GoogleCalendarSection
                 isConnected={userStatus.googleConnected}

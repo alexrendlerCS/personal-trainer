@@ -19,6 +19,7 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Loader2,
   Menu,
 } from "lucide-react";
@@ -148,6 +149,9 @@ export default function ClientCalendarPage() {
   const [events, setEvents] = useState<DatabaseSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -339,35 +343,26 @@ export default function ClientCalendarPage() {
       return (
         <div
           key={event.id}
-          className={`group relative p-2 sm:p-3 mb-2 rounded-lg border ${colors.border} ${colors.bg} ${colors.hover} transition-all duration-200 shadow-sm hover:shadow-md`}
+          className={`group relative px-1 py-0.5 mb-0 rounded text-left cursor-pointer ${colors.bg} ${colors.text} hover:${colors.hover} transition-all duration-150`}
+          onClick={() => {
+            setSelectedEvent(event);
+            setShowEventModal(true);
+          }}
         >
-          <div className="flex flex-col gap-1 sm:gap-1.5">
-            <div className="flex items-center justify-between">
-              <span className={`text-sm font-semibold ${colors.text}`}>
-                {formatEventTime(event.start.dateTime)}
-              </span>
-              <span
-                className={`text-xs ${colors.text} opacity-75 hidden sm:block`}
-              >
-                {formatEventDuration(event.start.dateTime, event.end.dateTime)}
-              </span>
-            </div>
-            <div
-              className={`font-medium ${colors.text} text-sm sm:text-base truncate`}
+          <div className="flex items-center gap-0.5 truncate">
+            <span
+              className={`text-[10px] font-medium ${colors.text} whitespace-nowrap`}
             >
+              {formatEventTime(event.start.dateTime)}
+            </span>
+            <span className={`text-[10px] ${colors.text} opacity-90 truncate`}>
               {sessionType}
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <User className={`h-4 w-4 ${colors.text} opacity-75`} />
-              <span className={`text-sm ${colors.text} opacity-75 truncate`}>
-                {trainerName}
-              </span>
-            </div>
+            </span>
           </div>
 
           {/* Status indicator dot */}
           <div
-            className={`absolute top-2 right-2 h-2 w-2 rounded-full 
+            className={`absolute top-1 right-1 h-1.5 w-1.5 rounded-full 
               ${
                 event?.status?.toLowerCase() === "confirmed"
                   ? "bg-green-500"
@@ -384,7 +379,11 @@ export default function ClientCalendarPage() {
       return (
         <div
           key={event.id}
-          className="p-2 mb-1 rounded-lg border border-red-200 bg-red-50"
+          className="p-2 mb-1 rounded-lg border border-red-200 bg-red-50 cursor-pointer hover:bg-red-100 transition-colors"
+          onClick={() => {
+            setSelectedEvent(event);
+            setShowEventModal(true);
+          }}
         >
           <div className="text-xs text-red-700">Error displaying event</div>
         </div>
@@ -409,6 +408,139 @@ export default function ClientCalendarPage() {
             <span>Loading your sessions...</span>
           </div>
         </div>
+
+        {/* Event Details Modal */}
+        {console.log("Modal render check:", { showEventModal, selectedEvent })}
+        {showEventModal && selectedEvent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Session Details
+                  </h3>
+                  <button
+                    onClick={() => setShowEventModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Time
+                    </label>
+                    <p className="text-gray-900 dark:text-white">
+                      {formatEventTime(selectedEvent.start.dateTime)} -{" "}
+                      {formatEventTime(selectedEvent.end.dateTime)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Session Type
+                    </label>
+                    <p className="text-gray-900 dark:text-white">
+                      {selectedEvent._dbData?.type ||
+                        selectedEvent.summary ||
+                        "Training Session"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Trainer
+                    </label>
+                    <p className="text-gray-900 dark:text-white">
+                      {selectedEvent.users?.full_name ||
+                        selectedEvent.trainerName ||
+                        "N/A"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Status
+                    </label>
+                    <p className="text-gray-900 dark:text-white capitalize">
+                      {selectedEvent._dbData?.status ||
+                        selectedEvent.status ||
+                        "Confirmed"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Date
+                    </label>
+                    <p className="text-gray-900 dark:text-white">
+                      {selectedEvent._dbData?.date ||
+                        new Date(
+                          selectedEvent.start.dateTime
+                        ).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  {selectedEvent._dbData?.session_notes && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Session Notes
+                      </label>
+                      <p className="text-gray-900 dark:text-white">
+                        {selectedEvent._dbData.session_notes}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedEvent.description && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Description
+                      </label>
+                      <p className="text-gray-900 dark:text-white">
+                        {selectedEvent.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedEvent._dbData?.is_recurring && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Recurring
+                      </label>
+                      <p className="text-gray-900 dark:text-white">
+                        {selectedEvent._dbData.is_recurring ? "Yes" : "No"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => setShowEventModal(false)}
+                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -488,84 +620,489 @@ export default function ClientCalendarPage() {
       </div>
 
       <main className="p-4">
-        <Card>
-          <CardHeader className="space-y-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-lg sm:text-2xl font-bold tracking-tight dark:text-gray-100">
-                  {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-                </h2>
-              </div>
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 sm:h-10 sm:w-10"
-                  onClick={() => navigateMonth("prev")}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 sm:h-10 sm:w-10"
-                  onClick={() => navigateMonth("next")}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden w-full min-w-0">
-                {/* Day headers */}
-                {daysOfWeek.map((day) => (
-                  <div
-                    key={day}
-                    className="bg-gray-50 dark:bg-gray-900/40 p-2 sm:p-3 text-center text-sm font-semibold text-gray-600 dark:text-gray-300"
+        {viewMode === "calendar" ? (
+          <Card>
+            <CardHeader className="space-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-lg sm:text-2xl font-bold tracking-tight dark:text-gray-100">
+                    {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </h2>
+                </div>
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 sm:h-10 sm:w-10"
+                    onClick={() => navigateMonth("prev")}
                   >
-                    {day}
-                  </div>
-                ))}
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 sm:h-10 sm:w-10"
+                    onClick={() => navigateMonth("next")}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden w-full min-w-0">
+                  {/* Day headers */}
+                  {daysOfWeek.map((day) => (
+                    <div
+                      key={day}
+                      className="bg-gray-50 dark:bg-gray-900/40 p-1 sm:p-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                    >
+                      {day}
+                    </div>
+                  ))}
 
-                {/* Calendar days */}
-                {days.map((day, index) => (
-                  <div
-                    key={`day-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
-                    className={`relative p-2 sm:p-3 min-h-[150px] sm:min-h-[180px] ${
-                      !day
-                        ? "bg-gray-50 dark:bg-gray-900/40"
-                        : isToday(day)
-                          ? "bg-red-50 dark:bg-red-900/20 ring-2 ring-red-500/70 dark:ring-red-700 ring-inset"
-                          : "bg-white dark:bg-gray-900"
-                    }`}
+                  {/* Calendar days */}
+                  {days.map((day, index) => (
+                    <div
+                      key={`day-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
+                      className={`relative p-1 sm:p-2 min-h-[100px] sm:min-h-[120px] ${
+                        !day
+                          ? "bg-gray-50 dark:bg-gray-900/40"
+                          : isToday(day)
+                            ? "bg-red-50 dark:bg-red-900/20 ring-1 ring-red-500/70 dark:ring-red-700 ring-inset"
+                            : "bg-white dark:bg-gray-900"
+                      }`}
+                    >
+                      {day && (
+                        <>
+                          <div
+                            className={`font-medium text-xs mb-1 sticky top-0 z-10 ${
+                              isToday(day)
+                                ? "text-red-900 dark:text-red-300 font-bold"
+                                : "dark:text-gray-100"
+                            }`}
+                          >
+                            {day}
+                          </div>
+                          <div className="space-y-0 max-h-[80px] sm:max-h-[90px] overflow-y-auto">
+                            {getSessionsForDate(day).map((event) =>
+                              renderEvent(event)
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader className="space-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-lg sm:text-2xl font-bold tracking-tight dark:text-gray-100">
+                    {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </h2>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    (
+                    {(() => {
+                      const currentMonth = currentDate.getMonth();
+                      const currentYear = currentDate.getFullYear();
+                      const monthEvents = events.filter((event) => {
+                        const eventDate = new Date(event.start.dateTime);
+                        return (
+                          eventDate.getMonth() === currentMonth &&
+                          eventDate.getFullYear() === currentYear
+                        );
+                      });
+                      return `${monthEvents.length} session${monthEvents.length !== 1 ? "s" : ""}`;
+                    })()}
+                    )
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 sm:h-10 sm:w-10"
+                    onClick={() => navigateMonth("prev")}
                   >
-                    {day && (
-                      <>
-                        <div
-                          className={`font-semibold text-sm mb-2 sticky top-0 z-10 ${
-                            isToday(day)
-                              ? "text-red-900 dark:text-red-300 font-bold"
-                              : "dark:text-gray-100"
-                          }`}
-                        >
-                          {day}
-                        </div>
-                        <div className="space-y-2 max-h-[120px] sm:max-h-[140px] overflow-y-auto">
-                          {getSessionsForDate(day).map((event) =>
-                            renderEvent(event)
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 sm:h-10 sm:w-10"
+                    onClick={() => navigateMonth("next")}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {(() => {
+                  // Filter events for the current month
+                  const currentMonth = currentDate.getMonth();
+                  const currentYear = currentDate.getFullYear();
+
+                  const monthEvents = events.filter((event) => {
+                    const eventDate = new Date(event.start.dateTime);
+                    return (
+                      eventDate.getMonth() === currentMonth &&
+                      eventDate.getFullYear() === currentYear
+                    );
+                  });
+
+                  if (monthEvents.length === 0) {
+                    return (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        No sessions found for {months[currentDate.getMonth()]}{" "}
+                        {currentDate.getFullYear()}
+                      </div>
+                    );
+                  }
+
+                  // Group events by date
+                  const groupedEvents = monthEvents.reduce(
+                    (groups, event) => {
+                      const eventDate = new Date(event.start.dateTime);
+                      const dateKey = eventDate.toDateString();
+
+                      if (!groups[dateKey]) {
+                        groups[dateKey] = [];
+                      }
+                      groups[dateKey].push(event);
+                      return groups;
+                    },
+                    {} as Record<string, typeof monthEvents>
+                  );
+
+                  // Sort dates and render grouped events
+                  return Object.entries(groupedEvents)
+                    .sort(
+                      ([dateA], [dateB]) =>
+                        new Date(dateA).getTime() - new Date(dateB).getTime()
+                    )
+                    .map(([dateString, dayEvents]) => {
+                      const date = new Date(dateString);
+                      const isToday =
+                        date.toDateString() === new Date().toDateString();
+
+                      return (
+                        <div key={dateString} className="mb-6">
+                          {/* Date Header */}
+                          <div
+                            className={`sticky top-0 z-10 py-3 px-4 rounded-lg mb-3 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              isToday
+                                ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30"
+                                : "bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            }`}
+                            onClick={() => {
+                              const newExpandedDates = new Set(expandedDates);
+                              if (newExpandedDates.has(dateString)) {
+                                newExpandedDates.delete(dateString);
+                              } else {
+                                newExpandedDates.add(dateString);
+                              }
+                              setExpandedDates(newExpandedDates);
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <ChevronDown
+                                  className={`h-4 w-4 transition-transform duration-200 ${
+                                    expandedDates.has(dateString)
+                                      ? "rotate-180"
+                                      : ""
+                                  } ${
+                                    isToday
+                                      ? "text-red-600 dark:text-red-400"
+                                      : "text-gray-500 dark:text-gray-400"
+                                  }`}
+                                />
+                                <div>
+                                  <h3
+                                    className={`font-semibold ${
+                                      isToday
+                                        ? "text-red-900 dark:text-red-100"
+                                        : "text-gray-900 dark:text-gray-100"
+                                    }`}
+                                  >
+                                    {date.toLocaleDateString("en-US", {
+                                      weekday: "long",
+                                      month: "long",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })}
+                                  </h3>
+                                  {isToday && (
+                                    <span className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                      Today
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
+                                {dayEvents.length} session
+                                {dayEvents.length !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Sessions for this date */}
+                          {expandedDates.has(dateString) && (
+                            <div className="space-y-2">
+                              {dayEvents
+                                .sort(
+                                  (a, b) =>
+                                    new Date(a.start.dateTime).getTime() -
+                                    new Date(b.start.dateTime).getTime()
+                                )
+                                .map((event) => {
+                                  // Get session details
+                                  let sessionType = "Unknown Session";
+                                  let trainerName = "Unknown Trainer";
+                                  let colors = defaultColorScheme;
+
+                                  if (event._dbData) {
+                                    sessionType =
+                                      event._dbData.type || "Unknown Session";
+                                    trainerName =
+                                      event.users?.full_name ||
+                                      "Unknown Trainer";
+                                  } else {
+                                    const parts =
+                                      event?.summary?.split(" with ") || [];
+                                    sessionType =
+                                      parts[0]?.trim() || "Unknown Session";
+                                    trainerName =
+                                      parts[1]?.trim() || "Unknown Trainer";
+                                  }
+
+                                  // Generate consistent colors
+                                  const getHashCode = (str: string) => {
+                                    let hash = 0;
+                                    for (let i = 0; i < str.length; i++) {
+                                      const char = str.charCodeAt(i);
+                                      hash = (hash << 5) - hash + char;
+                                      hash = hash & hash;
+                                    }
+                                    return Math.abs(hash);
+                                  };
+
+                                  const trainerHash = getHashCode(trainerName);
+                                  colors =
+                                    trainerColorPalette[
+                                      trainerHash % trainerColorPalette.length
+                                    ];
+
+                                  return (
+                                    <div
+                                      key={event.id}
+                                      className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${colors.bg} ${colors.border} ${colors.hover}`}
+                                      onClick={() => {
+                                        setSelectedEvent(event);
+                                        setShowEventModal(true);
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-3 mb-1">
+                                            <div
+                                              className={`w-2 h-2 rounded-full ${
+                                                event?.status?.toLowerCase() ===
+                                                "confirmed"
+                                                  ? "bg-green-500"
+                                                  : event?.status?.toLowerCase() ===
+                                                      "pending"
+                                                    ? "bg-yellow-500"
+                                                    : "bg-red-500"
+                                              }`}
+                                            />
+                                            <h4
+                                              className={`font-medium ${colors.text}`}
+                                            >
+                                              {formatEventTime(
+                                                event.start.dateTime
+                                              )}{" "}
+                                              -{" "}
+                                              {formatEventTime(
+                                                event.end.dateTime
+                                              )}
+                                            </h4>
+                                          </div>
+                                          <div
+                                            className={`text-sm ${colors.text} opacity-90 mb-1`}
+                                          >
+                                            {sessionType}
+                                          </div>
+                                          <div
+                                            className={`text-sm ${colors.text} opacity-75`}
+                                          >
+                                            with {trainerName}
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <span
+                                            className={`text-xs px-2 py-1 rounded-full ${colors.bg} ${colors.text} opacity-75`}
+                                          >
+                                            {event?.status?.toLowerCase() ||
+                                              "confirmed"}
+                                          </span>
+                                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                            </div>
                           )}
                         </div>
-                      </>
-                    )}
+                      );
+                    });
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </main>
+
+      {/* Event Details Modal */}
+      {showEventModal && selectedEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Session Details
+                </h3>
+                <button
+                  onClick={() => setShowEventModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Time
+                  </label>
+                  <p className="text-gray-900 dark:text-white">
+                    {formatEventTime(selectedEvent.start.dateTime)} -{" "}
+                    {formatEventTime(selectedEvent.end.dateTime)}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Session Type
+                  </label>
+                  <p className="text-gray-900 dark:text-white">
+                    {selectedEvent._dbData?.type ||
+                      selectedEvent.summary ||
+                      "Training Session"}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Trainer
+                  </label>
+                  <p className="text-gray-900 dark:text-white">
+                    {selectedEvent.users?.full_name ||
+                      selectedEvent.trainerName ||
+                      "N/A"}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Status
+                  </label>
+                  <p className="text-gray-900 dark:text-white capitalize">
+                    {selectedEvent._dbData?.status ||
+                      selectedEvent.status ||
+                      "Confirmed"}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Date
+                  </label>
+                  <p className="text-gray-900 dark:text-white">
+                    {selectedEvent._dbData?.date ||
+                      new Date(
+                        selectedEvent.start.dateTime
+                      ).toLocaleDateString()}
+                  </p>
+                </div>
+
+                {selectedEvent._dbData?.session_notes && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Session Notes
+                    </label>
+                    <p className="text-gray-900 dark:text-white">
+                      {selectedEvent._dbData.session_notes}
+                    </p>
                   </div>
-                ))}
+                )}
+
+                {selectedEvent.description && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Description
+                    </label>
+                    <p className="text-gray-900 dark:text-white">
+                      {selectedEvent.description}
+                    </p>
+                  </div>
+                )}
+
+                {selectedEvent._dbData?.is_recurring && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Recurring
+                    </label>
+                    <p className="text-gray-900 dark:text-white">
+                      {selectedEvent._dbData.is_recurring ? "Yes" : "No"}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowEventModal(false)}
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Close
+                </button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </main>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

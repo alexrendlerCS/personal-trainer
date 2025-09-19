@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,8 @@ import {
   Move,
   Calendar,
   Trash2,
+  List,
+  ChevronDown,
 } from "lucide-react";
 import { GoogleCalendarBanner } from "@/components/GoogleCalendarBanner";
 import { createClient } from "@/lib/supabaseClient";
@@ -99,14 +102,54 @@ interface PackageSummary {
 
 // Add color palette for clients
 const clientColors = [
-  { bg: "bg-red-50", border: "border-red-100", text: "text-red-900" },
-  { bg: "bg-blue-50", border: "border-blue-100", text: "text-blue-900" },
-  { bg: "bg-green-50", border: "border-green-100", text: "text-green-900" },
-  { bg: "bg-purple-50", border: "border-purple-100", text: "text-purple-900" },
-  { bg: "bg-orange-50", border: "border-orange-100", text: "text-orange-900" },
-  { bg: "bg-teal-50", border: "border-teal-100", text: "text-teal-900" },
-  { bg: "bg-pink-50", border: "border-pink-100", text: "text-pink-900" },
-  { bg: "bg-indigo-50", border: "border-indigo-100", text: "text-indigo-900" },
+  {
+    bg: "bg-red-50",
+    border: "border-red-100",
+    text: "text-red-900",
+    hover: "hover:bg-red-100",
+  },
+  {
+    bg: "bg-blue-50",
+    border: "border-blue-100",
+    text: "text-blue-900",
+    hover: "hover:bg-blue-100",
+  },
+  {
+    bg: "bg-green-50",
+    border: "border-green-100",
+    text: "text-green-900",
+    hover: "hover:bg-green-100",
+  },
+  {
+    bg: "bg-purple-50",
+    border: "border-purple-100",
+    text: "text-purple-900",
+    hover: "hover:bg-purple-100",
+  },
+  {
+    bg: "bg-orange-50",
+    border: "border-orange-100",
+    text: "text-orange-900",
+    hover: "hover:bg-orange-100",
+  },
+  {
+    bg: "bg-teal-50",
+    border: "border-teal-100",
+    text: "text-teal-900",
+    hover: "hover:bg-teal-100",
+  },
+  {
+    bg: "bg-pink-50",
+    border: "border-pink-100",
+    text: "text-pink-900",
+    hover: "hover:bg-pink-100",
+  },
+  {
+    bg: "bg-indigo-50",
+    border: "border-indigo-100",
+    text: "text-indigo-900",
+    hover: "hover:bg-indigo-100",
+  },
 ];
 
 // Helper function to get consistent color for a client
@@ -176,6 +219,9 @@ const sessionTypes = [
 
 export default function TrainerSchedulePage() {
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
+  const [calendarViewMode, setCalendarViewMode] = useState<"calendar" | "list">(
+    "calendar"
+  );
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedClient, setSelectedClient] = useState("all");
   const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
@@ -195,6 +241,11 @@ export default function TrainerSchedulePage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState<DatabaseSession | null>(
+    null
+  );
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
   const [sessionTrackingInfo, setSessionTrackingInfo] = useState<{
     sessionsBefore: number;
     sessionsAfter: number;
@@ -345,8 +396,6 @@ export default function TrainerSchedulePage() {
         return;
       }
 
-      console.log("Fetched sessions from database:", sessionsData);
-
       // Convert database sessions to the format expected by the UI
       const convertedEvents =
         sessionsData?.map((session: any) => ({
@@ -392,10 +441,6 @@ export default function TrainerSchedulePage() {
       });
 
       const uniqueClientNames = Array.from(clientNames).sort();
-      console.log(
-        "👥 Extracted unique clients from sessions:",
-        uniqueClientNames
-      );
       setUniqueClients(uniqueClientNames);
 
       setIsGoogleConnected(true); // Keep this for UI consistency
@@ -429,19 +474,13 @@ export default function TrainerSchedulePage() {
 
   // Function to fetch package information for all clients
   const fetchPackageInfo = async () => {
-    console.log("🚀 fetchPackageInfo called!");
     try {
-      console.log("🔄 Starting package info fetch...");
-
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) {
-        console.log("❌ No session found, skipping package fetch");
         return;
       }
-
-      console.log("👤 Fetching packages for trainer:", session.user.id);
 
       // Fetch all packages with client information
       const { data: packages, error } = await supabase
@@ -463,20 +502,6 @@ export default function TrainerSchedulePage() {
         return;
       }
 
-      console.log("📦 Raw packages data:", {
-        totalPackages: packages?.length || 0,
-        packages: packages?.map((pkg) => ({
-          id: pkg.id,
-          client_id: pkg.client_id,
-          client_name: pkg.users?.full_name,
-          package_type: pkg.package_type,
-          sessions_included: pkg.sessions_included,
-          sessions_used: pkg.sessions_used,
-          status: pkg.status,
-          remaining: (pkg.sessions_included || 0) - (pkg.sessions_used || 0),
-        })),
-      });
-
       // Process package data
       const processedPackages: PackageInfo[] =
         packages?.map((pkg) => ({
@@ -488,12 +513,6 @@ export default function TrainerSchedulePage() {
           remaining: (pkg.sessions_included || 0) - (pkg.sessions_used || 0),
         })) || [];
 
-      console.log("🔧 Processed packages:", {
-        totalProcessed: processedPackages.length,
-        packages: processedPackages,
-      });
-
-      console.log("🔄 Setting packageInfo state with:", processedPackages);
       setPackageInfo(processedPackages);
 
       // Calculate summary for all clients
@@ -511,8 +530,6 @@ export default function TrainerSchedulePage() {
         summary[pkg.package_type].total_used += pkg.sessions_used;
       });
 
-      console.log("📊 Package summary for all clients:", summary);
-      console.log("🔄 Setting packageSummary state with:", summary);
       setPackageSummary(summary);
 
       // Log breakdown by client
@@ -539,8 +556,6 @@ export default function TrainerSchedulePage() {
           Record<string, { remaining: number; included: number; used: number }>
         >
       );
-
-      console.log("👥 Package breakdown by client:", clientBreakdown);
     } catch (error) {
       console.error("❌ Error fetching package info:", error);
     }
@@ -548,16 +563,9 @@ export default function TrainerSchedulePage() {
 
   // Initial load
   useEffect(() => {
-    console.log("🏁 Initial useEffect triggered");
-    console.log(
-      "🔍 fetchPackageInfo function exists:",
-      typeof fetchPackageInfo
-    );
     fetchEvents();
     fetchClients();
-    console.log("📦 About to call fetchPackageInfo...");
     fetchPackageInfo();
-    console.log("✅ Initial useEffect completed");
   }, []);
 
   // Refetch package info when events are updated (new sessions created)
@@ -568,33 +576,15 @@ export default function TrainerSchedulePage() {
   }, [events]);
 
   // Log when selected client changes
-  useEffect(() => {
-    console.log("🔄 Selected client changed:", {
-      selectedClient,
-      timestamp: new Date().toISOString(),
-    });
-  }, [selectedClient]);
+  useEffect(() => {}, [selectedClient]);
 
   // Log when package state changes
-  useEffect(() => {
-    console.log("📦 packageInfo state changed:", {
-      length: packageInfo.length,
-      packages: packageInfo,
-    });
-  }, [packageInfo]);
+  useEffect(() => {}, [packageInfo]);
 
-  useEffect(() => {
-    console.log("📊 packageSummary state changed:", packageSummary);
-  }, [packageSummary]);
+  useEffect(() => {}, [packageSummary]);
 
   // Generate time slots when date is selected (for booking modal)
   useEffect(() => {
-    console.log(
-      "[AVAILABILITY DEBUG] selectedDateForSession:",
-      selectedDateForSession,
-      "trainerAvailability:",
-      trainerAvailability
-    );
     generateTimeSlotsForDate(selectedDateForSession);
   }, [selectedDateForSession, trainerAvailability]);
 
@@ -625,15 +615,6 @@ export default function TrainerSchedulePage() {
 
   // Function to create a new session
   const handleCreateSession = async () => {
-    console.debug("=== SESSION CREATION STARTED ===");
-    console.debug("Form data:", {
-      client: selectedClientForSession,
-      date: selectedDateForSession,
-      time: selectedTimeForSession,
-      type: selectedSessionType,
-      notes: sessionNotes,
-    });
-
     if (
       !selectedClientForSession ||
       !selectedDateForSession ||
@@ -671,13 +652,6 @@ export default function TrainerSchedulePage() {
       const endTimeStr = endDate.toTimeString().slice(0, 8);
 
       // Check for existing session conflicts using overlap logic (like client booking)
-      console.debug("=== SESSION CONFLICT CHECK DEBUG ===");
-      console.debug("Selected client ID:", selectedClientForSession);
-      console.debug("Selected date (raw):", selectedDateForSession);
-      console.debug("Selected date type:", typeof selectedDateForSession);
-      console.debug("Selected time (raw):", startTimeStr);
-      console.debug("Selected time type:", typeof startTimeStr);
-      console.debug("Calculated end time:", endTimeStr);
 
       // Helper function to convert time string to minutes since midnight
       const timeToMinutes = (time: string): number => {
@@ -702,18 +676,10 @@ export default function TrainerSchedulePage() {
         // Sessions overlap if one doesn't end before the other starts
         const overlaps = !(end1Mins <= start2Mins || end2Mins <= start1Mins);
 
-        console.debug(
-          `Overlap check: ${start1}-${end1} vs ${start2}-${end2} = ${overlaps}`
-        );
-        console.debug(
-          `  Times in minutes: ${start1Mins}-${end1Mins} vs ${start2Mins}-${end2Mins}`
-        );
-
         return overlaps;
       };
 
       // Get ALL sessions for this client on this date
-      console.debug("Fetching ALL sessions for client on this date...");
       const { data: allClientSessions, error: clientSessionsError } =
         await supabase
           .from("sessions")
@@ -726,12 +692,9 @@ export default function TrainerSchedulePage() {
         console.error("Error fetching client sessions:", clientSessionsError);
       }
 
-      console.debug("All client sessions on this date:", allClientSessions);
-
       // Check for client session overlaps
       let clientHasConflict = false;
       if (allClientSessions && allClientSessions.length > 0) {
-        console.debug("=== CLIENT SESSION OVERLAP CHECK ===");
         for (const existingSession of allClientSessions) {
           const overlaps = doSessionsOverlap(
             startTimeStr,
@@ -761,7 +724,6 @@ export default function TrainerSchedulePage() {
       }
 
       // Get ALL sessions for this trainer on this date
-      console.debug("Fetching ALL sessions for trainer on this date...");
       const { data: allTrainerSessions, error: trainerSessionsError } =
         await supabase
           .from("sessions")
@@ -774,12 +736,9 @@ export default function TrainerSchedulePage() {
         console.error("Error fetching trainer sessions:", trainerSessionsError);
       }
 
-      console.debug("All trainer sessions on this date:", allTrainerSessions);
-
       // Check for trainer session overlaps
       let trainerHasConflict = false;
       if (allTrainerSessions && allTrainerSessions.length > 0) {
-        console.debug("=== TRAINER SESSION OVERLAP CHECK ===");
         for (const existingSession of allTrainerSessions) {
           const overlaps = doSessionsOverlap(
             startTimeStr,
@@ -810,7 +769,6 @@ export default function TrainerSchedulePage() {
       }
 
       // Check for exact time match (original logic)
-      console.debug("=== EXACT TIME MATCH CHECK ===");
       const { data: exactTimeSessions, error: exactTimeError } = await supabase
         .from("sessions")
         .select("*")
@@ -818,8 +776,6 @@ export default function TrainerSchedulePage() {
         .eq("date", selectedDateForSession)
         .eq("start_time", startTimeStr)
         .in("status", ["confirmed", "pending"]);
-
-      console.debug("Exact time match sessions:", exactTimeSessions);
 
       if (exactTimeError) {
         console.error("Error checking exact time match:", exactTimeError);
@@ -870,10 +826,7 @@ export default function TrainerSchedulePage() {
         );
       }
 
-      console.debug("✅ No conflicts found - proceeding with session creation");
-
       // Check package availability BEFORE creating the session
-      console.debug("=== PACKAGE AVAILABILITY CHECK ===");
       const { data: packages, error: packageError } = await supabase
         .from("packages")
         .select("*")
@@ -893,27 +846,11 @@ export default function TrainerSchedulePage() {
       }
 
       // Log all packages for debugging
-      console.debug("All packages for client:", {
-        clientId: selectedClientForSession,
-        sessionType: selectedSessionType,
-        totalPackages: packages?.length || 0,
-        packages: packages?.map((p) => ({
-          id: p.id,
-          package_type: p.package_type,
-          sessions_included: p.sessions_included,
-          sessions_used: p.sessions_used,
-          status: p.status,
-          expiry_date: p.expiry_date,
-          available: (p.sessions_included || 0) > (p.sessions_used || 0),
-        })),
-      });
 
       // Find the first package with available sessions
       const packageToUpdate = packages?.find(
         (pkg) => (pkg.sessions_included || 0) > (pkg.sessions_used || 0)
       );
-
-      console.debug("Selected package to update:", packageToUpdate);
 
       if (!packageToUpdate) {
         // Provide detailed error message based on what we found
@@ -947,10 +884,6 @@ export default function TrainerSchedulePage() {
         setIsCreatingSession(false);
         return;
       }
-
-      console.debug(
-        "✅ Package availability confirmed - proceeding with session creation"
-      );
 
       const userTimezone =
         Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Denver";
@@ -986,21 +919,12 @@ export default function TrainerSchedulePage() {
       const sessionsAfter = sessionsBefore + 1;
 
       // Now update the package (increment sessions_used)
-      console.debug("Updating package:", {
-        packageId: packageToUpdate.id,
-        currentSessionsUsed: packageToUpdate.sessions_used,
-        newSessionsUsed: (packageToUpdate.sessions_used || 0) + 1,
-        packageType: packageToUpdate.package_type,
-        clientId: packageToUpdate.client_id,
-      });
 
       const { data: updateData, error: updateError } = await supabase
         .from("packages")
         .update({ sessions_used: (packageToUpdate.sessions_used || 0) + 1 })
         .eq("id", packageToUpdate.id)
         .select();
-
-      console.debug("Package update result:", { updateData, updateError });
 
       if (updateError) {
         console.error("Package update error:", updateError);
@@ -1158,7 +1082,6 @@ export default function TrainerSchedulePage() {
 
       // Show success or error dialog
       if (calendarSuccess) {
-        console.debug("✅ Session created successfully with calendar events");
         setShowSuccessDialog(true);
       } else {
         console.warn(
@@ -1223,8 +1146,6 @@ export default function TrainerSchedulePage() {
           },
           body: JSON.stringify(emailPayload),
         });
-
-        console.debug("✅ Email notification sent successfully");
       } catch (emailError) {
         console.error("❌ Failed to send email notification:", emailError);
         // Don't fail the session creation if email fails
@@ -1382,6 +1303,9 @@ export default function TrainerSchedulePage() {
       e.stopPropagation();
       if (isEditMode) {
         openEditSessionDialog(event);
+      } else {
+        setSelectedEvent(event);
+        setShowEventModal(true);
       }
     };
 
@@ -1394,8 +1318,8 @@ export default function TrainerSchedulePage() {
     return (
       <div
         key={event.id}
-        className={`rounded-md p-2 ${clientColor.bg} ${clientColor.border} border shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-[1.02] ${
-          isEditMode ? "cursor-pointer" : "cursor-grab"
+        className={`rounded-md p-1 sm:p-2 ${clientColor.bg} ${clientColor.border} border shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-[1.02] ${
+          isEditMode ? "cursor-pointer" : "cursor-pointer"
         } relative group`}
         onClick={handleSessionClick}
       >
@@ -1411,21 +1335,26 @@ export default function TrainerSchedulePage() {
         )}
 
         <div
-          className={`text-xs font-bold ${clientColor.text} mb-1 leading-tight`}
+          className={`text-[10px] sm:text-xs font-bold ${clientColor.text} mb-0.5 leading-tight`}
         >
           {sessionType}
         </div>
         <div
-          className={`text-xs ${clientColor.text} opacity-90 font-medium leading-tight`}
+          className={`text-[10px] sm:text-xs ${clientColor.text} opacity-90 font-medium leading-tight`}
         >
           with {clientName}
         </div>
         <div
-          className={`text-xs ${clientColor.text} opacity-75 mt-1 flex items-center gap-1`}
+          className={`text-[10px] sm:text-xs ${clientColor.text} opacity-75 mt-0.5 flex items-center gap-1`}
         >
-          <Clock className="h-3 w-3" />
+          <Clock className="h-2 w-2 sm:h-3 sm:w-3" />
+          <span className="hidden sm:inline">
           {formatEventTime(event.start.dateTime)} -{" "}
           {formatEventTime(event.end.dateTime)}
+          </span>
+          <span className="sm:hidden">
+            {formatEventTime(event.start.dateTime)}
+          </span>
         </div>
         {event.description && (
           <div
@@ -1490,12 +1419,9 @@ export default function TrainerSchedulePage() {
     const session = events.find((s) => s.id === event.active.id);
     if (!session) return;
     // Debug: log drop target ID
-    console.log("DnD drop target ID:", event.over.id);
     // Parse new date and time from drop target id using '|', decode time
     const [newDateStr, encodedTime] = event.over.id.split("|");
-    console.log("Parsed newDateStr:", newDateStr, "encodedTime:", encodedTime);
     const newTime = decodeURIComponent(encodedTime);
-    console.log("Decoded newTime:", newTime);
     // Parse old date and time
     const oldDate = session.start.dateTime.split("T")[0];
     const oldTime = formatEventTime(session.start.dateTime);
@@ -1765,22 +1691,22 @@ export default function TrainerSchedulePage() {
             >
               {/* Sticky header row inside the scrollable container */}
               <div className="sticky top-0 z-30 bg-white dark:bg-gray-900">
-                <div className="grid grid-cols-[80px_repeat(7,1fr)] min-w-[700px] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                <div className="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] min-w-[500px] sm:min-w-[700px] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                   {/* Time column header (empty) */}
-                  <div className="bg-gradient-to-b from-gray-50 to-gray-100 h-10 sm:h-12" />
+                  <div className="bg-gradient-to-b from-gray-50 to-gray-100 h-8 sm:h-12" />
                   {/* Day/date headers */}
                   {weekDates.map((date, index) => (
                     <div
                       key={date.toISOString()}
-                      className={`flex flex-col items-center justify-center h-10 sm:h-12 px-2 sm:px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-l border-gray-200 dark:border-gray-800 ${isToday(date.getDate()) ? "bg-gradient-to-b from-red-50 to-red-100 dark:from-red-900/40 dark:to-red-900/20" : ""}`}
+                      className={`flex flex-col items-center justify-center h-8 sm:h-12 px-1 sm:px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-l border-gray-200 dark:border-gray-800 ${isToday(date.getDate()) ? "bg-gradient-to-b from-red-50 to-red-100 dark:from-red-900/40 dark:to-red-900/20" : ""}`}
                     >
                       <span
-                        className={`text-xs sm:text-sm font-semibold uppercase tracking-wide ${isToday(date.getDate()) ? "text-red-800" : "text-gray-900 dark:text-gray-100"}`}
+                        className={`text-[10px] sm:text-sm font-semibold uppercase tracking-wide ${isToday(date.getDate()) ? "text-red-800" : "text-gray-900 dark:text-gray-100"}`}
                       >
                         {daysOfWeek[index]}
                       </span>
                       <span
-                        className={`text-base sm:text-lg font-bold ${isToday(date.getDate()) ? "text-red-600" : "text-gray-700 dark:text-gray-300"}`}
+                        className={`text-sm sm:text-lg font-bold ${isToday(date.getDate()) ? "text-red-600" : "text-gray-700 dark:text-gray-300"}`}
                       >
                         {date.getDate()}
                       </span>
@@ -1789,10 +1715,10 @@ export default function TrainerSchedulePage() {
                 </div>
               </div>
               {/* The grid itself */}
-              <div className="grid grid-cols-[80px_repeat(7,1fr)] gap-0 bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden min-w-[700px] border border-gray-200 dark:border-gray-800 divide-x divide-gray-300 dark:divide-gray-800">
+              <div className="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] gap-0 bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden min-w-[500px] sm:min-w-[700px] border border-gray-200 dark:border-gray-800 divide-x divide-gray-300 dark:divide-gray-800">
                 {/* Time column */}
                 <div className="bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
-                  <div className="h-10 sm:h-12 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900" />
+                  <div className="h-8 sm:h-12 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900" />
                   {timeSlots.map((time, i) => (
                     <div
                       key={time}
@@ -1801,7 +1727,7 @@ export default function TrainerSchedulePage() {
                           ? firstSessionRowRef
                           : undefined
                       }
-                      className="h-16 sm:h-20 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center justify-end pr-2 sm:pr-4 border-b border-gray-100 dark:border-gray-800"
+                      className="h-12 sm:h-20 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-1 sm:p-2 text-[10px] sm:text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center justify-end pr-1 sm:pr-4 border-b border-gray-100 dark:border-gray-800"
                     >
                       {time}
                     </div>
@@ -1817,7 +1743,7 @@ export default function TrainerSchedulePage() {
                     <div
                       className={`bg-white dark:bg-gray-900 ${isToday(date.getDate()) ? "bg-red-50" : ""}`}
                     >
-                      <div className="h-10 sm:h-12 border-b border-gray-200 dark:border-gray-800 p-1 sm:p-2 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900" />
+                      <div className="h-8 sm:h-12 border-b border-gray-200 dark:border-gray-800 p-1 sm:p-2 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900" />
                       {timeSlots.map((time, i) => {
                         const sessions = getSessionsForTimeSlot(date, time);
                         return (
@@ -1832,7 +1758,7 @@ export default function TrainerSchedulePage() {
                                   ? firstSessionRowRef
                                   : undefined
                               }
-                              className={`h-16 sm:h-20 border-b border-gray-200 dark:border-gray-800 p-1 sm:p-2 relative transition-colors duration-150 ${isToday(date.getDate()) ? "bg-red-50 hover:bg-red-100 border-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:border-red-700" : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-800"}`}
+                              className={`h-12 sm:h-20 border-b border-gray-200 dark:border-gray-800 p-0.5 sm:p-2 relative transition-colors duration-150 ${isToday(date.getDate()) ? "bg-red-50 hover:bg-red-100 border-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:border-red-700" : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-800"}`}
                             >
                               {sessions.map((session) => (
                                 <DraggableSession
@@ -1871,9 +1797,9 @@ export default function TrainerSchedulePage() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between mb-4 px-2 sm:px-0">
-          <div className="flex items-center gap-3">
-            <div className="w-1 h-10 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-1 h-6 sm:h-10 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></div>
+            <h2 className="text-lg sm:text-3xl font-bold text-gray-900">
               {monthName}
             </h2>
           </div>
@@ -1898,12 +1824,12 @@ export default function TrainerSchedulePage() {
         </div>
 
         <div className="overflow-x-auto">
-          <div className="grid grid-cols-7 gap-0 bg-white rounded-xl shadow-lg overflow-hidden min-w-[700px] border border-gray-200 h-[calc(100vh-12rem)] divide-x divide-gray-300">
+          <div className="grid grid-cols-7 gap-0 bg-white rounded-xl shadow-lg overflow-hidden min-w-[500px] sm:min-w-[700px] border border-gray-200 h-[calc(100vh-12rem)] divide-x divide-gray-300">
             {/* Day headers */}
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
               <div
                 key={day}
-                className="bg-gradient-to-b from-gray-50 to-gray-100 p-1 sm:p-3 text-xs sm:text-sm text-center font-semibold text-gray-900 uppercase tracking-wide border-b border-gray-200"
+                className="bg-gradient-to-b from-gray-50 to-gray-100 p-1 sm:p-3 text-[10px] sm:text-sm text-center font-semibold text-gray-900 uppercase tracking-wide border-b border-gray-200"
               >
                 {day}
               </div>
@@ -1913,7 +1839,7 @@ export default function TrainerSchedulePage() {
             {days.map((day, index) => (
               <div
                 key={index}
-                className={`bg-white p-1 sm:p-2 min-h-[80px] sm:min-h-[120px] border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-y-auto ${
+                className={`bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[120px] border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-y-auto ${
                   isToday(day)
                     ? "bg-red-50 hover:bg-red-100 ring-2 ring-red-500 ring-opacity-50"
                     : ""
@@ -1922,11 +1848,11 @@ export default function TrainerSchedulePage() {
                 {day && (
                   <>
                     <div
-                      className={`text-base sm:text-lg font-bold mb-1 sm:mb-2 text-right ${isToday(day) ? "text-red-600" : "text-gray-900"}`}
+                      className={`text-sm sm:text-lg font-bold mb-1 sm:mb-2 text-right ${isToday(day) ? "text-red-600" : "text-gray-900"}`}
                     >
                       {day}
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5 sm:space-y-1">
                       {getSessionsForDay(day).map(renderEvent)}
                     </div>
                   </>
@@ -1941,14 +1867,7 @@ export default function TrainerSchedulePage() {
 
   // Function to get package summary for selected client
   const getSelectedClientPackageSummary = (): PackageSummary => {
-    console.log(
-      "🎯 Getting package summary for selected client:",
-      selectedClient
-    );
-    console.log("📋 Available package info:", packageInfo);
-
     if (selectedClient === "all") {
-      console.log("👥 Returning summary for all clients:", packageSummary);
       return packageSummary;
     }
 
@@ -1956,12 +1875,6 @@ export default function TrainerSchedulePage() {
     const clientPackages = packageInfo.filter(
       (pkg) => pkg.client_name === selectedClient
     );
-
-    console.log("🔍 Filtered packages for client:", {
-      selectedClient,
-      filteredPackages: clientPackages,
-      totalFiltered: clientPackages.length,
-    });
 
     const summary: PackageSummary = {};
     clientPackages.forEach((pkg) => {
@@ -1977,10 +1890,6 @@ export default function TrainerSchedulePage() {
       summary[pkg.package_type].total_used += pkg.sessions_used;
     });
 
-    console.log("📊 Calculated summary for selected client:", {
-      client: selectedClient,
-      summary: summary,
-    });
 
     return summary;
   };
@@ -1990,26 +1899,13 @@ export default function TrainerSchedulePage() {
     const summary = getSelectedClientPackageSummary();
     const packageTypes = Object.keys(summary);
 
-    console.log("🎨 Rendering package summary:", {
-      selectedClient,
-      summary,
-      packageTypes,
-      hasPackages: packageTypes.length > 0,
-    });
-
     if (packageTypes.length === 0) {
-      console.log("⚠️ No packages found for display");
       return (
         <div className="flex items-center space-x-2 text-sm text-gray-500">
           <span>No active packages</span>
         </div>
       );
     }
-
-    console.log("✅ Rendering package summary with data:", {
-      packageTypes,
-      summary,
-    });
 
     return (
       <div className="flex items-center space-x-3">
@@ -2020,12 +1916,6 @@ export default function TrainerSchedulePage() {
           {packageTypes.map((packageType) => {
             const data = summary[packageType];
             const shortName = packageType.split(" ")[0]; // "In-Person" -> "In-Person"
-            console.log(`📊 Rendering ${packageType}:`, {
-              shortName,
-              remaining: data.total_remaining,
-              included: data.total_included,
-              used: data.total_used,
-            });
             return (
               <div
                 key={packageType}
@@ -2258,31 +2148,7 @@ export default function TrainerSchedulePage() {
 
       // Enhanced debug logging for timezone troubleshooting
       if (overlaps) {
-        console.debug(`🚨 TIMEZONE-AWARE OVERLAP DETECTED:`);
-        console.debug(
-          `  New Session: ${newDate} ${newStartTime}-${newEndTime} (${currentTimezone})`
-        );
-        console.debug(
-          `  Existing Session: ${existingDate} ${existingStartTime}-${existingEndTime} (${existingTimezone})`
-        );
-        console.debug(`  UTC Conversion:`);
-        console.debug(
-          `    New: ${newStartUTC.toISOString()} - ${newEndUTC.toISOString()}`
-        );
-        console.debug(
-          `    Existing: ${existingStartUTC.toISOString()} - ${existingEndUTC.toISOString()}`
-        );
-        console.debug(`  Time difference: ${timeDiffHours.toFixed(2)} hours`);
-        console.debug(
-          `  Session ID: ${s.id}, Trainer ID: ${s._dbData?.trainer_id}`
-        );
       } else {
-        // Debug log for non-overlapping sessions (only if they're close in time)
-        if (timeDiffHours < 2) {
-          console.debug(
-            `✅ No overlap: ${newDate} ${newStartTime} (${currentTimezone}) vs ${existingDate} ${existingStartTime} (${existingTimezone})`
-          );
-        }
       }
 
       return overlaps;
@@ -2296,11 +2162,6 @@ export default function TrainerSchedulePage() {
         data: { session },
         error: sessionError,
       } = await supabase.auth.getSession();
-      console.log(
-        "[AVAILABILITY DEBUG] Full session object:",
-        session,
-        sessionError
-      );
       if (!session) {
         setTrainerAvailability([]);
         return;
@@ -2309,7 +2170,6 @@ export default function TrainerSchedulePage() {
         .from("trainer_availability")
         .select("*")
         .eq("trainer_id", session.user.id);
-      console.log("[AVAILABILITY DEBUG] Raw fetch result:", { data, error });
       setTrainerAvailability(data || []);
     }
     fetchTrainerAvailability();
@@ -2330,11 +2190,506 @@ export default function TrainerSchedulePage() {
     );
   }
 
+  // Mobile week view renderer
+  const renderMobileWeekView = () => {
+    const weekDates = getWeekDates(currentDate);
+    const startDate = weekDates[0];
+    const endDate = weekDates[6];
+
+  return (
+      <Card>
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <h2 className="text-lg sm:text-2xl font-bold tracking-tight dark:text-gray-100">
+                Week of{" "}
+                {startDate.toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                })}{" "}
+                -{" "}
+                {endDate.toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </h2>
+            </div>
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 sm:h-10 sm:w-10"
+                onClick={() => navigateWeek("prev")}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 sm:h-10 sm:w-10"
+                onClick={() => navigateWeek("next")}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {weekDates.map((date, index) => {
+              const daySessions = getSessionsForDay(date.getDate());
+              return (
+                <div
+                  key={date.toISOString()}
+                  className={`border rounded-lg p-3 ${
+                    isToday(date.getDate())
+                      ? "bg-red-50 border-red-200"
+                      : "bg-white border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`font-medium text-sm ${
+                          isToday(date.getDate())
+                            ? "text-red-900"
+                            : "text-gray-900"
+                        }`}
+                      >
+                        {daysOfWeek[index]}
+                      </div>
+                      <div
+                        className={`text-lg font-bold ${
+                          isToday(date.getDate())
+                            ? "text-red-600"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        {date.getDate()}
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {daySessions.length} session
+                      {daySessions.length !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+
+                  {daySessions.length > 0 ? (
+                    <div className="space-y-1">
+                      {daySessions.map((session) => (
+                        <div
+                          key={session.id}
+                          className="p-2 bg-gray-50 rounded border cursor-pointer hover:bg-gray-100 transition-colors"
+                          onClick={() => {
+                            openEditSessionDialog(session);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Clock className="h-3 w-3 text-gray-400" />
+                                <span className="text-sm font-medium text-gray-900">
+                                  {formatEventTime(session.start.dateTime)}
+                                </span>
+                                <span className="text-gray-300">•</span>
+                                <span className="text-sm text-gray-600">
+                                  {getSessionType(session)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <User className="h-3 w-3 text-gray-400" />
+                                <span className="text-sm text-gray-700">
+                                  {getClientName(session)}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={
+                                  session.status === "confirmed"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className="text-xs"
+                              >
+                                {session.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 text-sm">
+                      No sessions scheduled
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // Client-style calendar renderer for mobile
+  const renderClientStyleCalendar = () => {
+    const days = getDaysInMonth(currentDate);
+    const monthName = currentDate.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    return (
+      <Card>
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <h2 className="text-lg sm:text-2xl font-bold tracking-tight dark:text-gray-100">
+                {monthName}
+              </h2>
+            </div>
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 sm:h-10 sm:w-10"
+                onClick={() => navigateMonth("prev")}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 sm:h-10 sm:w-10"
+                onClick={() => navigateMonth("next")}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden w-full min-w-0">
+              {/* Day headers */}
+              {daysOfWeek.map((day) => (
+                <div
+                  key={day}
+                  className="bg-gray-50 dark:bg-gray-900/40 p-1 sm:p-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                >
+                  {day}
+                </div>
+              ))}
+
+              {/* Calendar days */}
+              {days.map((day, index) => (
+                <div
+                  key={`day-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
+                  className={`relative p-1 sm:p-2 min-h-[100px] sm:min-h-[120px] ${
+                    !day
+                      ? "bg-gray-50 dark:bg-gray-900/40"
+                      : isToday(day)
+                        ? "bg-red-50 dark:bg-red-900/20 ring-1 ring-red-500/70 dark:ring-red-700 ring-inset"
+                        : "bg-white dark:bg-gray-900"
+                  }`}
+                >
+                  {day && (
+                    <>
+                      <div
+                        className={`font-medium text-xs mb-1 sticky top-0 z-10 ${
+                          isToday(day)
+                            ? "text-red-900 dark:text-red-300 font-bold"
+                            : "dark:text-gray-100"
+                        }`}
+                      >
+                        {day}
+                      </div>
+                      <div className="space-y-0 max-h-[80px] sm:max-h-[90px] overflow-y-auto">
+                        {getSessionsForDay(day).map((event) =>
+                          renderClientStyleEvent(event)
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // Client-style event renderer for mobile calendar
+  const renderClientStyleEvent = (event: DatabaseSession) => {
+    const clientName = getClientName(event);
+    const sessionType = getSessionType(event);
+    const clientEmail = event.users?.email || event.attendees?.[0]?.email;
+    const clientColor = getClientColor(clientEmail, clientName);
+    const colors = clientColor;
+
+    const handleSessionClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      openEditSessionDialog(event);
+    };
+
+    return (
+      <div
+        key={event.id}
+        className={`group relative px-1 py-0.5 mb-0 rounded text-left cursor-pointer ${colors.bg} ${colors.text} hover:${colors.hover} transition-all duration-150`}
+        onClick={handleSessionClick}
+      >
+        <div className="flex items-center gap-0.5 truncate">
+          <span
+            className={`text-[10px] font-medium ${colors.text} whitespace-nowrap`}
+          >
+            {formatEventTime(event.start.dateTime)}
+          </span>
+          <span className={`text-[10px] ${colors.text} opacity-90 truncate`}>
+            {sessionType}
+          </span>
+        </div>
+
+        {/* Status indicator dot */}
+        <div
+          className={`absolute top-1 right-1 h-1.5 w-1.5 rounded-full 
+            ${
+              event?.status?.toLowerCase() === "confirmed"
+                ? "bg-green-500"
+                : event?.status?.toLowerCase() === "pending"
+                  ? "bg-yellow-500"
+                  : "bg-red-500"
+            }`}
+        />
+      </div>
+    );
+  };
+
+  // List view renderer
+  const renderListView = () => {
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    // Filter events for current month
+    const monthEvents = events.filter((event) => {
+      const eventDate = new Date(event.start.dateTime);
+      return (
+        eventDate.getMonth() === currentMonth &&
+        eventDate.getFullYear() === currentYear
+      );
+    });
+
+    // Group events by date
+    const groupedEvents = monthEvents.reduce(
+      (groups, event) => {
+        const eventDate = new Date(event.start.dateTime);
+        const dateString = eventDate.toISOString().split("T")[0];
+        const dateKey = eventDate.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+        if (!groups[dateString]) {
+          groups[dateString] = {
+            dateKey,
+            events: [],
+          };
+        }
+        groups[dateString].events.push(event);
+        return groups;
+      },
+      {} as Record<string, { dateKey: string; events: DatabaseSession[] }>
+    );
+
+    // Sort events within each date
+    Object.keys(groupedEvents).forEach((dateString) => {
+      groupedEvents[dateString].events.sort(
+        (a, b) =>
+          new Date(a.start.dateTime).getTime() -
+          new Date(b.start.dateTime).getTime()
+      );
+    });
+
+    const today = new Date();
+    const isToday = (dateString: string) => {
+      const eventDate = new Date(dateString);
+      return eventDate.toDateString() === today.toDateString();
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-8 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></div>
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
+              {currentDate.toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })}
+            </h2>
+            <span className="text-sm text-gray-500">
+              ({monthEvents.length} session{monthEvents.length !== 1 ? "s" : ""}
+              )
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateMonth("prev")}
+              className="hover:bg-gray-50 border-gray-300"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateMonth("next")}
+              className="hover:bg-gray-50 border-gray-300"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {Object.keys(groupedEvents).length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p>No sessions scheduled for this month</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {Object.entries(groupedEvents)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([dateString, { dateKey, events }]) => (
+                <div key={dateString} className="border rounded-lg">
+                  <div
+                    className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                      isToday(dateString)
+                        ? "bg-red-50 border-red-200"
+                        : "bg-gray-50"
+                    }`}
+                    onClick={() => {
+                      const newExpanded = new Set(expandedDates);
+                      if (expandedDates.has(dateString)) {
+                        newExpanded.delete(dateString);
+                      } else {
+                        newExpanded.add(dateString);
+                      }
+                      setExpandedDates(newExpanded);
+                    }}
+                  >
+          <div className="flex items-center justify-between">
+                      <div>
+                        <h3
+                          className={`font-medium ${isToday(dateString) ? "text-red-900" : "text-gray-900"}`}
+                        >
+                          {dateKey}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {events.length} session
+                          {events.length !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <ChevronDown
+                        className={`h-4 w-4 text-gray-400 transition-transform ${
+                          expandedDates.has(dateString) ? "rotate-180" : ""
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  {expandedDates.has(dateString) && (
+                    <div className="border-t bg-white">
+                      {events.map((event) => (
+                        <div
+                          key={event.id}
+                          className="p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
+                          onClick={() => {
+                            openEditSessionDialog(event);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Clock className="h-3 w-3 text-gray-400" />
+                                <span className="text-sm font-medium text-gray-900">
+                                  {new Date(
+                                    event.start.dateTime
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}
+                                </span>
+                                <span className="text-gray-300">•</span>
+                                <span className="text-sm text-gray-600">
+                                  {getSessionType(event)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <User className="h-3 w-3 text-gray-400" />
+                                <span className="text-sm text-gray-700">
+                                  {getClientName(event)}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={
+                                  event.status === "confirmed"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className="text-xs"
+                              >
+                                {event.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="flex-1 bg-white dark:bg-gray-900">
-        <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-6 shadow-sm">
-          <div className="flex items-center justify-between">
+        <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 sm:px-6 py-3 sm:py-6 shadow-sm">
+          {/* Mobile Layout - Unchanged */}
+          <div className="block sm:hidden">
+            {/* Title Row */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <SidebarTrigger />
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></div>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    Schedule
+                  </h1>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout - Improved Structure */}
+          <div className="hidden sm:block">
+            {/* Title Row */}
+            <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
               <SidebarTrigger />
               <div className="flex items-center gap-3">
@@ -2343,10 +2698,103 @@ export default function TrainerSchedulePage() {
                   Schedule
                 </h1>
               </div>
-              {/* Package Summary Display */}
-              {renderPackageSummary()}
             </div>
-            <div className="flex items-center space-x-4">
+              {/* Package Summary Display - Desktop only */}
+              <div className="hidden lg:block">{renderPackageSummary()}</div>
+            </div>
+          </div>
+
+          {/* Mobile Controls - Unchanged */}
+          <div className="block sm:hidden">
+            {/* Controls Row - Mobile Optimized */}
+            <div className="space-y-3">
+              {/* Mobile: Stack vertically */}
+              <div className="flex flex-col items-stretch space-y-3">
+                {/* Client Filter - Full width on mobile */}
+                <div className="flex items-center space-x-2 w-full">
+                  <Users className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <Select
+                    value={selectedClient}
+                    onValueChange={setSelectedClient}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filter by client" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Clients</SelectItem>
+                      {getUniqueClients().map((client) => (
+                        <SelectItem key={client} value={client}>
+                          {client}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Add Session Button - Full width on mobile */}
+                <Button
+                  onClick={() => setIsAddSessionOpen(true)}
+                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Session
+                </Button>
+              </div>
+
+              {/* View Controls - Mobile Optimized */}
+              <div className="flex flex-col items-stretch space-y-2">
+                {/* View Mode Toggle - Calendar/List */}
+                <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-full">
+                  <Button
+                    variant={
+                      calendarViewMode === "calendar" ? "default" : "ghost"
+                    }
+                    size="sm"
+                    onClick={() => setCalendarViewMode("calendar")}
+                    className="flex-1"
+                  >
+                    <Calendar className="h-4 w-4 mr-1" />
+                    Calendar
+                  </Button>
+                  <Button
+                    variant={calendarViewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setCalendarViewMode("list")}
+                    className="flex-1"
+                  >
+                    <List className="h-4 w-4 mr-1" />
+                    List
+                  </Button>
+                </div>
+
+                {/* Time Range Toggle - Week/Month */}
+                <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-full">
+                  <Button
+                    variant={viewMode === "week" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("week")}
+                    className="flex-1"
+                  >
+                    Week
+                  </Button>
+                  <Button
+                    variant={viewMode === "month" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("month")}
+                    className="flex-1"
+                  >
+                    Month
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Controls - Better Organized */}
+          <div className="hidden sm:block">
+            <div className="flex items-center justify-between">
+              {/* Left Side - Filters and View Controls */}
+              <div className="flex items-center space-x-6">
               {/* Client Filter */}
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4 text-gray-500" />
@@ -2368,7 +2816,40 @@ export default function TrainerSchedulePage() {
                 </Select>
               </div>
 
-              <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                {/* View Mode Toggle - Calendar/List */}
+                <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                  <Button
+                    variant={
+                      calendarViewMode === "calendar" ? "default" : "ghost"
+                    }
+                    size="sm"
+                    onClick={() => setCalendarViewMode("calendar")}
+                    className={
+                      calendarViewMode === "calendar"
+                        ? "bg-white dark:bg-gray-900 shadow-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-transparent"
+                    }
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Calendar
+                  </Button>
+                  <Button
+                    variant={calendarViewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setCalendarViewMode("list")}
+                    className={
+                      calendarViewMode === "list"
+                        ? "bg-white dark:bg-gray-900 shadow-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-transparent"
+                    }
+                  >
+                    <List className="h-4 w-4 mr-2" />
+                    List
+                  </Button>
+                </div>
+
+                {/* Time Range Toggle - Week/Month */}
+                <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                 <Button
                   variant={viewMode === "week" ? "default" : "ghost"}
                   size="sm"
@@ -2394,6 +2875,9 @@ export default function TrainerSchedulePage() {
                   Month
                 </Button>
               </div>
+              </div>
+
+              {/* Right Side - Primary Action */}
               <Button
                 onClick={() => setIsAddSessionOpen(true)}
                 className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-lg transition-all duration-200"
@@ -2405,7 +2889,7 @@ export default function TrainerSchedulePage() {
           </div>
         </header>
 
-        <main className="p-4">
+        <main className="p-3 sm:p-4">
           {loading ? (
             <div className="flex items-center justify-center h-[calc(100vh-10rem)]">
               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -2417,11 +2901,29 @@ export default function TrainerSchedulePage() {
                 {error}
               </div>
             </div>
-          ) : viewMode === "week" ? (
-            renderWeekView()
-          ) : viewMode === "month" ? (
-            renderMonthView()
+          ) : calendarViewMode === "calendar" ? (
+            // Mobile views - use client calendar layout
+            <div className="block lg:hidden">
+              {viewMode === "week"
+                ? renderMobileWeekView()
+                : viewMode === "month"
+                  ? renderClientStyleCalendar()
+                  : null}
+            </div>
+          ) : calendarViewMode === "list" ? (
+            renderListView()
           ) : null}
+
+          {/* Desktop views - keep original functionality */}
+          <div className="hidden lg:block">
+            {calendarViewMode === "calendar"
+              ? viewMode === "week"
+                ? renderWeekView()
+                : viewMode === "month"
+                  ? renderMonthView()
+                  : null
+              : null}
+          </div>
         </main>
       </div>
 
@@ -2785,11 +3287,7 @@ export default function TrainerSchedulePage() {
 
                       setShowRescheduleDialog(false);
                       // Refresh events
-                      console.log(
-                        "[Reschedule PATCH] Calling fetchEvents to refresh calendar..."
-                      );
                       await fetchEvents();
-                      console.log("[Reschedule PATCH] fetchEvents complete.");
                     }
                   } catch (err) {
                     setFeedbackDialog({
@@ -3004,6 +3502,114 @@ export default function TrainerSchedulePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Event Details Modal */}
+      <Dialog open={showEventModal} onOpenChange={setShowEventModal}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle>Session Details</DialogTitle>
+            <DialogDescription>
+              View detailed information about this session
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedEvent && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <div>
+                  <h3 className="font-medium text-gray-900">
+                    {getSessionType(selectedEvent)}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    with {getClientName(selectedEvent)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-700">
+                    {new Date(selectedEvent.start.dateTime).toLocaleDateString(
+                      "en-US",
+                      {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-700">
+                    {new Date(selectedEvent.start.dateTime).toLocaleTimeString(
+                      "en-US",
+                      {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      }
+                    )}{" "}
+                    -{" "}
+                    {new Date(selectedEvent.end.dateTime).toLocaleTimeString(
+                      "en-US",
+                      {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      }
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-700">
+                    {getClientName(selectedEvent)}
+                  </span>
+                </div>
+
+                {selectedEvent._dbData?.notes && (
+                  <div className="pt-2 border-t">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Notes:
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {selectedEvent._dbData.notes}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={
+                      selectedEvent.status === "confirmed"
+                        ? "default"
+                        : "secondary"
+                    }
+                    className="text-xs"
+                  >
+                    {selectedEvent.status}
+                  </Badge>
+                  {selectedEvent.description?.includes("recurring") && (
+                    <Badge variant="outline" className="text-xs">
+                      Recurring
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => setShowEventModal(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -3088,7 +3694,6 @@ async function syncGoogleCalendarEvents(
   newStartTime: string,
   newEndTime: string
 ) {
-  console.log("[Calendar Sync] Starting sync for session:", session.id);
 
   // Get client and trainer details
   const clientId = session._dbData?.client_id;

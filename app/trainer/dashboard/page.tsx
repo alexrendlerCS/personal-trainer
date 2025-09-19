@@ -178,8 +178,6 @@ function GoogleCalendarSection({
 }
 
 export default function TrainerDashboard() {
-  console.log("Trainer Dashboard - Component Mounted");
-
   const [searchTerm, setSearchTerm] = useState("");
   const [showContractModal, setShowContractModal] = useState(false);
   const [showGooglePopup, setShowGooglePopup] = useState(false);
@@ -234,12 +232,9 @@ export default function TrainerDashboard() {
       } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        console.log("No session found, redirecting to login");
         router.push("/login");
         return;
       }
-
-      console.log("Checking trainer status for user:", session.user.id);
 
       const { data: userData, error: userError } = await supabase
         .from("users")
@@ -254,10 +249,7 @@ export default function TrainerDashboard() {
         return;
       }
 
-      console.log("Full trainer data:", userData);
-
       if (userData.role !== "trainer") {
-        console.log("Non-trainer accessing trainer dashboard, redirecting");
         router.push("/client/dashboard");
         return;
       }
@@ -275,13 +267,6 @@ export default function TrainerDashboard() {
           avatarUrl = publicUrl.publicUrl;
         }
 
-        console.log("Setting trainer status:", {
-          contractAccepted,
-          googleConnected,
-          userName: userData.full_name || "",
-          avatarUrl: avatarUrl,
-        });
-
         setUserStatus({
           contractAccepted,
           googleConnected,
@@ -290,13 +275,9 @@ export default function TrainerDashboard() {
         });
 
         if (!contractAccepted) {
-          console.log("Showing contract modal - contract not accepted");
           setShowContractModal(true);
         } else if (!googleConnected) {
-          console.log("Showing Google popup - Google not connected");
           setShowGooglePopup(true);
-        } else {
-          console.log("Both contract accepted and Google connected");
         }
       }
     } catch (error) {
@@ -311,21 +292,15 @@ export default function TrainerDashboard() {
   useEffect(() => {
     // Fetch total clients from users table
     async function fetchTotalClients() {
-      console.log("[DEBUG] Fetching total clients from users table...");
       const { data, error, count } = await supabase
         .from("users")
         .select("*", { count: "exact" })
         .eq("role", "client");
-      console.log("[DEBUG] Supabase response:", { data, error, count });
       if (error) {
-        console.error("[DEBUG] Error fetching total clients:", error);
+        console.error("Error fetching total clients:", error);
         setTotalClients(null);
       } else {
         setTotalClients(count ?? (data ? data.length : 0));
-        console.log(
-          "[DEBUG] Set totalClients to:",
-          count ?? (data ? data.length : 0)
-        );
       }
     }
     fetchTotalClients();
@@ -348,10 +323,7 @@ export default function TrainerDashboard() {
         .eq("role", "client")
         .gte("created_at", startOfThisMonth.toISOString());
       if (thisMonthError) {
-        console.error(
-          "[DEBUG] Error fetching this month clients:",
-          thisMonthError
-        );
+        console.error("Error fetching this month clients:", thisMonthError);
         setClientsThisMonth(0);
       } else {
         setClientsThisMonth(thisMonthCount ?? 0);
@@ -365,10 +337,7 @@ export default function TrainerDashboard() {
         .gte("created_at", startOfLastMonth.toISOString())
         .lte("created_at", endOfLastMonth.toISOString());
       if (lastMonthError) {
-        console.error(
-          "[DEBUG] Error fetching last month clients:",
-          lastMonthError
-        );
+        console.error("Error fetching last month clients:", lastMonthError);
         setClientsLastMonth(0);
       } else {
         setClientsLastMonth(lastMonthCount ?? 0);
@@ -383,21 +352,12 @@ export default function TrainerDashboard() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) {
-        console.log("[DEBUG] No session user found in fetchTodaysSessions");
         return;
       }
       setTrainerId(session.user.id);
       const now = new Date();
       // Use local date instead of UTC to avoid timezone issues
       const todayStr = now.toLocaleDateString("en-CA"); // Returns YYYY-MM-DD format
-      console.log(`[DEBUG] Current date/time: ${now}`);
-      console.log(
-        `[DEBUG] Current timezone offset: ${now.getTimezoneOffset()} minutes`
-      );
-      console.log(`[DEBUG] Today string: ${todayStr}`);
-      console.log(
-        `[DEBUG] Fetching sessions for trainer_id: ${session.user.id} on date: ${todayStr}`
-      );
 
       // Fetch all sessions for today for this trainer, joining users to get client name
       const { data: sessions, error } = await supabase
@@ -420,7 +380,7 @@ export default function TrainerDashboard() {
         .eq("date", todayStr)
         .order("start_time", { ascending: true });
       if (error) {
-        console.error("[DEBUG] Error fetching today's sessions:", error);
+        console.error("Error fetching today's sessions:", error);
         setTodaysSessions([]);
         setCompletedSessions(0);
         setUpcomingSessions(0);
@@ -452,7 +412,6 @@ export default function TrainerDashboard() {
           };
         })
       );
-      console.log(`[DEBUG] Raw sessions fetched:`, processedSessions);
       setTodaysSessions(processedSessions ?? []);
       // Calculate completed and upcoming
       const nowTime = now.getTime();
@@ -492,7 +451,6 @@ export default function TrainerDashboard() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) {
-        console.log("[DEBUG] No session user found in fetchMonthlySessions");
         return;
       }
 
@@ -506,26 +464,6 @@ export default function TrainerDashboard() {
       const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
       const endOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-      console.log(
-        `[DEBUG] Fetching monthly sessions for trainer_id: ${session.user.id}`
-      );
-      console.log(
-        `[DEBUG] This month range: ${startOfThisMonth.toLocaleDateString("en-CA")} to ${endOfThisMonth.toLocaleDateString("en-CA")}`
-      );
-      console.log(
-        `[DEBUG] Last month range: ${startOfLastMonth.toLocaleDateString("en-CA")} to ${endOfLastMonth.toLocaleDateString("en-CA")}`
-      );
-      console.log(`[DEBUG] Current date: ${now.toLocaleDateString("en-CA")}`);
-      console.log(
-        `[DEBUG] Start of this month: ${startOfThisMonth.toLocaleDateString("en-CA")}`
-      );
-      console.log(
-        `[DEBUG] End of this month: ${endOfThisMonth.toLocaleDateString("en-CA")}`
-      );
-      console.log(
-        `[DEBUG] End of last month: ${endOfLastMonth.toLocaleDateString("en-CA")}`
-      );
-
       // This month sessions
       const { data: thisMonthSessions, error: thisMonthError } = await supabase
         .from("sessions")
@@ -535,17 +473,9 @@ export default function TrainerDashboard() {
         .lte("date", endOfThisMonth.toLocaleDateString("en-CA"));
 
       if (thisMonthError) {
-        console.error(
-          "[DEBUG] Error fetching this month sessions:",
-          thisMonthError
-        );
+        console.error("Error fetching this month sessions:", thisMonthError);
         setSessionsThisMonth(0);
       } else {
-        console.log(`[DEBUG] This month sessions:`, thisMonthSessions);
-        console.log(
-          `[DEBUG] This month sessions count:`,
-          thisMonthSessions?.length ?? 0
-        );
         setSessionsThisMonth(thisMonthSessions?.length ?? 0);
       }
 
@@ -558,13 +488,9 @@ export default function TrainerDashboard() {
         .lte("date", endOfLastMonth.toLocaleDateString("en-CA"));
 
       if (lastMonthError) {
-        console.error(
-          "[DEBUG] Error fetching last month sessions:",
-          lastMonthError
-        );
+        console.error("Error fetching last month sessions:", lastMonthError);
         setSessionsLastMonth(0);
       } else {
-        console.log(`[DEBUG] Last month sessions:`, lastMonthSessions);
         setSessionsLastMonth(lastMonthSessions?.length ?? 0);
       }
     }
@@ -577,7 +503,6 @@ export default function TrainerDashboard() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) {
-        console.log("[DEBUG] No session user found in fetchMonthlyRevenue");
         return;
       }
 
@@ -590,35 +515,6 @@ export default function TrainerDashboard() {
       );
       const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
       const endOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-      console.log(
-        `[DEBUG] Fetching monthly revenue for trainer_id: ${session.user.id}`
-      );
-      console.log(
-        `[DEBUG] Revenue this month range: ${startOfThisMonth.toLocaleDateString("en-CA")} to ${endOfThisMonth.toLocaleDateString("en-CA")}`
-      );
-      console.log(
-        `[DEBUG] Revenue last month range: ${startOfLastMonth.toLocaleDateString("en-CA")} to ${endOfLastMonth.toLocaleDateString("en-CA")}`
-      );
-
-      // Debug: First, let's see ALL payments to verify we can access the table
-      const { data: allPayments, error: allPaymentsError } = await supabase
-        .from("payments")
-        .select("*");
-
-      if (allPaymentsError) {
-        console.error("[DEBUG] Error fetching all payments:", allPaymentsError);
-      } else {
-        console.log(`[DEBUG] All payments in table:`, allPayments);
-        console.log(`[DEBUG] Total payments count:`, allPayments?.length || 0);
-        if (allPayments && allPayments.length > 0) {
-          console.log(
-            `[DEBUG] Sample payment paid_at:`,
-            allPayments[0].paid_at
-          );
-          console.log(`[DEBUG] Sample payment status:`, allPayments[0].status);
-        }
-      }
 
       // Helper to format date as YYYY-MM-DD HH:mm:ss
       function formatDateWithTime(date: Date, isEndOfDay = false) {
@@ -636,9 +532,6 @@ export default function TrainerDashboard() {
       // This month revenue
       const thisMonthStart = formatDateWithTime(startOfThisMonth);
       const thisMonthEnd = formatDateWithTime(endOfThisMonth, true);
-      console.log(
-        `[DEBUG] Querying payments with: .gte("paid_at", "${thisMonthStart}") .lte("paid_at", "${thisMonthEnd}") .eq("status", "completed")`
-      );
 
       const { data: thisMonthPayments, error: thisMonthError } = await supabase
         .from("payments")
@@ -648,51 +541,22 @@ export default function TrainerDashboard() {
         .eq("status", "completed");
 
       if (thisMonthError) {
-        console.error(
-          "[DEBUG] Error fetching this month payments:",
-          thisMonthError
-        );
+        console.error("Error fetching this month payments:", thisMonthError);
         setRevenueThisMonth(0);
       } else {
-        console.log(
-          `[DEBUG] This month payments raw response:`,
-          thisMonthPayments
-        );
-        console.log(
-          `[DEBUG] This month payments count:`,
-          thisMonthPayments?.length || 0
-        );
-
-        if (thisMonthPayments && thisMonthPayments.length > 0) {
-          console.log(
-            `[DEBUG] Individual payment amounts:`,
-            thisMonthPayments.map((p) => ({
-              amount: p.amount,
-              parsed: parseFloat(p.amount || 0),
-            }))
-          );
-        }
-
         const totalThisMonth = (thisMonthPayments || []).reduce(
           (sum, payment) => {
             const parsedAmount = parseFloat(payment.amount || 0);
-            console.log(
-              `[DEBUG] Adding payment amount: ${payment.amount} -> parsed: ${parsedAmount}, running sum: ${sum + parsedAmount}`
-            );
             return sum + parsedAmount;
           },
           0
         );
-        console.log(`[DEBUG] This month revenue total: $${totalThisMonth}`);
         setRevenueThisMonth(totalThisMonth);
       }
 
       // Last month revenue
       const lastMonthStart = formatDateWithTime(startOfLastMonth);
       const lastMonthEnd = formatDateWithTime(endOfLastMonth, true);
-      console.log(
-        `[DEBUG] Querying last month payments with: .gte("paid_at", "${lastMonthStart}") .lte("paid_at", "${lastMonthEnd}") .eq("status", "completed")`
-      );
 
       const { data: lastMonthPayments, error: lastMonthError } = await supabase
         .from("payments")
@@ -702,42 +566,16 @@ export default function TrainerDashboard() {
         .eq("status", "completed");
 
       if (lastMonthError) {
-        console.error(
-          "[DEBUG] Error fetching last month payments:",
-          lastMonthError
-        );
+        console.error("Error fetching last month payments:", lastMonthError);
         setRevenueLastMonth(0);
       } else {
-        console.log(
-          `[DEBUG] Last month payments raw response:`,
-          lastMonthPayments
-        );
-        console.log(
-          `[DEBUG] Last month payments count:`,
-          lastMonthPayments?.length || 0
-        );
-
-        if (lastMonthPayments && lastMonthPayments.length > 0) {
-          console.log(
-            `[DEBUG] Individual last month payment amounts:`,
-            lastMonthPayments.map((p) => ({
-              amount: p.amount,
-              parsed: parseFloat(p.amount || 0),
-            }))
-          );
-        }
-
         const totalLastMonth = (lastMonthPayments || []).reduce(
           (sum, payment) => {
             const parsedAmount = parseFloat(payment.amount || 0);
-            console.log(
-              `[DEBUG] Adding last month payment amount: ${payment.amount} -> parsed: ${parsedAmount}, running sum: ${sum + parsedAmount}`
-            );
             return sum + parsedAmount;
           },
           0
         );
-        console.log(`[DEBUG] Last month revenue total: $${totalLastMonth}`);
         setRevenueLastMonth(totalLastMonth);
       }
     }
@@ -745,36 +583,24 @@ export default function TrainerDashboard() {
 
     // Fetch pending payments
     async function fetchPendingPayments() {
-      console.log(`[DEBUG] Fetching pending payments...`);
-
       const { data: pendingPayments, error: pendingError } = await supabase
         .from("payments")
         .select("amount")
         .eq("status", "pending");
 
       if (pendingError) {
-        console.error("[DEBUG] Error fetching pending payments:", pendingError);
+        console.error("Error fetching pending payments:", pendingError);
         setPendingPaymentsCount(0);
         setPendingPaymentsAmount(0);
       } else {
-        console.log(`[DEBUG] Pending payments:`, pendingPayments);
-        console.log(
-          `[DEBUG] Pending payments count:`,
-          pendingPayments?.length || 0
-        );
-
         const totalPendingAmount = (pendingPayments || []).reduce(
           (sum, payment) => {
             const parsedAmount = parseFloat(payment.amount || 0);
-            console.log(
-              `[DEBUG] Adding pending payment amount: ${payment.amount} -> parsed: ${parsedAmount}, running sum: ${sum + parsedAmount}`
-            );
             return sum + parsedAmount;
           },
           0
         );
 
-        console.log(`[DEBUG] Total pending amount: $${totalPendingAmount}`);
         setPendingPaymentsCount(pendingPayments?.length || 0);
         setPendingPaymentsAmount(totalPendingAmount);
       }
@@ -790,7 +616,7 @@ export default function TrainerDashboard() {
         )
         .eq("role", "client");
       if (clientsError) {
-        console.error("[DEBUG] Error fetching clients:", clientsError);
+        console.error("Error fetching clients:", clientsError);
         setClientsWithSessions([]);
         return;
       }
@@ -818,12 +644,6 @@ export default function TrainerDashboard() {
             }
           }
           const sessions_remaining = total_included - total_used;
-          // Debug logs
-          console.log(`[DEBUG] Client: ${client.full_name} (${client.id})`);
-          console.log("[DEBUG] Packages:", packages);
-          console.log(
-            `[DEBUG] total_included: ${total_included}, total_used: ${total_used}, sessions_remaining: ${sessions_remaining}`
-          );
           return {
             ...client,
             avatar_public_url,
@@ -837,8 +657,6 @@ export default function TrainerDashboard() {
     // Function to fetch recent payments and available clients
     async function fetchRecentPayments() {
       try {
-        console.log("🔍 Fetching recent payments...");
-
         const { data: payments, error } = await supabase
           .from("payments")
           .select(
@@ -862,11 +680,9 @@ export default function TrainerDashboard() {
           .limit(10); // Increased limit to get more payments for filtering
 
         if (error) {
-          console.error("❌ Error fetching recent payments:", error);
+          console.error("Error fetching recent payments:", error);
           return;
         }
-
-        console.log("✅ Recent payments fetched:", payments);
         setRecentPayments(payments || []);
 
         // Extract unique clients from payments for the filter
@@ -889,7 +705,7 @@ export default function TrainerDashboard() {
 
         setAvailableClients(clientsFromPayments);
       } catch (error) {
-        console.error("❌ Error in fetchRecentPayments:", error);
+        console.error("Error in fetchRecentPayments:", error);
       }
     }
 
@@ -1026,32 +842,36 @@ export default function TrainerDashboard() {
       {modals}
       <div className="flex-1">
         <header className="border-b">
-          <div className="flex h-16 items-center px-4 gap-4">
-            <SidebarTrigger />
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search clients..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+          <div className="flex flex-col sm:flex-row h-auto sm:h-16 items-start sm:items-center px-3 sm:px-4 gap-3 sm:gap-4 py-3 sm:py-0">
+            <div className="flex items-center w-full sm:w-auto">
+              <SidebarTrigger />
+              <div className="flex-1 sm:flex-none sm:ml-4">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search clients..."
+                    className="pl-8 w-full sm:w-auto"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
-            <GoogleCalendarSection
-              isConnected={userStatus.googleConnected}
-              onConnect={handleConnectCalendar}
-            />
+            <div className="w-full sm:w-auto">
+              <GoogleCalendarSection
+                isConnected={userStatus.googleConnected}
+                onConnect={handleConnectCalendar}
+              />
+            </div>
           </div>
         </header>
 
-        <main className="p-6 space-y-6">
+        <main className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Welcome Banner */}
           <Card className="bg-gradient-to-r from-red-600 to-red-700 text-white border-0">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
+                <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
                   <AvatarImage
                     src={userStatus.avatarUrl || "/placeholder-user.jpg"}
                     alt={userStatus.userName}
@@ -1068,7 +888,7 @@ export default function TrainerDashboard() {
                       e.currentTarget.style.display = "none";
                     }}
                   />
-                  <AvatarFallback className="bg-white text-red-600 text-xl font-bold">
+                  <AvatarFallback className="bg-white text-red-600 text-lg sm:text-xl font-bold">
                     {userStatus.userName
                       .split(" ")
                       .map((n: string) => n[0])
@@ -1076,11 +896,11 @@ export default function TrainerDashboard() {
                       .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h2 className="text-2xl font-bold">
+                <div className="text-center sm:text-left">
+                  <h2 className="text-lg sm:text-2xl font-bold">
                     Welcome back, {userStatus.userName}!
                   </h2>
-                  <p className="text-red-100">
+                  <p className="text-red-100 text-sm sm:text-base">
                     {todaysSessions.length > 0
                       ? `You have ${todaysSessions.length} session${todaysSessions.length === 1 ? "" : "s"} scheduled for today`
                       : "No sessions scheduled for today"}
@@ -1091,16 +911,16 @@ export default function TrainerDashboard() {
           </Card>
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">
                   Total Clients
                 </CardTitle>
-                <Users className="h-4 w-4 text-red-600" />
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 flex-shrink-0" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold">
                   {totalClients !== null ? (
                     totalClients
                   ) : (
@@ -1115,13 +935,13 @@ export default function TrainerDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">
                   Today's Sessions
                 </CardTitle>
-                <Clock className="h-4 w-4 text-red-600" />
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 flex-shrink-0" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold">
                   {todaysSessions.length}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -1131,13 +951,15 @@ export default function TrainerDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">
                   Monthly Sessions
                 </CardTitle>
-                <BarChart3 className="h-4 w-4 text-red-600" />
+                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 flex-shrink-0" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{sessionsThisMonth}</div>
+                <div className="text-xl sm:text-2xl font-bold">
+                  {sessionsThisMonth}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {sessionsThisMonth - sessionsLastMonth >= 0 ? "+" : ""}
                   {sessionsThisMonth - sessionsLastMonth} from last month
@@ -1146,13 +968,13 @@ export default function TrainerDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">
                   Monthly Revenue
                 </CardTitle>
-                <DollarSign className="h-4 w-4 text-red-600" />
+                <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 flex-shrink-0" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold">
                   ${revenueThisMonth.toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -1174,13 +996,15 @@ export default function TrainerDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">
                   Pending Payments
                 </CardTitle>
-                <Clock className="h-4 w-4 text-yellow-600" />
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600 flex-shrink-0" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{pendingPaymentsCount}</div>
+                <div className="text-xl sm:text-2xl font-bold">
+                  {pendingPaymentsCount}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   ${pendingPaymentsAmount.toLocaleString()} total pending
                 </p>
@@ -1191,10 +1015,12 @@ export default function TrainerDashboard() {
           {/* Today's Schedule */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-red-600" />
-                <span>Today's Schedule</span>
-                <span className="ml-2 text-xs text-muted-foreground">
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-5 w-5 text-red-600" />
+                  <span>Today's Schedule</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
                   ({todaysSessions.length} total, {completedSessions} completed,{" "}
                   {upcomingSessions} upcoming)
                 </span>
@@ -1279,21 +1105,23 @@ export default function TrainerDashboard() {
                         return (
                           <Card
                             key={session.id}
-                            className="flex flex-col sm:flex-row items-center justify-between p-4 gap-4 w-full shadow-md"
+                            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 gap-3 sm:gap-4 w-full shadow-md"
                           >
-                            <div className="flex items-center gap-4 w-full">
-                              <span className="flex items-center text-base font-medium text-gray-700 min-w-[150px]">
-                                <Clock className="h-4 w-4 mr-1 text-gray-500" />
-                                {formattedTime}
-                              </span>
-                              <span className="flex items-center font-bold text-lg text-gray-900">
-                                <Dumbbell className="h-4 w-4 mr-1 text-red-600" />
-                                {session.type}
-                              </span>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                                <span className="flex items-center text-sm sm:text-base font-medium text-gray-700">
+                                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-gray-500" />
+                                  {formattedTime}
+                                </span>
+                                <span className="flex items-center font-bold text-sm sm:text-lg text-gray-900">
+                                  <Dumbbell className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-red-600" />
+                                  {session.type}
+                                </span>
+                              </div>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span className="flex items-center gap-2 cursor-pointer">
-                                    <Avatar className="h-8 w-8">
+                                    <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
                                       <AvatarImage
                                         src={clientAvatarUrl}
                                         alt={clientName}
@@ -1302,11 +1130,11 @@ export default function TrainerDashboard() {
                                             "none";
                                         }}
                                       />
-                                      <AvatarFallback className="bg-red-600 text-white text-sm">
+                                      <AvatarFallback className="bg-red-600 text-white text-xs sm:text-sm">
                                         {initials}
                                       </AvatarFallback>
                                     </Avatar>
-                                    <span className="font-medium text-gray-800">
+                                    <span className="font-medium text-gray-800 text-sm sm:text-base">
                                       {clientName}
                                     </span>
                                   </span>
@@ -1324,7 +1152,7 @@ export default function TrainerDashboard() {
                               </Tooltip>
                               <Badge
                                 variant={badgeVariant}
-                                className={badgeClass + " ml-2"}
+                                className={`${badgeClass} text-xs`}
                               >
                                 {session.status.charAt(0).toUpperCase() +
                                   session.status.slice(1)}
@@ -1332,7 +1160,7 @@ export default function TrainerDashboard() {
                             </div>
                             <Button
                               variant="outline"
-                              className="ml-auto"
+                              className="w-full sm:w-auto text-xs sm:text-sm px-3 py-1.5 h-8"
                               onClick={() => {
                                 // Navigate to schedule page with client filter
                                 const encodedClientName =
@@ -1354,7 +1182,7 @@ export default function TrainerDashboard() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Client Management */}
             <Card>
               <CardHeader>
@@ -1393,8 +1221,8 @@ export default function TrainerDashboard() {
                           key={client.id}
                           className="flex items-center justify-between p-3 border rounded-lg"
                         >
-                          <div className="flex items-center gap-4">
-                            <Avatar className="h-10 w-10">
+                          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
                               <AvatarImage
                                 src={
                                   client.avatar_public_url ||
@@ -1405,7 +1233,7 @@ export default function TrainerDashboard() {
                                   e.currentTarget.style.display = "none";
                                 }}
                               />
-                              <AvatarFallback className="bg-red-600 text-white text-sm">
+                              <AvatarFallback className="bg-red-600 text-white text-xs sm:text-sm">
                                 {client.full_name
                                   .split(" ")
                                   .map((n: string) => n[0])
@@ -1413,30 +1241,32 @@ export default function TrainerDashboard() {
                                   .toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <p className="font-medium">{client.full_name}</p>
-                              <p className="text-sm text-gray-500">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm sm:text-base truncate">
+                                {client.full_name}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-500 truncate">
                                 {client.email}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-xs sm:text-sm text-gray-500">
                                 {client.sessions_remaining} sessions remaining
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-2">
                             <Badge
                               variant={
                                 client.google_account_connected
                                   ? "default"
                                   : "secondary"
                               }
-                              className={
+                              className={`text-xs ${
                                 client.google_account_connected
                                   ? "bg-green-500 text-white"
                                   : "bg-gray-400 text-white"
-                              }
+                              }`}
                             >
-                              Google Connected
+                              Google
                             </Badge>
                             <Badge
                               variant={
@@ -1444,22 +1274,26 @@ export default function TrainerDashboard() {
                                   ? "default"
                                   : "secondary"
                               }
-                              className={
+                              className={`text-xs ${
                                 client.contract_accepted
                                   ? "bg-green-500 text-white"
                                   : "bg-gray-400 text-white"
-                              }
+                              }`}
                             >
-                              Contract Signed
+                              Contract
                             </Badge>
                             {client.sessions_remaining === 0 && (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleShowQr(client)}
+                                className="text-xs px-2 py-1 h-7"
                               >
-                                <QrCode className="h-4 w-4 mr-1" />
-                                Send Payment
+                                <QrCode className="h-3 w-3 mr-1" />
+                                <span className="hidden sm:inline">
+                                  Send Payment
+                                </span>
+                                <span className="sm:hidden">Pay</span>
                               </Button>
                             )}
                           </div>
@@ -1473,7 +1307,7 @@ export default function TrainerDashboard() {
             {/* Recent Payments */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-5 w-5 text-red-600" />
                     <span>Recent Payments</span>
@@ -1485,7 +1319,7 @@ export default function TrainerDashboard() {
                       value={selectedClientFilter}
                       onValueChange={setSelectedClientFilter}
                     >
-                      <SelectTrigger className="w-[200px]">
+                      <SelectTrigger className="w-full sm:w-[200px]">
                         <SelectValue placeholder="Filter by client" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1513,33 +1347,33 @@ export default function TrainerDashboard() {
                       return (
                         <div
                           key={payment.id}
-                          className="flex items-center justify-between p-3 border rounded-lg"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg space-y-2 sm:space-y-0"
                         >
-                          <div>
-                            <p className="font-medium">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm sm:text-base truncate">
                               {userData?.full_name || "Unknown Client"}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm text-gray-500">
                               {payment.session_count} sessions •{" "}
                               {payment.package_type}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm text-gray-500">
                               {new Date(payment.paid_at).toLocaleDateString()}
                             </p>
                           </div>
-                          <div className="text-right">
-                            <p className="font-bold text-green-600">
+                          <div className="flex sm:flex-col items-center sm:items-end space-x-2 sm:space-x-0 sm:space-y-1">
+                            <p className="font-bold text-green-600 text-sm sm:text-base">
                               ${payment.amount}
                             </p>
                             <Badge
                               variant="default"
-                              className={
+                              className={`text-xs ${
                                 payment.status === "completed"
                                   ? "bg-green-100 text-green-800"
                                   : payment.status === "pending"
                                     ? "bg-yellow-100 text-yellow-800"
                                     : "bg-red-100 text-red-800"
-                              }
+                              }`}
                             >
                               {payment.status === "completed"
                                 ? "Completed"

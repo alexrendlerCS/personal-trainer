@@ -173,11 +173,6 @@ export default function TrainerClientsPage() {
   // Fetch package information for clients
   const fetchPackageInfo = async (clientIds: string[]) => {
     try {
-      console.log(
-        "[DEBUG] fetchPackageInfo called with client IDs:",
-        clientIds
-      );
-
       const { data: packageData, error: packageError } = await supabase
         .from("packages")
         .select(
@@ -195,18 +190,12 @@ export default function TrainerClientsPage() {
         return [];
       }
 
-      console.log("[DEBUG] Raw package data from database:", packageData);
-
       // Calculate remaining sessions for each package
       const packagesWithRemaining = (packageData || []).map((pkg) => ({
         ...pkg,
         remaining: Math.max(0, pkg.sessions_included - pkg.sessions_used),
       }));
 
-      console.log(
-        "[DEBUG] Packages with remaining sessions calculated:",
-        packagesWithRemaining
-      );
       return packagesWithRemaining;
     } catch (error) {
       console.error("Error in fetchPackageInfo:", error);
@@ -273,9 +262,7 @@ export default function TrainerClientsPage() {
 
       // Fetch package information for all clients
       const clientIds = processedClients.map((client) => client.id);
-      console.log("[DEBUG] Fetching packages for client IDs:", clientIds);
       const packageData = await fetchPackageInfo(clientIds);
-      console.log("[DEBUG] Package data fetched:", packageData);
 
       // Group packages by client_id
       const packagesByClient: Record<string, PackageInfo[]> = {};
@@ -285,14 +272,12 @@ export default function TrainerClientsPage() {
         }
         packagesByClient[pkg.client_id].push(pkg);
       });
-      console.log("[DEBUG] Packages grouped by client:", packagesByClient);
 
       // Add packages to each client
       const clientsWithPackages = processedClients.map((client) => ({
         ...client,
         packages: packagesByClient[client.id] || [],
       }));
-      console.log("[DEBUG] Clients with packages:", clientsWithPackages);
 
       setClients(clientsWithPackages);
 
@@ -306,34 +291,23 @@ export default function TrainerClientsPage() {
 
       // Clients With No Upcoming Sessions
       // Fetch all sessions for this trainer
-      console.log(
-        "[DEBUG] Client IDs:",
-        processedClients.map((c) => c.id)
-      );
       const { data: sessionsData, error: sessionsError } = await supabase
         .from("sessions")
         .select("id, client_id, date")
         .eq("trainer_id", session.user.id);
-      console.log("[DEBUG] sessionsData:", sessionsData);
       if (sessionsError) {
         setClientsWithNoUpcoming(0);
       } else {
         const today = new Date().toISOString().slice(0, 10);
-        console.log("[DEBUG] Today:", today);
         // Map client_id to array of future sessions
         const clientFutureSessions: Record<string, boolean> = {};
         for (const c of processedClients) clientFutureSessions[c.id] = false;
         (sessionsData || []).forEach((s) => {
           if (s.date >= today) clientFutureSessions[s.client_id] = true;
         });
-        console.log("[DEBUG] clientFutureSessions:", clientFutureSessions);
         const noUpcomingCount = Object.values(clientFutureSessions).filter(
           (v) => !v
         ).length;
-        console.log(
-          "[DEBUG] Clients With No Upcoming Sessions:",
-          noUpcomingCount
-        );
         setClientsWithNoUpcoming(noUpcomingCount);
       }
 
@@ -406,11 +380,11 @@ export default function TrainerClientsPage() {
     }
 
     return (
-      <div className="flex flex-wrap gap-2 mt-2">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
         {client.packages.map((pkg, index) => (
           <div
             key={`${pkg.package_type}-${index}`}
-            className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded-md text-xs"
+            className="flex items-center space-x-1 bg-gray-100 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs"
           >
             <span className="font-medium text-gray-700">
               {pkg.package_type}:
@@ -473,17 +447,17 @@ export default function TrainerClientsPage() {
 
   return (
     <>
-      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2.5 sm:space-y-0">
+          <div className="flex items-center space-x-2.5 sm:space-x-3 lg:space-x-4">
             <SidebarTrigger />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
               Clients
             </h1>
           </div>
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="bg-red-600 hover:bg-red-700">
+              <Button className="bg-red-600 hover:bg-red-700 w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Client
               </Button>
@@ -523,95 +497,97 @@ export default function TrainerClientsPage() {
         </div>
       </header>
 
-      <main className="p-6">
+      <main className="p-3 sm:p-4 lg:p-6">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
                     Total Clients
                   </p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {loading ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
                     ) : (
                       clients.length
                     )}
                   </p>
                 </div>
-                <Users className="h-8 w-8 text-red-600" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
                     Active Clients
                   </p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {loading ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
                     ) : (
                       clients.filter((c) => c.google_account_connected).length
                     )}
                   </p>
                 </div>
-                <Users className="h-8 w-8 text-green-600" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    New Clients This Month
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    New This Month
                   </p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {loading ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
                     ) : (
                       newClientsThisMonth
                     )}
                   </p>
                 </div>
-                <Users className="h-8 w-8 text-blue-600" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Clients With No Upcoming Sessions
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    No Sessions
                   </p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {loading ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
                     ) : (
                       clientsWithNoUpcoming
                     )}
                   </p>
                 </div>
-                <Users className="h-8 w-8 text-gray-600" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters and Search */}
-        <Card className="mb-6">
+        <Card className="mb-3 sm:mb-4 lg:mb-6">
           <CardHeader>
-            <CardTitle>Client Management</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">
+              Client Management
+            </CardTitle>
             <CardDescription>Search and filter your clients</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -621,24 +597,24 @@ export default function TrainerClientsPage() {
                   className="pl-10"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 <Button
                   variant={statusFilter === "all" ? "default" : "outline"}
                   onClick={() => setStatusFilter("all")}
-                  className={
+                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${
                     statusFilter === "all" ? "bg-red-600 hover:bg-red-700" : ""
-                  }
+                  }`}
                 >
                   All
                 </Button>
                 <Button
                   variant={statusFilter === "active" ? "default" : "outline"}
                   onClick={() => setStatusFilter("active")}
-                  className={
+                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${
                     statusFilter === "active"
                       ? "bg-red-600 hover:bg-red-700"
                       : ""
-                  }
+                  }`}
                 >
                   Active
                 </Button>
@@ -647,26 +623,28 @@ export default function TrainerClientsPage() {
                     statusFilter === "no_upcoming" ? "default" : "outline"
                   }
                   onClick={() => setStatusFilter("no_upcoming")}
-                  className={
+                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${
                     statusFilter === "no_upcoming"
                       ? "bg-red-600 hover:bg-red-700"
                       : ""
-                  }
+                  }`}
                 >
-                  No Upcoming Sessions
+                  <span className="hidden sm:inline">No Upcoming Sessions</span>
+                  <span className="sm:hidden">No Sessions</span>
                 </Button>
                 <Button
                   variant={
                     statusFilter === "new_this_month" ? "default" : "outline"
                   }
                   onClick={() => setStatusFilter("new_this_month")}
-                  className={
+                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${
                     statusFilter === "new_this_month"
                       ? "bg-red-600 hover:bg-red-700"
                       : ""
-                  }
+                  }`}
                 >
-                  New This Month
+                  <span className="hidden sm:inline">New This Month</span>
+                  <span className="sm:hidden">New</span>
                 </Button>
               </div>
             </div>
@@ -696,36 +674,40 @@ export default function TrainerClientsPage() {
                 <p className="text-gray-600">No clients found</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {filteredClients.map((client) => (
                   <div
                     key={client.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 lg:p-4 border rounded-lg hover:bg-gray-50 transition-colors space-y-2.5 sm:space-y-0"
                   >
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="h-12 w-12">
+                    <div className="flex items-center space-x-2.5 sm:space-x-3 lg:space-x-4 min-w-0 flex-1">
+                      <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
                         <AvatarImage
                           src={client.avatar_url || "/placeholder-user.jpg"}
                           alt={client.full_name}
                         />
-                        <AvatarFallback className="bg-red-600 text-white">
+                        <AvatarFallback className="bg-red-600 text-white text-sm">
                           {client.full_name
                             .split(" ")
                             .map((n) => n[0])
                             .join("")}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <h3 className="font-medium text-lg">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-base sm:text-lg truncate">
                           {client.full_name}
                         </h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm text-gray-500">
                           <div className="flex items-center space-x-1">
-                            <Mail className="h-4 w-4" />
-                            <span>{client.email}</span>
+                            <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="truncate">{client.email}</span>
                           </div>
+                          <span className="hidden sm:inline">
+                            Joined:{" "}
+                            {new Date(client.created_at).toLocaleDateString()}
+                          </span>
                         </div>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                        <div className="sm:hidden text-xs text-gray-500 mt-1">
                           <span>
                             Joined:{" "}
                             {new Date(client.created_at).toLocaleDateString()}
@@ -734,8 +716,8 @@ export default function TrainerClientsPage() {
                         {renderPackageInfo(client)}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-6">
-                      <Badge className={getStatusColor(client)}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1.5 sm:space-y-0 sm:space-x-3 lg:space-x-4">
+                      <Badge className={`text-xs ${getStatusColor(client)}`}>
                         {getStatusText(client)}
                       </Badge>
                       <div className="flex space-x-1">
@@ -745,13 +727,18 @@ export default function TrainerClientsPage() {
                           onClick={() => {
                             router.push("/trainer/messages");
                           }}
+                          className="h-8 w-8 p-0"
                         >
-                          <MessageSquare className="h-4 w-4" />
+                          <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button size="sm" variant="outline">
-                              <MoreHorizontal className="h-4 w-4" />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">

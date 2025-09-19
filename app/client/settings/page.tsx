@@ -178,7 +178,7 @@ function GoogleCalendarSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg space-y-3 sm:space-y-0">
           <div className="flex items-center space-x-3">
             <div className="bg-blue-600 p-2 rounded">
               <Calendar className="h-5 w-5 text-white" />
@@ -190,7 +190,7 @@ function GoogleCalendarSection() {
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isGoogleConnected ? (
               <>
                 <Badge
@@ -246,7 +246,7 @@ function GoogleCalendarSection() {
 
         {/* Sync Confirmation Dialog */}
         <Dialog open={showSyncDialog} onOpenChange={setShowSyncDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-md mx-auto">
             <DialogHeader>
               <DialogTitle>Sync Calendar</DialogTitle>
               <DialogDescription>
@@ -255,7 +255,7 @@ function GoogleCalendarSection() {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 sm:p-4">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
                     <svg
@@ -274,7 +274,7 @@ function GoogleCalendarSection() {
                     <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
                       Important Warning
                     </h3>
-                    <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                    <div className="mt-2 text-xs sm:text-sm text-yellow-700 dark:text-yellow-300">
                       <ul className="list-disc list-inside space-y-1">
                         <li>
                           A new calendar called "My Training Sessions" will be
@@ -295,18 +295,19 @@ function GoogleCalendarSection() {
                 </div>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 onClick={() => setShowSyncDialog(false)}
                 disabled={isSyncing}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSyncCalendar}
                 disabled={isSyncing}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
               >
                 {isSyncing ? (
                   <>
@@ -324,7 +325,7 @@ function GoogleCalendarSection() {
         {/* Sync Results Dialog */}
         {syncResult && (
           <Dialog open={!!syncResult} onOpenChange={() => setSyncResult(null)}>
-            <DialogContent>
+            <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {syncResult.success ? "Sync Results" : "Sync Failed"}
@@ -421,7 +422,10 @@ function GoogleCalendarSection() {
                   )}
               </div>
               <DialogFooter>
-                <Button onClick={() => setSyncResult(null)}>
+                <Button
+                  onClick={() => setSyncResult(null)}
+                  className="w-full sm:w-auto"
+                >
                   {syncResult.success ? "Close" : "Try Again"}
                 </Button>
               </DialogFooter>
@@ -517,7 +521,7 @@ function ContractSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg space-y-3 sm:space-y-0">
           <div className="flex items-center space-x-3">
             <div className="bg-green-600 p-2 rounded">
               <FileText className="h-5 w-5 text-white" />
@@ -531,7 +535,7 @@ function ContractSection() {
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             {contractSigned ? (
               <>
                 <Badge
@@ -545,6 +549,7 @@ function ContractSection() {
                   size="sm"
                   onClick={handleViewContract}
                   disabled={!contractUrl || loading}
+                  className="w-full sm:w-auto"
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   View
@@ -554,6 +559,7 @@ function ContractSection() {
                   size="sm"
                   onClick={handleDownloadContract}
                   disabled={!contractUrl || loading}
+                  className="w-full sm:w-auto"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download
@@ -591,12 +597,12 @@ export default function ClientSettings() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-background dark:bg-gray-900 px-4 md:px-6">
         <SidebarTrigger />
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
           Settings
         </h1>
       </div>
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="space-y-4 sm:space-y-8">
           {/* Contract Management */}
           <Suspense fallback={<div>Loading contract settings...</div>}>
             <ContractSection />
@@ -671,8 +677,8 @@ export default function ClientSettings() {
           </Card>
 
           {/* Save Button */}
-          <div className="flex justify-end">
-            <Button className="bg-red-600 hover:bg-red-700">
+          <div className="flex justify-center sm:justify-end">
+            <Button className="bg-red-600 hover:bg-red-700 w-full sm:w-auto">
               <Save className="h-4 w-4 mr-2" />
               Save All Changes
             </Button>
