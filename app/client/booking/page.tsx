@@ -327,16 +327,23 @@ export default function BookingPage() {
   const [recurringSessions, setRecurringSessions] = useState<
     RecurringSession[]
   >([]);
-  const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [totalRecurringSessions, setTotalRecurringSessions] = useState(0);
-  const [tempRecurringSession, setTempRecurringSession] =
-    useState<RecurringSession>({
-      dayOfWeek: 1,
-      time: "09:00",
-      weeks: 1,
-      startDate: getTodayString(),
-    });
   const [recurringWeeks, setRecurringWeeks] = useState(0);
+
+  // Additional session states
+  const [isAddingAnotherSession, setIsAddingAnotherSession] = useState(false);
+  const [additionalSessionDate, setAdditionalSessionDate] = useState<
+    string | null
+  >(null);
+  const [additionalSessionDateObj, setAdditionalSessionDateObj] =
+    useState<Date | null>(null);
+  const [additionalSessionTimeSlot, setAdditionalSessionTimeSlot] =
+    useState<TimeSlot | null>(null);
+  const [additionalSessionWeeks, setAdditionalSessionWeeks] = useState(0);
+  const [additionalSessionAvailableSlots, setAdditionalSessionAvailableSlots] =
+    useState<TimeSlot[]>([]);
+  const [loadingAdditionalTimeSlots, setLoadingAdditionalTimeSlots] =
+    useState(false);
 
   const supabase = createClient();
 
@@ -452,6 +459,92 @@ export default function BookingPage() {
 
     fetchAvailableTimeSlots();
   }, [selectedTrainer, selectedDate]);
+
+  // Load time slots for additional sessions
+  useEffect(() => {
+    const fetchAdditionalTimeSlots = async () => {
+      if (!selectedTrainer || !additionalSessionDate) return;
+
+      try {
+        setLoadingAdditionalTimeSlots(true);
+
+        // Parse additionalSessionDate as local date
+        const dateObj = parseLocalDateString(additionalSessionDate);
+        const dateString = formatLocalDate(dateObj);
+
+        // Get trainer availability for this date
+        const jsDay = dateObj.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+        const selectedDayOfWeek = jsDay;
+
+        const { data: availabilityData, error: availabilityError } =
+          await supabase
+            .from("trainer_availability")
+            .select("*")
+            .eq("trainer_id", selectedTrainer.id)
+            .eq("weekday", selectedDayOfWeek);
+
+        if (availabilityError) throw availabilityError;
+
+        // Get trainer unavailability for this specific date
+        const { data: unavailabilityData, error: unavailabilityError } =
+          await supabase
+            .from("trainer_unavailable_slots")
+            .select("*")
+            .eq("trainer_id", selectedTrainer.id)
+            .eq("date", dateString);
+
+        if (unavailabilityError) throw unavailabilityError;
+
+        // Get existing sessions for this date
+        const { data: sessionData, error: sessionError } = await supabase
+          .from("sessions")
+          .select("start_time, end_time")
+          .eq("date", dateString)
+          .neq("status", "cancelled");
+
+        if (sessionError) throw sessionError;
+
+        if (!availabilityData?.length) {
+          setAdditionalSessionAvailableSlots([]);
+          setLoadingAdditionalTimeSlots(false);
+          return;
+        }
+
+        // Generate time slots for each availability window
+        let allSlots: TimeSlot[] = [];
+        const sortedAvailability = availabilityData.sort((a, b) =>
+          a.start_time.localeCompare(b.start_time)
+        );
+
+        // Generate slots for each availability window
+        for (const availability of sortedAvailability) {
+          const windowSlots = generateTimeSlots(
+            availability.start_time,
+            availability.end_time,
+            unavailabilityData || [],
+            sessionData || []
+          );
+          allSlots = [...allSlots, ...windowSlots];
+        }
+
+        setAdditionalSessionAvailableSlots(allSlots);
+        setLoadingAdditionalTimeSlots(false);
+      } catch (error) {
+        console.error("[DEBUG] Error fetching additional time slots:", error);
+        console.error(
+          "[DEBUG] Additional session date:",
+          additionalSessionDate
+        );
+        console.error("[DEBUG] Selected trainer:", selectedTrainer?.id);
+        setError(
+          error instanceof Error ? error.message : "Failed to load time slots"
+        );
+        setLoadingAdditionalTimeSlots(false);
+      }
+    };
+
+    fetchAdditionalTimeSlots();
+  }, [selectedTrainer, additionalSessionDate]);
 
   useEffect(() => {
     const fetchTrainers = async () => {
@@ -895,18 +988,40 @@ export default function BookingPage() {
     };
   };
 
-  const addRecurringSession = () => {
+  const removeRecurringSession = (index: number) => {
+    const newSessions = recurringSessions.filter((_, i) => i !== index);
+    setRecurringSessions(newSessions);
+    setTotalRecurringSessions(calculateTotalRecurringSessions(newSessions));
+  };
+
+  // Additional session functions
+  const startAddingAnotherSession = () => {
+    setIsAddingAnotherSession(true);
+    setAdditionalSessionDate(null);
+    setAdditionalSessionDateObj(null);
+    setAdditionalSessionTimeSlot(null);
+    setAdditionalSessionWeeks(0);
+  };
+
+  const confirmAdditionalSession = () => {
     if (
-      tempRecurringSession.dayOfWeek !== undefined &&
-      tempRecurringSession.time &&
-      tempRecurringSession.weeks &&
-      tempRecurringSession.startDate
+      additionalSessionDate &&
+      additionalSessionTimeSlot &&
+      additionalSessionWeeks > 0 &&
+      additionalSessionDateObj
     ) {
+      const newSession: RecurringSession = {
+        dayOfWeek: additionalSessionDateObj.getDay(),
+        time: additionalSessionTimeSlot.startTime,
+        weeks: additionalSessionWeeks,
+        startDate: additionalSessionDate,
+      };
+
       // Check if this day/time combination already exists
       const exists = recurringSessions.some(
         (session) =>
-          session.dayOfWeek === tempRecurringSession.dayOfWeek &&
-          session.time === tempRecurringSession.time
+          session.dayOfWeek === newSession.dayOfWeek &&
+          session.time === newSession.time
       );
 
       if (exists) {
@@ -916,30 +1031,86 @@ export default function BookingPage() {
         return;
       }
 
-      setRecurringSessions([...recurringSessions, tempRecurringSession]);
+      // Check if adding this session would exceed available sessions
+      const totalSessionsAfterAdding = calculateTotalRecurringSessions([
+        ...recurringSessions,
+        newSession,
+      ]);
+      const selectedPackageType = getSelectedSessionType()?.name;
 
-      // Reset temp session
-      setTempRecurringSession({
-        dayOfWeek: 1,
-        time: "09:00",
-        weeks: 1,
-        startDate: getTodayString(),
-      });
+      if (selectedPackageType) {
+        const packageInfo = sessionsByType.find(
+          (pkg) => pkg.type === selectedPackageType
+        );
 
-      // Update total
+        if (packageInfo && totalSessionsAfterAdding > packageInfo.remaining) {
+          alert(
+            `You cannot book ${totalSessionsAfterAdding} sessions. You only have ${packageInfo.remaining} sessions remaining in your package.`
+          );
+          return;
+        }
+      }
+
+      setRecurringSessions([...recurringSessions, newSession]);
       setTotalRecurringSessions(
-        calculateTotalRecurringSessions([
-          ...recurringSessions,
-          tempRecurringSession,
-        ])
+        calculateTotalRecurringSessions([...recurringSessions, newSession])
       );
+
+      // Reset additional session state
+      setIsAddingAnotherSession(false);
+      setAdditionalSessionDate(null);
+      setAdditionalSessionDateObj(null);
+      setAdditionalSessionTimeSlot(null);
+      setAdditionalSessionWeeks(0);
+      setAdditionalSessionAvailableSlots([]);
     }
   };
 
-  const removeRecurringSession = (index: number) => {
-    const newSessions = recurringSessions.filter((_, i) => i !== index);
-    setRecurringSessions(newSessions);
-    setTotalRecurringSessions(calculateTotalRecurringSessions(newSessions));
+  const cancelAddingAnotherSession = () => {
+    setIsAddingAnotherSession(false);
+    setAdditionalSessionDate(null);
+    setAdditionalSessionDateObj(null);
+    setAdditionalSessionTimeSlot(null);
+    setAdditionalSessionWeeks(0);
+    setAdditionalSessionAvailableSlots([]);
+  };
+
+  // Calculate maximum weeks available for additional sessions
+  const getMaxWeeksForAdditionalSession = () => {
+    const selectedPackageType = getSelectedSessionType()?.name;
+    if (!selectedPackageType) return 1;
+
+    const packageInfo = sessionsByType.find(
+      (pkg) => pkg.type === selectedPackageType
+    );
+
+    if (!packageInfo) return 1;
+
+    // Debug logging
+    console.log("[DEBUG] Package info:", packageInfo);
+    console.log(
+      "[DEBUG] Confirmed sessions:",
+      calculateTotalRecurringSessions(recurringSessions)
+    );
+
+    // Calculate total sessions already confirmed in this booking flow
+    const totalConfirmedSessions =
+      calculateTotalRecurringSessions(recurringSessions);
+
+    // Calculate remaining sessions available for additional sessions
+    // Original remaining minus sessions confirmed in this flow
+    const remainingSessions = Math.max(
+      0,
+      packageInfo.remaining - totalConfirmedSessions
+    );
+
+    console.log(
+      "[DEBUG] Remaining sessions for additional:",
+      remainingSessions
+    );
+
+    // Return the minimum of remaining sessions or a reasonable max (like 12 weeks)
+    return Math.min(remainingSessions, 12);
   };
 
   const handleRecurringSessions = async (
@@ -2280,16 +2451,24 @@ export default function BookingPage() {
                                     </Button>
 
                                     {recurringSessions.length > 0 && (
-                                      <Button
-                                        onClick={() => {
-                                          setRecurringSessions([]);
-                                          setRecurringWeeks(0);
-                                        }}
-                                        variant="outline"
-                                        className="w-full"
-                                      >
-                                        Clear & Start Over
-                                      </Button>
+                                      <div className="space-y-2">
+                                        <Button
+                                          onClick={startAddingAnotherSession}
+                                          className="w-full bg-green-600 hover:bg-green-700 text-white"
+                                        >
+                                          Add Another Session
+                                        </Button>
+                                        <Button
+                                          onClick={() => {
+                                            setRecurringSessions([]);
+                                            setRecurringWeeks(0);
+                                          }}
+                                          variant="outline"
+                                          className="w-full"
+                                        >
+                                          Clear & Start Over
+                                        </Button>
+                                      </div>
                                     )}
                                   </div>
                                 )}
@@ -2302,6 +2481,239 @@ export default function BookingPage() {
                   )}
                 </div>
               )}
+            </section>
+          )}
+
+          {/* Additional Session Selection */}
+          {isAddingAnotherSession && (
+            <section className="mt-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                      +
+                    </span>
+                    <span>Add Another Recurring Session</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Select date, time, and duration for an additional recurring
+                    session
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Date Selection */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-3 dark:text-gray-100">
+                      Select Date
+                    </h3>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center space-x-2">
+                          <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                            1
+                          </span>
+                          <span>Select Date</span>
+                        </CardTitle>
+                        <CardDescription>
+                          Choose the date for your additional recurring session
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-col space-y-4">
+                          <DatePicker
+                            value={
+                              additionalSessionDateObj
+                                ? formatLocalDate(additionalSessionDateObj)
+                                : ""
+                            }
+                            onChange={(date) => {
+                              if (date) {
+                                const [year, month, day] = date
+                                  .split("-")
+                                  .map(Number);
+                                const dateObj = new Date(year, month - 1, day);
+                                setAdditionalSessionDateObj(dateObj);
+                                setAdditionalSessionDate(
+                                  formatLocalDate(dateObj)
+                                );
+                                setAdditionalSessionTimeSlot(null);
+                              }
+                            }}
+                            min={getTodayString()}
+                            id="additional-session-date"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Time Slots */}
+                    {additionalSessionDate && (
+                      <div className="mt-6">
+                        <h3 className="text-lg font-medium mb-3 dark:text-gray-100">
+                          Available Time Slots
+                        </h3>
+                        {loadingAdditionalTimeSlots ? (
+                          <div className="flex items-center justify-center p-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                          </div>
+                        ) : additionalSessionAvailableSlots.length > 0 ? (
+                          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            {additionalSessionAvailableSlots.map(
+                              (slot, index) => (
+                                <Button
+                                  key={index}
+                                  variant={
+                                    additionalSessionTimeSlot === slot
+                                      ? "default"
+                                      : "outline"
+                                  }
+                                  className={cn(
+                                    "w-full",
+                                    !slot.isAvailable &&
+                                      "opacity-50 cursor-not-allowed"
+                                  )}
+                                  onClick={() =>
+                                    setAdditionalSessionTimeSlot(slot)
+                                  }
+                                  disabled={!slot.isAvailable}
+                                >
+                                  {formatTimeForDisplay(slot.startTime)}
+                                </Button>
+                              )
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground">
+                            No available time slots for the selected date.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Weeks Selection */}
+                    {additionalSessionDate && additionalSessionTimeSlot && (
+                      <Card className="mt-6">
+                        <CardHeader>
+                          <CardTitle className="flex items-center space-x-2">
+                            <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                              2
+                            </span>
+                            <span>Number of Weeks</span>
+                          </CardTitle>
+                          <CardDescription>
+                            How many weeks should this session repeat?
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex-1">
+                                <label className="block text-sm font-medium mb-2">
+                                  Number of Weeks
+                                </label>
+                                <input
+                                  type="text"
+                                  className="w-full border rounded-md p-2"
+                                  value={additionalSessionWeeks}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "") {
+                                      setAdditionalSessionWeeks(0);
+                                    } else {
+                                      const numValue = parseInt(value);
+                                      if (!isNaN(numValue) && numValue > 0) {
+                                        const maxWeeks =
+                                          getMaxWeeksForAdditionalSession();
+                                        setAdditionalSessionWeeks(
+                                          Math.min(numValue, maxWeeks)
+                                        );
+                                      }
+                                    }
+                                  }}
+                                  placeholder="Enter number of weeks"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Maximum: {getMaxWeeksForAdditionalSession()}{" "}
+                                  weeks
+                                  {calculateTotalRecurringSessions(
+                                    recurringSessions
+                                  ) > 0 && (
+                                    <span className="block text-xs text-blue-600 mt-1">
+                                      (
+                                      {calculateTotalRecurringSessions(
+                                        recurringSessions
+                                      )}{" "}
+                                      sessions already confirmed)
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+
+                            {additionalSessionWeeks > 0 && (
+                              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <h4 className="font-medium mb-2">
+                                  Additional Session Preview:
+                                </h4>
+                                <div className="space-y-2">
+                                  {Array.from(
+                                    { length: additionalSessionWeeks },
+                                    (_, index) => {
+                                      // Create a new date object to avoid mutating the original
+                                      const sessionDate = new Date(
+                                        additionalSessionDateObj!
+                                      );
+                                      sessionDate.setDate(
+                                        sessionDate.getDate() + index * 7
+                                      );
+                                      return (
+                                        <div
+                                          key={index}
+                                          className="text-sm text-green-700 dark:text-green-300"
+                                        >
+                                          •{" "}
+                                          {format(
+                                            sessionDate,
+                                            "EEEE, MMMM d, yyyy"
+                                          )}{" "}
+                                          at{" "}
+                                          {formatTimeForDisplay(
+                                            additionalSessionTimeSlot.startTime
+                                          )}
+                                        </div>
+                                      );
+                                    }
+                                  )}
+                                </div>
+                                <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+                                  Total additional sessions:{" "}
+                                  {additionalSessionWeeks}
+                                </p>
+
+                                <div className="mt-4 flex space-x-2">
+                                  <Button
+                                    onClick={confirmAdditionalSession}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                                  >
+                                    Add This Session
+                                  </Button>
+                                  <Button
+                                    onClick={cancelAddingAnotherSession}
+                                    variant="outline"
+                                    className="px-6"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </section>
           )}
 
@@ -2377,16 +2789,36 @@ export default function BookingPage() {
 
                 {isRecurring && recurringSessions.length > 0 && (
                   <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <h4 className="font-medium mb-2">Recurring Sessions:</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Recurring Sessions:</h4>
+                      <Button
+                        onClick={startAddingAnotherSession}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                      >
+                        Add Another Session
+                      </Button>
+                    </div>
                     <div className="space-y-2">
                       {recurringSessions.map((session, index) => (
                         <div
                           key={index}
-                          className="text-sm text-gray-600 dark:text-gray-400"
+                          className="text-sm text-gray-600 dark:text-gray-400 flex items-center justify-between"
                         >
-                          • {getDayShortName(session.dayOfWeek)} at{" "}
-                          {session.time} for {session.weeks} week
-                          {session.weeks !== 1 ? "s" : ""}
+                          <span>
+                            • {getDayShortName(session.dayOfWeek)} at{" "}
+                            {session.time} for {session.weeks} week
+                            {session.weeks !== 1 ? "s" : ""}
+                          </span>
+                          <Button
+                            onClick={() => removeRecurringSession(index)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
+                          >
+                            ×
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -2827,188 +3259,6 @@ export default function BookingPage() {
               View Packages
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Recurring Sessions Configuration Modal */}
-      <Dialog open={showRecurringModal} onOpenChange={setShowRecurringModal}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Configure Recurring Sessions</DialogTitle>
-            <DialogDescription>
-              Set up your recurring training sessions. You can schedule multiple
-              sessions on different days and times.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6 py-4">
-            {/* Add New Recurring Session Form */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <h3 className="font-medium">Add New Recurring Session</h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Day of Week
-                  </label>
-                  <select
-                    className="w-full border rounded-md p-2"
-                    onChange={(e) => {
-                      const newSession = {
-                        ...tempRecurringSession,
-                        dayOfWeek: parseInt(e.target.value),
-                      };
-                      setTempRecurringSession(newSession);
-                    }}
-                    value={tempRecurringSession.dayOfWeek}
-                  >
-                    <option value={1}>Monday</option>
-                    <option value={2}>Tuesday</option>
-                    <option value={3}>Wednesday</option>
-                    <option value={4}>Thursday</option>
-                    <option value={5}>Friday</option>
-                    <option value={6}>Saturday</option>
-                    <option value={0}>Sunday</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Time</label>
-                  <input
-                    type="time"
-                    className="w-full border rounded-md p-2"
-                    value={tempRecurringSession.time}
-                    onChange={(e) => {
-                      const newSession = {
-                        ...tempRecurringSession,
-                        time: e.target.value,
-                      };
-                      setTempRecurringSession(newSession);
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Number of Weeks
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="12"
-                    className="w-full border rounded-md p-2"
-                    value={tempRecurringSession.weeks}
-                    onChange={(e) => {
-                      const newSession = {
-                        ...tempRecurringSession,
-                        weeks: parseInt(e.target.value),
-                      };
-                      setTempRecurringSession(newSession);
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full border rounded-md p-2"
-                  min={getTodayString()}
-                  value={tempRecurringSession.startDate}
-                  onChange={(e) => {
-                    const newSession = {
-                      ...tempRecurringSession,
-                      startDate: e.target.value,
-                    };
-                    setTempRecurringSession(newSession);
-                  }}
-                />
-              </div>
-
-              <Button
-                onClick={addRecurringSession}
-                disabled={
-                  !tempRecurringSession.dayOfWeek ||
-                  !tempRecurringSession.time ||
-                  !tempRecurringSession.weeks ||
-                  !tempRecurringSession.startDate
-                }
-                className="w-full"
-              >
-                Add Recurring Session
-              </Button>
-            </div>
-
-            {/* Session Summary */}
-            <div>
-              <h3 className="font-medium mb-3">Session Summary</h3>
-              <div className="space-y-2">
-                {recurringSessions.map((session, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <span className="font-medium">
-                        {getDayShortName(session.dayOfWeek)}
-                      </span>
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {session.time}
-                      </span>
-                      <span className="text-gray-500 dark:text-gray-500">
-                        {session.weeks} week{session.weeks !== 1 ? "s" : ""}
-                      </span>
-                      <span className="text-sm text-gray-500 dark:text-gray-500">
-                        Starting {session.startDate}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeRecurringSession(index)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  <strong>Total Sessions:</strong>{" "}
-                  {calculateTotalRecurringSessions(recurringSessions)}
-                </p>
-                {selectedType && (
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                    <strong>Available:</strong>{" "}
-                    {sessionsByType.find(
-                      (pkg) => pkg.type === getSelectedSessionType()?.name
-                    )?.remaining || 0}{" "}
-                    sessions
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowRecurringModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => setShowRecurringModal(false)}
-              disabled={!validateRecurringSessions().isValid}
-            >
-              Done
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
