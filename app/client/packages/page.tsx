@@ -283,17 +283,60 @@ function PackagesContent() {
 
   // Promo code state per package
   const [promoCodes, setPromoCodes] = useState<{ [pkgId: string]: string }>({});
-  const [promoErrors, setPromoErrors] = useState<{ [pkgId: string]: string }>(
-    {}
-  );
-  const [discountedPrices, setDiscountedPrices] = useState<{
-    [pkgId: string]: number | null;
-  }>({});
+  const [promoErrors, setPromoErrors] = useState<{ [pkgId: string]: string }>({});
+  const [discountedPrices, setDiscountedPrices] = useState<{ [pkgId: string]: number | null }>({});
   const [validatingPromo, setValidatingPromo] = useState<string | null>(null);
 
+  // Promo code state for single session
+  const [singleSessionPromoCode, setSingleSessionPromoCode] = useState("");
+  const [singleSessionPromoError, setSingleSessionPromoError] = useState("");
+  const [singleSessionDiscountedPrice, setSingleSessionDiscountedPrice] = useState<number | null>(null);
+  const [validatingSingleSessionPromo, setValidatingSingleSessionPromo] = useState(false);
+
   // User-friendly error message for invalid promo codes
-  const FRIENDLY_PROMO_ERROR =
-    "Sorry, that promo code isn't valid. Please check and try again.";
+  const FRIENDLY_PROMO_ERROR = "Sorry, that promo code isn't valid. Please check and try again.";
+
+  // Validate promo code for single session
+  const validateSingleSessionPromoCode = useCallback(async () => {
+    const code = singleSessionPromoCode.trim();
+    if (!code) {
+      setSingleSessionPromoError("");
+      setSingleSessionDiscountedPrice(null);
+      return;
+    }
+    setValidatingSingleSessionPromo(true);
+    setSingleSessionPromoError("");
+    try {
+      const res = await fetch("/api/discount-codes/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          packageType: selectedSessionType ? selectedSessionType : "Single Session",
+          baseAmount: 150,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        let friendlyError = FRIENDLY_PROMO_ERROR;
+        if (data.error && data.error.toLowerCase().includes("expired")) {
+          friendlyError = "This promo code has expired. Please try another one.";
+        } else if (data.error && data.error.toLowerCase().includes("server")) {
+          friendlyError = "There was a problem validating your code. Please try again later.";
+        }
+        setSingleSessionPromoError(friendlyError);
+        setSingleSessionDiscountedPrice(null);
+      } else {
+        setSingleSessionPromoError("");
+        setSingleSessionDiscountedPrice(data.discountedAmount);
+      }
+    } catch (e) {
+      setSingleSessionPromoError(FRIENDLY_PROMO_ERROR);
+      setSingleSessionDiscountedPrice(null);
+    } finally {
+      setValidatingSingleSessionPromo(false);
+    }
+  }, [singleSessionPromoCode, selectedSessionType]);
 
   // Function to fetch user's package information
   const fetchPackageInformation = async () => {
@@ -704,8 +747,53 @@ function PackagesContent() {
               </Button>
             ))}
           </div>
-          <div className="text-center text-lg font-semibold py-2">
-            Price: <span className="text-green-700">$150</span>
+          <div className="flex flex-col gap-2 py-2">
+            <div className="text-center text-lg font-semibold">
+              Price: {singleSessionDiscountedPrice != null ? (
+                <>
+                  <span className="line-through text-gray-400 mr-2">$150</span>
+                  <span className="text-green-700">${singleSessionDiscountedPrice}</span>
+                </>
+              ) : (
+                <span className="text-green-700">$150</span>
+              )}
+            </div>
+            <div className="flex flex-col gap-1 items-center mt-2">
+              <label htmlFor="single-session-promo" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Promo Code (optional)
+              </label>
+              <div className="relative flex items-center w-full max-w-xs">
+                <input
+                  id="single-session-promo"
+                  type="text"
+                  value={singleSessionPromoCode}
+                  onChange={e => {
+                    setSingleSessionPromoCode(e.target.value);
+                  }}
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500 pr-10 placeholder:text-xs dark:bg-gray-900 dark:text-gray-100"
+                  placeholder="Enter promo code"
+                  disabled={validatingSingleSessionPromo}
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 dark:text-gray-400 hover:text-red-600 focus:outline-none"
+                  onClick={validateSingleSessionPromoCode}
+                  disabled={validatingSingleSessionPromo || !singleSessionPromoCode.trim()}
+                >
+                  {validatingSingleSessionPromo ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : singleSessionDiscountedPrice != null ? (
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-300" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {singleSessionPromoError && (
+                <div className="text-red-600 dark:text-red-400 text-xs mt-1">{singleSessionPromoError}</div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -713,12 +801,21 @@ function PackagesContent() {
               disabled={!selectedSessionType}
               onClick={() => {
                 if (selectedSessionType) {
-                  handleCheckout(singleSessionPkg, {
-                    ...singleSessionSection,
-                    title: selectedSessionType,
-                  });
+                  handleCheckout(
+                    {
+                      ...singleSessionPkg,
+                      monthlyPrice: singleSessionDiscountedPrice != null ? singleSessionDiscountedPrice : 150,
+                    },
+                    {
+                      ...singleSessionSection,
+                      title: selectedSessionType,
+                    }
+                  );
                   setShowSingleSessionModal(false);
                   setSelectedSessionType(null);
+                  setSingleSessionPromoCode("");
+                  setSingleSessionPromoError("");
+                  setSingleSessionDiscountedPrice(null);
                 }
               }}
             >
