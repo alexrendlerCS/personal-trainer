@@ -283,10 +283,16 @@ const getDayName = (index: number): string => {
   return days[index] || "";
 };
 
-// Helper function to safely parse a YYYY-MM-DD string to a local Date object
+// Helper function to safely parse a YYYY-MM-DD string to a date at start of day in user's timezone
 function parseLocalDateString(dateStr: string): Date {
+  // Parse the date components
   const [year, month, day] = dateStr.split("-").map(Number);
-  return new Date(year, month - 1, day);
+  
+  // Create date string with time set to noon to avoid timezone edge cases
+  const dateWithTime = `${dateStr}T12:00:00`;
+  
+  // Parse as ISO string which will respect the user's timezone
+  return new Date(dateWithTime);
 }
 
 export default function BookingPage() {
@@ -2356,24 +2362,22 @@ export default function BookingPage() {
                                     Array.from(
                                       { length: recurringWeeks },
                                       (_, index) => {
-                                        // Use the same date parsing logic as the single session booking summary
-                                        const sessionDate =
-                                          parseLocalDateString(selectedDate);
-                                        // Simply add weeks to the selected date for the preview
-                                        sessionDate.setDate(
-                                          sessionDate.getDate() + index * 7
+                                        // Parse the base date and add weeks
+                                        const baseDate = parseLocalDateString(selectedDate);
+                                        const sessionDate = addDays(baseDate, index * 7);
+                                        
+                                        // Format the date in the user's timezone
+                                        const formattedDate = format(
+                                          sessionDate,
+                                          "EEEE, MMMM d, yyyy",
                                         );
+                                        
                                         return (
                                           <div
                                             key={index}
                                             className="text-sm text-blue-700 dark:text-blue-300"
                                           >
-                                            •{" "}
-                                            {format(
-                                              sessionDate,
-                                              "EEEE, MMMM d, yyyy"
-                                            )}{" "}
-                                            at{" "}
+                                            • {formattedDate} at{" "}
                                             {formatTimeForDisplay(
                                               selectedTimeSlot.startTime
                                             )}
