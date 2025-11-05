@@ -1133,109 +1133,126 @@ export default function BookingPage() {
       .eq("status", "active")
       .order("purchase_date", { ascending: false });
 
-    if (packagesError) {
-      throw new Error(`Failed to fetch packages: ${packagesError.message}`);
-    }
+        if (packagesError) {
+          throw new Error(`Failed to fetch packages: ${packagesError.message}`);
+        }
 
-    // Find the first package with remaining sessions
-    const packageToUpdate = userPackages?.find(
-      (pkg) => (pkg.sessions_included || 0) - (pkg.sessions_used || 0) > 0
-    );
+        // Calculate total available sessions across all packages
+        const availablePackages = (userPackages || [])
+          .filter((pkg) => (pkg.sessions_included || 0) - (pkg.sessions_used || 0) > 0)
+          .sort((a, b) => new Date(a.purchase_date).getTime() - new Date(b.purchase_date).getTime()); // Sort by oldest first
 
-    if (!packageToUpdate) {
-      throw new Error("No available package found for this session type");
-    }
+        if (!availablePackages.length) {
+          throw new Error("No available packages found for this session type");
+        }
 
-    // Calculate total sessions needed
-    const totalSessions = calculateTotalRecurringSessions(recurringSessions);
+        // Calculate total available sessions
+        const totalAvailableSessions = availablePackages.reduce(
+          (total, pkg) => total + ((pkg.sessions_included || 0) - (pkg.sessions_used || 0)),
+          0
+        );
 
-    // Check if package has enough sessions
-    const availableSessions =
-      (packageToUpdate.sessions_included || 0) -
-      (packageToUpdate.sessions_used || 0);
-    if (availableSessions < totalSessions) {
+        // Calculate total sessions needed
+        const totalSessions = calculateTotalRecurringSessions(recurringSessions);    // Check if we have enough sessions across all packages
+    if (totalAvailableSessions < totalSessions) {
       throw new Error(
-        `Package only has ${availableSessions} sessions remaining, but you're trying to book ${totalSessions} sessions`
+        `You only have ${totalAvailableSessions} sessions remaining, but you're trying to book ${totalSessions} sessions`
       );
     }
 
     // Store created session IDs for potential rollback
     const createdSessionIds: string[] = [];
-    let packageUpdated = false;
+    const updatedPackages = new Map<string, { package: any; sessionsToAdd: number }>();
 
     try {
-      // Create all recurring sessions
-      const sessionPromises = recurringSessions.flatMap((session) => {
-        const sessions = [];
-        const startDate = parseLocalDateString(session.startDate);
-
-        for (let week = 0; week < session.weeks; week++) {
-          const sessionDate = new Date(startDate);
-          sessionDate.setDate(startDate.getDate() + week * 7);
-
-          const dateString = formatLocalDate(sessionDate);
-          const startTime = session.time;
-          const endTime = addMinutes(new Date(`2000-01-01T${startTime}`), 60)
-            .toTimeString()
-            .slice(0, 5);
-
-          sessions.push(
-            supabase
-              .from("sessions")
-              .insert({
-                client_id: clientId,
-                trainer_id: trainer.id,
-                date: dateString,
-                start_time: startTime,
-                end_time: endTime,
-                type: selectedType,
-                status: "confirmed",
-                timezone: timezone,
-                is_recurring: true,
-              })
-              .select()
-              .single()
+      // Distribute sessions across available packages
+      const sessionDistribution = new Map<string, { 
+        pkg: any, 
+        sessions: Array<RecurringSession>
+      }>();
+      
+      let sessionsToAllocate = [...recurringSessions];
+      
+      // Allocate sessions to packages
+      for (const pkg of availablePackages) {
+        if (sessionsToAllocate.length === 0) break;
+        
+        const packageAvailable = (pkg.sessions_included || 0) - (pkg.sessions_used || 0);
+        const sessionsForThisPackage = Math.min(packageAvailable, sessionsToAllocate.length);
+        
+        if (sessionsForThisPackage <= 0) continue;
+        
+        // Get sessions for this package
+        const allocatedSessions = sessionsToAllocate.slice(0, sessionsForThisPackage);
+        sessionDistribution.set(pkg.id, { 
+          pkg, 
+          sessions: allocatedSessions 
+        });
+        
+        updatedPackages.set(pkg.id, { 
+          package: pkg, 
+          sessionsToAdd: sessionsForThisPackage 
+        });
+        
+        // Update remaining sessions
+        sessionsToAllocate = sessionsToAllocate.slice(sessionsForThisPackage);
+      }
+      
+      // Create sessions for each package
+      for (const [packageId, { pkg, sessions }] of sessionDistribution.entries()) {
+        for (const session of sessions) {
+          // Format session date based on day of week and start date
+          const sessionDate = format(
+            addDays(parseISO(session.startDate), session.weeks * 7),
+            'yyyy-MM-dd'
           );
+          
+          const { data, error } = await supabase
+            .from("sessions")
+            .insert({
+              trainer_id: trainer.id,
+              client_id: clientId,
+              date: sessionDate,
+              start_time: session.time,
+              end_time: format(addMinutes(parseISO(`${sessionDate}T${session.time}`), 60), 'HH:mm:ss'),
+              type: selectedPackageType,
+              package_id: packageId,
+              timezone: timezone,
+              status: "confirmed"
+            })
+            .select()
+            .single();
+            
+          if (error) {
+            throw new Error(`Failed to create session: ${error.message}`);
+          }
+          
+          if (data) {
+            createdSessionIds.push(data.id);
+          }
         }
-        return sessions;
-      });
+        
+        // Update package sessions used count
+        const { error: updateError } = await supabase
+          .from("packages")
+          .update({
+            sessions_used: (pkg.sessions_used || 0) + sessions.length,
+          })
+          .eq("id", packageId);
 
-      // Execute all session creation promises
-      const sessionResults = await Promise.all(sessionPromises);
-
-      // Check for errors
-      const errors = sessionResults.filter((result) => result.error);
-      if (errors.length > 0) {
-        throw new Error(
-          `Failed to create ${errors.length} sessions: ${errors[0]?.error?.message}`
-        );
-      }
-
-      // Store created session IDs for potential rollback
-      sessionResults.forEach((result) => {
-        if (result.data) {
-          createdSessionIds.push(result.data.id);
+        if (updateError) {
+          throw new Error(`Failed to update package ${packageId}: ${updateError.message}`);
         }
-      });
-
-      // Update package sessions_used
-      const { error: updateError } = await supabase
-        .from("packages")
-        .update({
-          sessions_used: (packageToUpdate.sessions_used || 0) + totalSessions,
-        })
-        .eq("id", packageToUpdate.id);
-
-      if (updateError) {
-        throw new Error(`Failed to update package: ${updateError.message}`);
       }
-
-      packageUpdated = true;
-
       // Create calendar events for all sessions
-      for (const sessionResult of sessionResults) {
-        if (sessionResult.data) {
-          const session = sessionResult.data;
+      for (const sessionId of createdSessionIds) {
+        const { data: session } = await supabase
+          .from("sessions")
+          .select("*")
+          .eq("id", sessionId)
+          .single();
+          
+        if (session) {
           await createCalendarEvents(
             session,
             trainer,
@@ -1255,12 +1272,9 @@ export default function BookingPage() {
     } catch (error) {
       console.error("Error in handleRecurringSessions:", error);
 
-      // Rollback: Delete all created sessions if package was updated
-      if (packageUpdated && createdSessionIds.length > 0) {
-        console.log(
-          "Rolling back created sessions due to error:",
-          createdSessionIds
-        );
+      // Rollback: Delete all created sessions
+      if (createdSessionIds.length > 0) {
+        console.log("Rolling back created sessions:", createdSessionIds);
         const { error: rollbackError } = await supabase
           .from("sessions")
           .delete()
@@ -1269,23 +1283,23 @@ export default function BookingPage() {
         if (rollbackError) {
           console.error("Failed to rollback sessions:", rollbackError);
         }
-      }
+        
+        // Rollback all package updates
+        for (const [packageId, { package: pkg }] of updatedPackages.entries()) {
+          console.log(`Rolling back package ${packageId} update`);
+          const { error: packageRollbackError } = await supabase
+            .from("packages")
+            .update({
+              sessions_used: pkg.sessions_used || 0,
+            })
+            .eq("id", packageId);
 
-      // Rollback: Revert package update if it was updated
-      if (packageUpdated) {
-        console.log("Rolling back package update due to error");
-        const { error: packageRollbackError } = await supabase
-          .from("packages")
-          .update({
-            sessions_used: packageToUpdate.sessions_used || 0,
-          })
-          .eq("id", packageToUpdate.id);
-
-        if (packageRollbackError) {
-          console.error(
-            "Failed to rollback package update:",
-            packageRollbackError
-          );
+          if (packageRollbackError) {
+            console.error(
+              `Failed to rollback package ${packageId} update:`,
+              packageRollbackError
+            );
+          }
         }
       }
 
