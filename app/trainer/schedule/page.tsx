@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { format } from "date-fns";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1284,9 +1285,11 @@ export default function TrainerSchedulePage() {
         const startDate = new Date(sessionData.startDate);
 
         for (let week = 0; week < sessionData.weeks; week++) {
-          const sessionDate = new Date(startDate);
-          sessionDate.setDate(startDate.getDate() + week * 7);
-          const dateString = sessionDate.toISOString().split("T")[0];
+          // Create date using the local date string to ensure timezone consistency
+          const baseDate = new Date(sessionData.startDate + 'T00:00:00');
+          const sessionDate = new Date(baseDate);
+          sessionDate.setDate(baseDate.getDate() + week * 7);
+          const dateString = sessionDate.toISOString().split('T')[0];
 
           // Parse time to HH:mm:ss format
           const timeMatch = sessionData.time.match(/(\d+):(\d+)\s*(AM|PM)/);
@@ -3474,23 +3477,20 @@ export default function TrainerSchedulePage() {
                   </h4>
                   <div className="space-y-1">
                     {Array.from({ length: recurringWeeks }, (_, index) => {
-                      // Create a new date object to avoid mutating the original
-                      const sessionDate = new Date(selectedDateForSession);
-                      sessionDate.setDate(sessionDate.getDate() + index * 7);
+                      // Create a new date object using the local date string
+                      const baseDate = new Date(selectedDateForSession + 'T00:00:00');
+                      const sessionDate = new Date(baseDate);
+                      sessionDate.setDate(baseDate.getDate() + index * 7);
+                      
+                      // Format the date in the user's timezone
+                      const formattedDate = format(sessionDate, 'EEEE, MMMM d, yyyy');
 
                       return (
                         <div
                           key={index}
                           className="text-sm text-blue-700 dark:text-blue-300"
                         >
-                          •{" "}
-                          {sessionDate.toLocaleDateString("en-US", {
-                            weekday: "long",
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}{" "}
-                          at {selectedTimeForSession}
+                          • {formattedDate} at {selectedTimeForSession}
                         </div>
                       );
                     })}
