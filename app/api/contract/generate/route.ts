@@ -633,8 +633,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // --- Existing: Send email with Resend ---
-    console.log("Sending email with contract...");
+    // --- Send email to client with contract ---
+    console.log("Sending email with contract to client...");
     try {
       await resend.emails.send({
         from: "Coach Kilday <no-reply@coachkilday.com>",
@@ -649,11 +649,88 @@ export async function POST(request: Request) {
         ],
       });
 
-      console.log("Email sent successfully");
+      console.log("Client email sent successfully");
     } catch (emailError) {
-      console.error("Failed to send email:", emailError);
+      console.error("Failed to send email to client:", emailError);
       // Don't fail the entire process if email fails, just log it
       // The contract is still generated and stored
+    }
+
+    // --- Send notification email to Haley ---
+    console.log("Sending notification email to Haley...");
+    try {
+      const formattedStartDate = new Date(body.startDate).toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+      const formattedSignatureDate = new Date(body.signatureDate).toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      await resend.emails.send({
+        from: "Coach Kilday <no-reply@coachkilday.com>",
+        to: ["haley@coachkilday.com"],
+        subject: `New Client Contract Signed - ${body.clientName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #d32f2f; margin-bottom: 20px;">New Client Contract Signed</h2>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <h3 style="margin: 0 0 15px 0; color: #333;">Client Information</h3>
+              
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #666; width: 40%;">Name:</td>
+                  <td style="padding: 8px 0;">${body.clientName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #666;">Email:</td>
+                  <td style="padding: 8px 0;">${body.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #666;">Phone:</td>
+                  <td style="padding: 8px 0;">${body.phone}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #666;">Preferred Start Date:</td>
+                  <td style="padding: 8px 0;">${formattedStartDate}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #666;">Training Location:</td>
+                  <td style="padding: 8px 0;">${body.location}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #666;">Contract Signed:</td>
+                  <td style="padding: 8px 0;">${formattedSignatureDate}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <p style="color: #666; margin: 20px 0;">
+              The client has successfully completed and signed their personal training agreement. 
+              A copy of the signed contract has been sent to their email address.
+            </p>
+            
+            <p style="color: #666; margin: 0;">
+              <strong>Next steps:</strong> You may want to reach out to schedule their initial consultation or first training session.
+            </p>
+          </div>
+        `,
+      });
+
+      console.log("Haley notification email sent successfully");
+    } catch (haleyEmailError) {
+      console.error("Failed to send notification email to Haley:", haleyEmailError);
+      // Don't fail the entire process if Haley's email fails, just log it
     }
 
     console.log("Contract generation completed successfully");
