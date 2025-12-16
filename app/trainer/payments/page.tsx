@@ -732,7 +732,7 @@ export default function TrainerPaymentsPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredPayments.map((payment) => (
-                    <TableRow key={payment.id} className="hover:bg-gray-50">
+                    <TableRow key={payment.id} className="hover:bg-red-100 hover:border-l-4 hover:border-l-red-500 hover:shadow-md dark:hover:bg-red-950/30 dark:hover:border-l-red-600 transition-all duration-200">
                       <TableCell className="font-medium text-xs py-2">
                         <div className="truncate max-w-[100px] sm:max-w-none">
                           {clientMap[payment.client_id] || "Unknown Client"}

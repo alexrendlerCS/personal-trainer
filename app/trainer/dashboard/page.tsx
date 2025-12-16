@@ -1219,8 +1219,9 @@ export default function TrainerDashboard() {
                       .map((client) => (
                         <div
                           key={client.id}
-                          className="flex items-center justify-between p-3 border rounded-lg"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg hover:bg-red-100 hover:border-l-4 hover:border-l-red-500 hover:shadow-md dark:hover:bg-red-950/30 dark:hover:border-l-red-600 transition-all duration-200 cursor-pointer gap-3 sm:gap-4"
                         >
+                          {/* Left side - Client info */}
                           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                             <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
                               <AvatarImage
@@ -1253,41 +1254,45 @@ export default function TrainerDashboard() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-2">
-                            <Badge
-                              variant={
-                                client.google_account_connected
-                                  ? "default"
-                                  : "secondary"
-                              }
-                              className={`text-xs ${
-                                client.google_account_connected
-                                  ? "bg-green-500 text-white"
-                                  : "bg-gray-400 text-white"
-                              }`}
-                            >
-                              Google
-                            </Badge>
-                            <Badge
-                              variant={
-                                client.contract_accepted
-                                  ? "default"
-                                  : "secondary"
-                              }
-                              className={`text-xs ${
-                                client.contract_accepted
-                                  ? "bg-green-500 text-white"
-                                  : "bg-gray-400 text-white"
-                              }`}
-                            >
-                              Contract
-                            </Badge>
+                          
+                          {/* Right side - Badges and button */}
+                          <div className="flex flex-wrap sm:flex-col lg:flex-row items-start sm:items-end lg:items-center gap-2 sm:gap-1 lg:gap-2 flex-shrink-0">
+                            <div className="flex gap-2">
+                              <Badge
+                                variant={
+                                  client.google_account_connected
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className={`text-xs ${
+                                  client.google_account_connected
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-400 text-white"
+                                }`}
+                              >
+                                Google
+                              </Badge>
+                              <Badge
+                                variant={
+                                  client.contract_accepted
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className={`text-xs ${
+                                  client.contract_accepted
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-400 text-white"
+                                }`}
+                              >
+                                Contract
+                              </Badge>
+                            </div>
                             {client.sessions_remaining === 0 && (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleShowQr(client)}
-                                className="text-xs px-2 py-1 h-7"
+                                className="text-xs px-2 py-1 h-7 mt-1 sm:mt-0"
                               >
                                 <QrCode className="h-3 w-3 mr-1" />
                                 <span className="hidden sm:inline">
@@ -1347,7 +1352,7 @@ export default function TrainerDashboard() {
                       return (
                         <div
                           key={payment.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg space-y-2 sm:space-y-0"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg space-y-2 sm:space-y-0 hover:bg-red-100 hover:border-l-4 hover:border-l-red-500 hover:shadow-md dark:hover:bg-red-950/30 dark:hover:border-l-red-600 transition-all duration-200 cursor-pointer"
                         >
                           <div className="min-w-0 flex-1">
                             <p className="font-medium text-sm sm:text-base truncate">

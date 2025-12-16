@@ -590,11 +590,12 @@ export default function BookingPage() {
           throw new Error("Failed to verify user role: " + userError.message);
         }
 
-        // Then fetch trainers
+        // Then fetch trainers (exclude admin/test trainer)
         const { data: trainersData, error: trainersError } = await supabase
           .from("users")
           .select("id, full_name, email, avatar_url")
-          .eq("role", "trainer");
+          .eq("role", "trainer")
+          .neq("email", "alexrendler@yahoo.com"); // Exclude admin trainer
 
         if (trainersError) {
           console.error("Trainers fetch error details:", {
