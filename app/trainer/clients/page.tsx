@@ -13,6 +13,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -47,6 +56,7 @@ import {
   Trash2,
   AlertTriangle,
   BarChart,
+  Gift,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -163,6 +173,17 @@ export default function TrainerClientsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
+  
+  // Add Sessions Modal State
+  const [showAddSessionsModal, setShowAddSessionsModal] = useState(false);
+  const [selectedClientForSessions, setSelectedClientForSessions] = useState<Client | null>(null);
+  const [sessionType, setSessionType] = useState("");
+  const [numSessions, setNumSessions] = useState("1");
+  const [isAddingSession, setIsAddingSession] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  
   const supabase = createClient();
   const router = useRouter();
   const { toast } = useToast();
@@ -442,6 +463,85 @@ export default function TrainerClientsPage() {
       });
     } finally {
       setDeletingClientId(null);
+    }
+  };
+
+  // Handle opening Add Sessions modal for a specific client
+  const handleOpenAddSessions = (client: Client) => {
+    setSelectedClientForSessions(client);
+    setSessionType("");
+    setNumSessions("1");
+    setShowAddSessionsModal(true);
+  };
+
+  // Handle submitting Add Sessions
+  const handleSubmitAddSessions = async () => {
+    if (!selectedClientForSessions) return;
+    
+    setIsAddingSession(true);
+    try {
+      const numSessionsNum = parseInt(numSessions);
+
+      // Check for existing package
+      const { data: existing, error: pkgError } = await supabase
+        .from("packages")
+        .select("id, sessions_included, original_sessions")
+        .eq("client_id", selectedClientForSessions.id)
+        .eq("package_type", sessionType)
+        .eq("status", "active")
+        .single();
+      
+      if (pkgError && pkgError.code !== "PGRST116") throw pkgError;
+      
+      if (existing) {
+        // Add sessions to existing package
+        const { error: updateError } = await supabase
+          .from("packages")
+          .update({
+            sessions_included: existing.sessions_included + numSessionsNum,
+            original_sessions: (existing.original_sessions || 0) + numSessionsNum,
+          })
+          .eq("id", existing.id);
+        
+        if (updateError) throw updateError;
+        
+        setSuccessMessage(
+          `Added ${numSessionsNum} session(s) to ${selectedClientForSessions.full_name}'s existing package.`
+        );
+      } else {
+        // Create new package
+        const { error: createError } = await supabase.from("packages").insert({
+          client_id: selectedClientForSessions.id,
+          package_type: sessionType,
+          sessions_included: numSessionsNum,
+          original_sessions: numSessionsNum,
+          status: "active",
+          purchase_date: new Date().toISOString().split("T")[0],
+        });
+        
+        if (createError) throw createError;
+        
+        setSuccessMessage(
+          `Created new package and added ${numSessionsNum} session(s) to ${selectedClientForSessions.full_name}.`
+        );
+      }
+      
+      setShowSuccessDialog(true);
+      setShowAddSessionsModal(false);
+      setShowConfirmDialog(false);
+      
+      // Refresh client data to show updated packages
+      await fetchClients();
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingSession(false);
     }
   };
 
@@ -778,6 +878,12 @@ export default function TrainerClientsPage() {
                               <BarChart className="h-4 w-4 mr-2" />
                               Past Sessions
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleOpenAddSessions(client)}
+                            >
+                              <Gift className="h-4 w-4 mr-2" />
+                              Add Free Sessions
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -845,6 +951,138 @@ export default function TrainerClientsPage() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Add Sessions Modal */}
+      <Dialog open={showAddSessionsModal} onOpenChange={setShowAddSessionsModal}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle>Add Sessions to {selectedClientForSessions?.full_name}</DialogTitle>
+            <DialogDescription>
+              Select session type and number of sessions to add to this client's package.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>Session Type</Label>
+              <Select value={sessionType} onValueChange={setSessionType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select session type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="In-Person Training">In-Person Training</SelectItem>
+                  <SelectItem value="Virtual Training">Virtual Training</SelectItem>
+                  <SelectItem value="Partner Training">Partner Training</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Number of Sessions</Label>
+              <Input
+                type="number"
+                min={1}
+                value={numSessions}
+                onChange={(e) => setNumSessions(e.target.value)}
+                placeholder="Enter number of sessions"
+              />
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowAddSessionsModal(false)}
+              className="w-full"
+              disabled={isAddingSession}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => setShowConfirmDialog(true)}
+              disabled={
+                isAddingSession ||
+                !sessionType ||
+                !numSessions ||
+                parseInt(numSessions) < 1
+              }
+              className="w-full bg-red-600 hover:bg-red-700"
+            >
+              Add Sessions
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle>Confirm Add Sessions</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to{" "}
+              <span className="font-bold text-blue-700">
+                give {numSessions} free session(s)
+              </span>{" "}
+              of{" "}
+              <span className="font-bold">
+                {sessionType}
+              </span>{" "}
+              to{" "}
+              <span className="font-bold">
+                {selectedClientForSessions?.full_name}
+              </span>
+              ? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              className="w-full"
+              disabled={isAddingSession}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmitAddSessions}
+              disabled={isAddingSession}
+              className="w-full bg-red-600 hover:bg-red-700"
+            >
+              {isAddingSession ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader className="text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
+              <Gift className="h-6 w-6 text-green-600" />
+            </div>
+            <DialogTitle className="text-xl font-semibold text-green-800 text-center">
+              Sessions Added Successfully!
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 mt-2 text-center">
+              {successMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-6">
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              onClick={() => setShowSuccessDialog(false)}
+            >
+              Great! Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
