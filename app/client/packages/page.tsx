@@ -1167,21 +1167,21 @@ function PackagesContent() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
                 {section.packages.map((pkg) => (
                   <Card key={pkg.id} className="flex flex-col">
                     <CardHeader className="pb-2 sm:pb-4">
                       <CardTitle className="text-lg sm:text-xl dark:text-gray-100">
                         {pkg.name}
                       </CardTitle>
-                      <CardDescription className="text-sm sm:text-base dark:text-gray-400">
+                      <CardDescription className="text-sm lg:text-base dark:text-gray-400">
                         ${pkg.hourlyRate}/hour • {pkg.monthlySessionCount}{" "}
                         sessions/month
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow pb-2 sm:pb-4">
-                      <div className="space-y-2 sm:space-y-4">
-                        <div className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100">
+                      <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+                        <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 dark:text-gray-100">
                           {discountedPrices[pkg.id] != null ? (
                             <>
                               <span className="line-through text-gray-400 dark:text-gray-500 mr-2">
@@ -1194,11 +1194,11 @@ function PackagesContent() {
                           ) : (
                             <>${pkg.monthlyPrice}</>
                           )}
-                          <span className="text-xs sm:text-base font-normal text-gray-500 dark:text-gray-400">
+                          <span className="text-xs sm:text-sm lg:text-base font-normal text-gray-500 dark:text-gray-400">
                             /month
                           </span>
                         </div>
-                        <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <ul className="space-y-1 lg:space-y-2 text-xs sm:text-sm lg:text-sm text-gray-600 dark:text-gray-400">
                           <li>• {pkg.sessionsPerWeek}x sessions per week</li>
                           <li>
                             • {pkg.monthlySessionCount} sessions per month
@@ -1259,7 +1259,7 @@ function PackagesContent() {
                     </CardContent>
                     <CardFooter>
                       <Button
-                        className="w-full bg-red-600 hover:bg-red-700 text-white py-4 sm:py-6 text-base sm:text-lg"
+                        className="w-full bg-red-600 hover:bg-red-700 text-white py-3 sm:py-4 lg:py-6 text-sm sm:text-base lg:text-lg"
                         onClick={() => handleCheckout(pkg, section)}
                         disabled={isLoading === pkg.id}
                       >
