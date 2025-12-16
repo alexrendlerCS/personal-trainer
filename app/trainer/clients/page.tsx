@@ -57,6 +57,7 @@ import {
   AlertTriangle,
   BarChart,
   Gift,
+  FileText,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -545,6 +546,49 @@ export default function TrainerClientsPage() {
     }
   };
 
+  // Handle viewing client contract
+  const handleViewContract = async (client: Client) => {
+    try {
+      // Fetch the contract for this client
+      const { data: contract, error } = await supabase
+        .from("contracts")
+        .select("pdf_url")
+        .eq("user_id", client.id)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") {
+          toast({
+            title: "No Contract Found",
+            description: `${client.full_name} hasn't signed a contract yet.`,
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      if (contract?.pdf_url) {
+        // Open contract in new tab
+        window.open(contract.pdf_url, "_blank");
+      } else {
+        toast({
+          title: "Contract Not Available",
+          description: "The contract PDF is not available.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching contract:", err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch contract",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <header className="border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4">
@@ -883,6 +927,12 @@ export default function TrainerClientsPage() {
                             >
                               <Gift className="h-4 w-4 mr-2" />
                               Add Free Sessions
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleViewContract(client)}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              View Contract
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <AlertDialog>
