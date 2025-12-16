@@ -58,6 +58,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useUser } from "@/lib/store/user";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const menuItems = [
   {
@@ -946,6 +947,9 @@ export function ClientSidebar() {
                       <span>Settings</span>
                     </Link>
                   </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <ThemeToggle />
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>

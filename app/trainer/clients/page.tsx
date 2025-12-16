@@ -396,7 +396,7 @@ export default function TrainerClientsPage() {
   const renderPackageInfo = (client: Client) => {
     if (!client.packages || client.packages.length === 0) {
       return (
-        <div className="text-sm text-gray-500 mt-1">No active packages</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">No active packages</div>
       );
     }
 
@@ -405,19 +405,19 @@ export default function TrainerClientsPage() {
         {client.packages.map((pkg, index) => (
           <div
             key={`${pkg.package_type}-${index}`}
-            className="flex items-center space-x-1 bg-gray-100 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs"
+            className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs border border-gray-200 dark:border-gray-600"
           >
-            <span className="font-medium text-gray-700">
+            <span className="font-medium text-gray-700 dark:text-gray-300">
               {pkg.package_type}:
             </span>
             <span
               className={`font-bold ${
-                pkg.remaining > 0 ? "text-green-600" : "text-red-600"
+                pkg.remaining > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
               }`}
             >
               {pkg.remaining} remaining
             </span>
-            <span className="text-gray-500">
+            <span className="text-gray-500 dark:text-gray-400">
               ({pkg.sessions_used}/{pkg.sessions_included})
             </span>
           </div>
@@ -778,7 +778,7 @@ export default function TrainerClientsPage() {
                 {filteredClients.map((client) => (
                   <div
                     key={client.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 lg:p-4 border rounded-lg hover:bg-gray-50 transition-colors space-y-2.5 sm:space-y-0"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 lg:p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-950/20 dark:hover:border-red-800/50 transition-colors space-y-2.5 sm:space-y-0 shadow-sm dark:shadow-gray-900/10"
                   >
                     <div className="flex items-center space-x-2.5 sm:space-x-3 lg:space-x-4 min-w-0 flex-1">
                       <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
@@ -794,10 +794,10 @@ export default function TrainerClientsPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-base sm:text-lg truncate">
+                        <h3 className="font-medium text-base sm:text-lg truncate text-gray-900 dark:text-gray-100">
                           {client.full_name}
                         </h3>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center space-x-1">
                             <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
                             <span className="truncate">{client.email}</span>
@@ -807,7 +807,7 @@ export default function TrainerClientsPage() {
                             {new Date(client.created_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <div className="sm:hidden text-xs text-gray-500 mt-1">
+                        <div className="sm:hidden text-xs text-gray-500 dark:text-gray-400 mt-1">
                           <span>
                             Joined:{" "}
                             {new Date(client.created_at).toLocaleDateString()}

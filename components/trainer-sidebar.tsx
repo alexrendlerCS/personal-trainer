@@ -62,6 +62,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useUser } from "@/lib/store/user";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // Interface for user data
 interface UserData {
@@ -612,6 +613,9 @@ export function TrainerSidebar() {
                       <span>Settings</span>
                     </Link>
                   </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <ThemeToggle />
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
