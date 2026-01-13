@@ -324,6 +324,8 @@ export default function BookingPage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showCalendarWarning, setShowCalendarWarning] = useState(false);
+  const [showCalendarWarningAfterSuccess, setShowCalendarWarningAfterSuccess] = useState(false);
   const [overlapWarning, setOverlapWarning] = useState<string>("");
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
@@ -590,12 +592,11 @@ export default function BookingPage() {
           throw new Error("Failed to verify user role: " + userError.message);
         }
 
-        // Then fetch trainers (exclude admin/test trainer)
+        // Then fetch trainers
         const { data: trainersData, error: trainersError } = await supabase
           .from("users")
           .select("id, full_name, email, avatar_url")
-          .eq("role", "trainer")
-          .neq("email", "alexrendler@yahoo.com"); // Exclude admin trainer
+          .eq("role", "trainer");
 
         if (trainersError) {
           console.error("Trainers fetch error details:", {
@@ -1208,42 +1209,45 @@ export default function BookingPage() {
       // Create sessions for each package
       for (const [packageId, { pkg, sessions }] of sessionDistribution.entries()) {
         for (const session of sessions) {
-          // Format session date based on day of week and start date
-          const sessionDate = format(
-            addDays(parseISO(session.startDate), session.weeks * 7),
-            'yyyy-MM-dd'
-          );
-          
-          const { data, error } = await supabase
-            .from("sessions")
-            .insert({
-              trainer_id: trainer.id,
-              client_id: clientId,
-              date: sessionDate,
-              start_time: session.time,
-              end_time: format(addMinutes(parseISO(`${sessionDate}T${session.time}`), 60), 'HH:mm:ss'),
-              type: selectedPackageType,
-              package_id: packageId,
-              timezone: timezone,
-              status: "confirmed"
-            })
-            .select()
-            .single();
+          // Create multiple sessions for each recurring session (session.weeks times)
+          for (let weekIndex = 0; weekIndex < session.weeks; weekIndex++) {
+            // Format session date based on start date + week offset
+            const sessionDate = format(
+              addDays(parseISO(session.startDate), weekIndex * 7),
+              'yyyy-MM-dd'
+            );
             
-          if (error) {
-            throw new Error(`Failed to create session: ${error.message}`);
-          }
-          
-          if (data) {
-            createdSessionIds.push(data.id);
+            const { data, error } = await supabase
+              .from("sessions")
+              .insert({
+                trainer_id: trainer.id,
+                client_id: clientId,
+                date: sessionDate,
+                start_time: session.time,
+                end_time: format(addMinutes(parseISO(`${sessionDate}T${session.time}`), 60), 'HH:mm:ss'),
+                type: selectedPackageType,
+                timezone: timezone,
+                status: "confirmed"
+              })
+              .select()
+              .single();
+              
+            if (error) {
+              throw new Error(`Failed to create session: ${error.message}`);
+            }
+            
+            if (data) {
+              createdSessionIds.push(data.id);
+            }
           }
         }
         
-        // Update package sessions used count
+        // Update package sessions used count - sum up total individual sessions created
+        const totalSessionsCreated = sessions.reduce((sum, session) => sum + session.weeks, 0);
         const { error: updateError } = await supabase
           .from("packages")
           .update({
-            sessions_used: (pkg.sessions_used || 0) + sessions.length,
+            sessions_used: (pkg.sessions_used || 0) + totalSessionsCreated,
           })
           .eq("id", packageId);
 
@@ -1386,10 +1390,16 @@ export default function BookingPage() {
 
       if (clientEventResponse.ok) {
         const clientEventData = await clientEventResponse.json();
-        await supabase
-          .from("sessions")
-          .update({ client_google_event_id: clientEventData.eventId })
-          .eq("id", session.id);
+        if (clientEventData.eventId) {
+          await supabase
+            .from("sessions")
+            .update({ client_google_event_id: clientEventData.eventId })
+            .eq("id", session.id);
+        } else if (clientEventData.error === 'calendar_auth_failed') {
+          console.warn('Client calendar sync failed:', clientEventData.message);
+          setShowCalendarWarningAfterSuccess(true);
+          // Session is still successfully created, just without client calendar sync
+        }
       }
     } catch (error) {
       console.warn("Failed to create client calendar event:", error);
@@ -1854,11 +1864,17 @@ export default function BookingPage() {
             });
           } else {
             const clientEventData = await clientEventResponse.json();
-            clientEventId = clientEventData.eventId;
-            console.log(
-              "Client calendar event created successfully:",
-              clientEventId
-            );
+            if (clientEventData.eventId) {
+              clientEventId = clientEventData.eventId;
+              console.log(
+                "Client calendar event created successfully:",
+                clientEventId
+              );
+            } else if (clientEventData.error === 'calendar_auth_failed') {
+              console.warn('Client calendar sync failed:', clientEventData.message);
+              setShowCalendarWarningAfterSuccess(true);
+              // Session is still successfully created, just without client calendar sync
+            }
           }
         } catch (error) {
           console.warn("Error creating client calendar event:", error);
@@ -3093,7 +3109,19 @@ export default function BookingPage() {
       )}
 
       {/* Success Dialog */}
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+      <AlertDialog open={showSuccessDialog} onOpenChange={(open) => {
+        if (!open) {
+          // Dialog is being closed
+          setShowSuccessDialog(false);
+          // Check if we need to show calendar warning
+          if (showCalendarWarningAfterSuccess) {
+            setShowCalendarWarningAfterSuccess(false);
+            setShowCalendarWarning(true);
+          } else {
+            router.push("/client/dashboard");
+          }
+        }
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Booking Successful!</AlertDialogTitle>
@@ -3106,7 +3134,13 @@ export default function BookingPage() {
             <AlertDialogAction
               onClick={() => {
                 setShowSuccessDialog(false);
-                router.push("/client/dashboard");
+                // Check if we need to show calendar warning
+                if (showCalendarWarningAfterSuccess) {
+                  setShowCalendarWarningAfterSuccess(false);
+                  setShowCalendarWarning(true);
+                } else {
+                  router.push("/client/dashboard");
+                }
               }}
             >
               Go to Dashboard
@@ -3125,6 +3159,43 @@ export default function BookingPage() {
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setShowErrorDialog(false)}>
               Try Again
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Google Calendar Warning Dialog */}
+      <AlertDialog open={showCalendarWarning} onOpenChange={(open) => {
+        setShowCalendarWarning(open);
+        if (!open) {
+          // If dialog is being closed, redirect to dashboard
+          router.push("/client/dashboard");
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-500" />
+              Google Calendar Sync Issue
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Your sessions were successfully booked, but we couldn't sync them to your Google Calendar. 
+              Your Google Calendar connection has expired and needs to be refreshed.
+              <br /><br />
+              To fix this, please go to <strong>Settings</strong> and click <strong>"Sync with Google Calendar"</strong> to reconnect your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowCalendarWarning(false);
+              router.push("/client/dashboard");
+            }}>
+              I'll do this later
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Link href="/client/settings" className="bg-red-600 hover:bg-red-700">
+                Go to Settings
+              </Link>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

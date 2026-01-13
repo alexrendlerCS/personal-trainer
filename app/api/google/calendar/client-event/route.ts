@@ -69,26 +69,49 @@ export async function POST(request: Request) {
     }
 
     console.log("Creating client calendar client with refresh token");
-    const calendar = await getGoogleCalendarClient(
-      clientData.google_refresh_token
-    );
-
-    console.log("Creating event in client calendar");
     try {
-      const event = await calendar.events.insert({
-        calendarId: clientData.google_calendar_id,
-        requestBody: eventDetails,
-      });
-      console.log("Client calendar event created:", event.data.id);
-      return NextResponse.json({ eventId: event.data.id });
-    } catch (error: unknown) {
-      console.error("Google Calendar API Error:", {
-        error,
-        details: (error as any)?.response?.data,
-        calendarId: clientData.google_calendar_id,
-        eventDetails,
-      });
-      throw error;
+      const calendar = await getGoogleCalendarClient(
+        clientData.google_refresh_token
+      );
+
+      console.log("Creating event in client calendar");
+      try {
+        const event = await calendar.events.insert({
+          calendarId: clientData.google_calendar_id,
+          requestBody: eventDetails,
+        });
+        console.log("Client calendar event created:", event.data.id);
+        return NextResponse.json({ eventId: event.data.id });
+      } catch (calendarError: unknown) {
+        console.error("Google Calendar API Error:", {
+          error: calendarError,
+          details: (calendarError as any)?.response?.data,
+          calendarId: clientData.google_calendar_id,
+          eventDetails,
+        });
+        throw calendarError;
+      }
+    } catch (authError) {
+      // Handle authentication errors gracefully
+      console.warn("Client Google Calendar authentication failed:", authError);
+      
+      // Check if it's an authentication/token error
+      const errorMessage = authError instanceof Error ? authError.message : String(authError);
+      if (errorMessage.includes('invalid_grant') || 
+          errorMessage.includes('invalid_token') || 
+          errorMessage.includes('unauthorized') ||
+          errorMessage.includes('authentication')) {
+        
+        console.log("Returning success despite calendar auth failure to allow session booking to continue");
+        return NextResponse.json({ 
+          eventId: null, 
+          error: 'calendar_auth_failed',
+          message: 'Session created but client calendar sync failed - client needs to reconnect Google Calendar' 
+        });
+      }
+      
+      // Re-throw non-auth errors
+      throw authError;
     }
   } catch (error) {
     console.error("Client calendar event creation error:", error);
