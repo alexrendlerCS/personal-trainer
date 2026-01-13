@@ -608,9 +608,9 @@ export default function BookingPage() {
           throw new Error("Failed to fetch trainers: " + trainersError.message);
         }
 
-        // Only ensure required fields
+        // Filter out Alex Trainer and ensure required fields
         const validTrainers = (trainersData || []).filter(
-          (trainer) => trainer.full_name && trainer.email
+          (trainer) => trainer.full_name && trainer.email && trainer.full_name !== "Alex Trainer"
         );
 
         setTrainers(validTrainers);
