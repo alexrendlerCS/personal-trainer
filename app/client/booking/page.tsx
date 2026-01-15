@@ -1603,16 +1603,41 @@ export default function BookingPage() {
     sessionType: string
   ) => {
     const totalSessions = calculateTotalRecurringSessions(sessions);
+    const userTimezone = getUserTimezone();
 
     const emailPayload = {
       trainer_email: trainer.email,
       trainer_name: trainer.full_name,
       client_name: profile.full_name,
+      client_email: profile.email,
       session_type: sessionType,
       total_sessions: totalSessions,
       recurring_sessions: sessions.map((s) => ({
         day_of_week: getDayShortName(s.dayOfWeek),
-        time: s.time,
+        // Times for trainer (always Colorado time)
+        trainer_time: formatTimeForEmail(
+          s.time,
+          s.startDate,
+          sessionType,
+          true,
+          userTimezone
+        ),
+        // Times for client (appropriate timezone based on session type)
+        client_time: formatTimeForEmail(
+          s.time,
+          s.startDate,
+          sessionType,
+          false,
+          userTimezone
+        ),
+        // Legacy field for backward compatibility
+        time: formatTimeForEmail(
+          s.time,
+          s.startDate,
+          sessionType,
+          true,
+          userTimezone
+        ),
         weeks: s.weeks,
         start_date: s.startDate,
       })),
@@ -2112,21 +2137,63 @@ export default function BookingPage() {
           }
         }
 
-        // Send email notification with type-safe values
+        // Send email notification with timezone-aware times
+        const emailSessionTypeName = getSelectedSessionType()?.name || selectedType;
+        const userTimezone = getUserTimezone();
+        const emailDate = selectedDate!; // We know it's not null at this point
+        
         const emailPayload = {
           trainer_email: selectedTrainer.email,
           trainer_name: selectedTrainer.full_name,
           client_name: currentProfile.full_name,
-          date: selectedDate,
-          start_time: format(
-            parseISO(`2000-01-01T${selectedTimeSlot.startTime}`),
-            "h:mm a"
+          client_email: currentProfile.email,
+          date: emailDate,
+          session_type: emailSessionTypeName,
+          // Times for trainer (always Colorado time)
+          trainer_start_time: formatTimeForEmail(
+            selectedTimeSlot.startTime, 
+            emailDate, 
+            emailSessionTypeName, 
+            true, 
+            userTimezone
           ),
-          end_time: format(
-            parseISO(`2000-01-01T${selectedTimeSlot.endTime}`),
-            "h:mm a"
+          trainer_end_time: formatTimeForEmail(
+            selectedTimeSlot.endTime, 
+            emailDate, 
+            emailSessionTypeName, 
+            true, 
+            userTimezone
           ),
-          session_type: getSelectedSessionType()?.name || selectedType,
+          // Times for client (appropriate timezone based on session type)
+          client_start_time: formatTimeForEmail(
+            selectedTimeSlot.startTime, 
+            emailDate, 
+            emailSessionTypeName, 
+            false, 
+            userTimezone
+          ),
+          client_end_time: formatTimeForEmail(
+            selectedTimeSlot.endTime, 
+            emailDate, 
+            emailSessionTypeName, 
+            false, 
+            userTimezone
+          ),
+          // Legacy fields for backward compatibility (trainer timezone)
+          start_time: formatTimeForEmail(
+            selectedTimeSlot.startTime, 
+            emailDate, 
+            emailSessionTypeName, 
+            true, 
+            userTimezone
+          ),
+          end_time: formatTimeForEmail(
+            selectedTimeSlot.endTime, 
+            emailDate, 
+            emailSessionTypeName, 
+            true, 
+            userTimezone
+          ),
         };
 
         // Note: Removed sync-all-sessions call to prevent duplicate calendar events
