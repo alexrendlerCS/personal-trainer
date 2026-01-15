@@ -202,13 +202,184 @@ const isSlotUnavailable = (
   return hasUnavailableConflict || hasSessionConflict;
 };
 
-// Helper function to format time for display
-const formatTimeForDisplay = (timeString: string) => {
-  const [hours, minutes] = timeString.split(":");
-  const date = new Date();
-  date.setHours(parseInt(hours, 10));
-  date.setMinutes(parseInt(minutes, 10));
-  return format(date, "h:mm a");
+// Constants
+const TRAINER_TIMEZONE = "America/Denver"; // Colorado timezone
+
+// Helper to get timezone offset in minutes for a timezone on a specific date
+const getTimeZoneOffsetMinutes = (timeZone: string, date: Date): number => {
+  const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+  return (utcDate.getTime() - tzDate.getTime()) / (1000 * 60);
+};
+
+// Simplified timezone conversion using direct offset calculation
+const convertTrainerTimeToUserTime = (
+  timeString: string,
+  selectedDate: string,
+  userTimezone: string
+): string => {
+  if (userTimezone === TRAINER_TIMEZONE) {
+    return timeString;
+  }
+
+  try {
+    // Create a date representing the trainer's time
+    const dateTimeString = `${selectedDate}T${timeString}`;
+    
+    // Create two date objects representing the same moment in time
+    const referenceDate = new Date();
+    
+    // Get the time in trainer's timezone
+    const trainerTime = new Date(referenceDate.toLocaleString("sv-SE", {timeZone: TRAINER_TIMEZONE}));
+    
+    // Get the time in user's timezone 
+    const userTime = new Date(referenceDate.toLocaleString("sv-SE", {timeZone: userTimezone}));
+    
+    // Calculate the offset in minutes
+    const offsetMinutes = (trainerTime.getTime() - userTime.getTime()) / (1000 * 60);
+    
+    // Apply the offset to the trainer's scheduled time
+    const [hours, minutes, seconds = '00'] = timeString.split(':');
+    const scheduledTime = new Date(`${selectedDate}T${hours}:${minutes}:${seconds}`);
+    const convertedTime = new Date(scheduledTime.getTime() - (offsetMinutes * 60 * 1000));
+    
+    const result = format(convertedTime, 'HH:mm:ss');
+    
+    return result;
+  } catch (error) {
+    console.warn('Timezone conversion failed, using original time:', error);
+    return timeString;
+  }
+};
+
+// Helper function to get user's timezone
+const getUserTimezone = (): string => {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || TRAINER_TIMEZONE;
+};
+
+// Helper function to format time for email recipients based on session type and recipient
+const formatTimeForEmail = (
+  timeString: string,
+  selectedDate: string,
+  sessionType: string,
+  isTrainerEmail: boolean,
+  userTimezone: string
+): string => {
+  const isInPerson = sessionType === "In-Person Training";
+  
+  if (isTrainerEmail) {
+    // Trainer always gets Colorado time
+    const [hours, minutes] = timeString.split(":");
+    const date = new Date();
+    date.setHours(parseInt(hours, 10));
+    date.setMinutes(parseInt(minutes, 10));
+    const timeDisplay = format(date, "h:mm a");
+    
+    if (isInPerson) {
+      return `${timeDisplay} MT`; // Mountain Time for in-person
+    } else {
+      return `${timeDisplay} MT`; // Still Mountain Time for trainer
+    }
+  } else {
+    // Client gets appropriate timezone based on session type
+    if (isInPerson) {
+      // For in-person, show Colorado time to client
+      const [hours, minutes] = timeString.split(":");
+      const date = new Date();
+      date.setHours(parseInt(hours, 10));
+      date.setMinutes(parseInt(minutes, 10));
+      const timeDisplay = format(date, "h:mm a");
+      return `${timeDisplay} MT (Colorado time)`;
+    } else {
+      // For virtual, convert to client's timezone
+      const convertedTime = convertTrainerTimeToUserTime(timeString, selectedDate, userTimezone);
+      const [hours, minutes] = convertedTime.split(":");
+      const date = new Date();
+      date.setHours(parseInt(hours, 10));
+      date.setMinutes(parseInt(minutes, 10));
+      const timeDisplay = format(date, "h:mm a");
+      const userTzAbbr = getTimezoneAbbreviation(userTimezone);
+      return `${timeDisplay} ${userTzAbbr}`;
+    }
+  }
+};
+
+// Helper function to get timezone abbreviation
+const getTimezoneAbbreviation = (timezone: string): string => {
+  const now = new Date();
+  const timeZoneNames: { [key: string]: string } = {
+    'America/Denver': 'MT', // Mountain Time
+    'America/Los_Angeles': 'PT', // Pacific Time
+    'America/New_York': 'ET', // Eastern Time
+    'America/Chicago': 'CT', // Central Time
+    'America/Phoenix': 'MST', // Mountain Standard Time (no DST)
+  };
+
+  // Check for common timezone mappings first
+  if (timeZoneNames[timezone]) {
+    return timeZoneNames[timezone];
+  }
+
+  // For other timezones, use Intl.DateTimeFormat to get the short name
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'short',
+    });
+    const parts = formatter.formatToParts(now);
+    const timeZonePart = parts.find(part => part.type === 'timeZoneName');
+    return timeZonePart?.value || timezone.split('/').pop() || 'Local';
+  } catch {
+    return timezone.split('/').pop() || 'Local';
+  }
+};
+
+// Helper function to format time for display (now timezone-aware)
+const formatTimeForDisplay = (
+  timeString: string, 
+  selectedDate?: string, 
+  sessionType?: string
+) => {
+  if (selectedDate) {
+    const userTimezone = getUserTimezone();
+    const isInPerson = sessionType === "In-Person Training";
+    
+    if (isInPerson) {
+      // For in-person sessions, show trainer's time (Colorado time)
+      const [hours, minutes] = timeString.split(":");
+      const date = new Date();
+      date.setHours(parseInt(hours, 10));
+      date.setMinutes(parseInt(minutes, 10));
+      
+      const timeDisplay = format(date, "h:mm a");
+      if (userTimezone !== TRAINER_TIMEZONE) {
+        const trainerTzAbbr = getTimezoneAbbreviation(TRAINER_TIMEZONE);
+        return `${timeDisplay} ${trainerTzAbbr}`;
+      }
+      return timeDisplay;
+    } else {
+      // For virtual sessions, convert trainer time to user timezone
+      const convertedTime = convertTrainerTimeToUserTime(timeString, selectedDate, userTimezone);
+      const [hours, minutes] = convertedTime.split(":");
+      const date = new Date();
+      date.setHours(parseInt(hours, 10));
+      date.setMinutes(parseInt(minutes, 10));
+      
+      const timeDisplay = format(date, "h:mm a");
+      if (userTimezone !== TRAINER_TIMEZONE) {
+        const userTzAbbr = getTimezoneAbbreviation(userTimezone);
+        return `${timeDisplay} ${userTzAbbr}`;
+      }
+      return timeDisplay;
+    }
+  } else {
+    // Fallback to original behavior
+    const [hours, minutes] = timeString.split(":");
+    const date = new Date();
+    date.setHours(parseInt(hours, 10));
+    date.setMinutes(parseInt(minutes, 10));
+    return format(date, "h:mm a");
+  }
 };
 
 // Helper function to generate time slots
@@ -1132,6 +1303,12 @@ export default function BookingPage() {
       throw new Error("Invalid session type");
     }
 
+    // Determine the correct timezone for sessions
+    // For in-person sessions, always use trainer timezone regardless of input
+    const sessionTimezone = (selectedPackageType === "In-Person Training") 
+      ? TRAINER_TIMEZONE 
+      : timezone;
+
     // Get the user's packages for this session type
     const { data: userPackages, error: packagesError } = await supabase
       .from("packages")
@@ -1226,7 +1403,7 @@ export default function BookingPage() {
                 start_time: session.time,
                 end_time: format(addMinutes(parseISO(`${sessionDate}T${session.time}`), 60), 'HH:mm:ss'),
                 type: selectedPackageType,
-                timezone: timezone,
+                timezone: sessionTimezone,
                 status: "confirmed"
               })
               .select()
@@ -1325,31 +1502,32 @@ export default function BookingPage() {
     profile: UserProfile,
     sessionType: string
   ) => {
-    // Create dates in local timezone
+    // Determine timezone based on session type
+    const isInPerson = sessionType === "In-Person Training";
+    const trainerTimezone = TRAINER_TIMEZONE;
+    const clientTimezone = isInPerson ? TRAINER_TIMEZONE : getUserTimezone();
+
+    // Create dates in appropriate timezone
     const sessionDate = new Date(`${session.date}T${session.start_time}`);
     const endDate = new Date(`${session.date}T${session.end_time}`);
-
-    const baseEventDetails = {
-      description: `${sessionType} training session`,
-      start: {
-        dateTime: sessionDate.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      end: {
-        dateTime: endDate.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      attendees: [{ email: profile.email }, { email: trainer.email }],
-      reminders: {
-        useDefault: true,
-      },
-    };
 
     // Create trainer calendar event
     try {
       const trainerEventDetails = {
-        ...baseEventDetails,
         summary: `${sessionType} with ${profile.full_name}`,
+        description: `${sessionType} training session`,
+        start: {
+          dateTime: sessionDate.toISOString(),
+          timeZone: trainerTimezone,
+        },
+        end: {
+          dateTime: endDate.toISOString(), 
+          timeZone: trainerTimezone,
+        },
+        attendees: [{ email: profile.email }, { email: trainer.email }],
+        reminders: {
+          useDefault: true,
+        },
       };
 
       const trainerEventResponse = await fetch(
@@ -1375,8 +1553,20 @@ export default function BookingPage() {
     // Create client calendar event
     try {
       const clientEventDetails = {
-        ...baseEventDetails,
         summary: `${sessionType} with ${trainer.full_name}`,
+        description: `${sessionType} training session`,
+        start: {
+          dateTime: sessionDate.toISOString(),
+          timeZone: clientTimezone,
+        },
+        end: {
+          dateTime: endDate.toISOString(),
+          timeZone: clientTimezone,
+        },
+        attendees: [{ email: profile.email }, { email: trainer.email }],
+        reminders: {
+          useDefault: true,
+        },
       };
 
       const clientEventResponse = await fetch(
@@ -1560,8 +1750,11 @@ export default function BookingPage() {
         }
       }
 
-      const userTimezone =
-        Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Denver";
+      // Determine timezone based on session type
+      const userTimezone = getUserTimezone();
+      const sessionTimezone = (selectedType === "In-Person Training") 
+        ? TRAINER_TIMEZONE  // Always use trainer's timezone for in-person
+        : userTimezone;     // Use user's timezone for virtual sessions
 
       if (isRecurring) {
         // Check for overlapping sessions before booking
@@ -1582,7 +1775,7 @@ export default function BookingPage() {
           session.user.id,
           selectedTrainer,
           currentProfile,
-          userTimezone
+          sessionTimezone
         );
 
         // Show success dialog for recurring sessions
@@ -1604,7 +1797,7 @@ export default function BookingPage() {
             end_time: selectedTimeSlot.endTime,
             type: selectedType,
             status: "confirmed",
-            timezone: userTimezone,
+            timezone: sessionTimezone,
             is_recurring: false,
           })
           .select()
@@ -1754,6 +1947,11 @@ export default function BookingPage() {
         let trainerEventId = null;
         let clientEventId = null;
 
+        // Determine timezone based on session type
+        const isInPerson = sessionTypeName === "In-Person Training";
+        const trainerTimezone = TRAINER_TIMEZONE;
+        const clientTimezone = isInPerson ? TRAINER_TIMEZONE : getUserTimezone();
+
         // Format dates in local timezone to avoid UTC conversion issues
         const formatDateTime = (date: Date) => {
           const year = date.getFullYear();
@@ -1771,25 +1969,6 @@ export default function BookingPage() {
         );
         const endDate = new Date(`${selectedDate}T${selectedTimeSlot.endTime}`);
 
-        const baseEventDetails = {
-          description: `${sessionTypeName} training session`,
-          start: {
-            dateTime: formatDateTime(sessionDate),
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-          end: {
-            dateTime: formatDateTime(endDate),
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-          attendees: [
-            { email: currentProfile.email },
-            { email: selectedTrainer.email },
-          ],
-          reminders: {
-            useDefault: true,
-          },
-        };
-
         // Create event in trainer's calendar with client's name
         try {
           console.log("Creating trainer calendar event for trainer:", {
@@ -1799,8 +1978,23 @@ export default function BookingPage() {
           });
 
           const trainerEventDetails = {
-            ...baseEventDetails,
             summary: `${sessionTypeName} with ${currentProfile.full_name}`,
+            description: `${sessionTypeName} training session`,
+            start: {
+              dateTime: formatDateTime(sessionDate),
+              timeZone: trainerTimezone,
+            },
+            end: {
+              dateTime: formatDateTime(endDate),
+              timeZone: trainerTimezone,
+            },
+            attendees: [
+              { email: currentProfile.email },
+              { email: selectedTrainer.email },
+            ],
+            reminders: {
+              useDefault: true,
+            },
           };
 
           const trainerEventResponse = await fetch(
@@ -1840,8 +2034,23 @@ export default function BookingPage() {
         // Create event in client's calendar with trainer's name
         try {
           const clientEventDetails = {
-            ...baseEventDetails,
             summary: `${sessionTypeName} with ${selectedTrainer.full_name}`,
+            description: `${sessionTypeName} training session`,
+            start: {
+              dateTime: formatDateTime(sessionDate),
+              timeZone: clientTimezone,
+            },
+            end: {
+              dateTime: formatDateTime(endDate),
+              timeZone: clientTimezone,
+            },
+            attendees: [
+              { email: currentProfile.email },
+              { email: selectedTrainer.email },
+            ],
+            reminders: {
+              useDefault: true,
+            },
           };
 
           const clientEventResponse = await fetch(
@@ -2259,7 +2468,7 @@ export default function BookingPage() {
                               onClick={() => setSelectedTimeSlot(slot)}
                               disabled={!slot.isAvailable}
                             >
-                              {formatTimeForDisplay(slot.startTime)}
+                              {formatTimeForDisplay(slot.startTime, selectedDate, selectedType)}
                             </Button>
                           ))}
                         </div>
@@ -2396,7 +2605,9 @@ export default function BookingPage() {
                                           >
                                             • {formattedDate} at{" "}
                                             {formatTimeForDisplay(
-                                              selectedTimeSlot.startTime
+                                              selectedTimeSlot.startTime,
+                                              selectedDate,
+                                              selectedType
                                             )}
                                           </div>
                                         );
@@ -2612,7 +2823,7 @@ export default function BookingPage() {
                                   }
                                   disabled={!slot.isAvailable}
                                 >
-                                  {formatTimeForDisplay(slot.startTime)}
+                                  {formatTimeForDisplay(slot.startTime, additionalSessionDate, selectedType)}
                                 </Button>
                               )
                             )}
@@ -2713,7 +2924,9 @@ export default function BookingPage() {
                                           )}{" "}
                                           at{" "}
                                           {formatTimeForDisplay(
-                                            additionalSessionTimeSlot.startTime
+                                            additionalSessionTimeSlot.startTime,
+                                            format(sessionDate, "yyyy-MM-dd"),
+                                            selectedType
                                           )}
                                         </div>
                                       );
