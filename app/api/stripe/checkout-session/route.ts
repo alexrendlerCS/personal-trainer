@@ -80,6 +80,15 @@ export async function POST(req: Request) {
 
     // Determine pricing based on purchase option
     switch (purchaseOption) {
+      case "single_session":
+        // Single session: no expiry, just 1 session
+        actualSessions = 1;
+        amount = baseAmount; // Should always be the single session price
+        isProrated = false;
+        // Single sessions don't expire, set to far future
+        expiryDate = new Date(today.getFullYear() + 10, today.getMonth(), today.getDate());
+        break;
+
       case "prorated":
         // Prorated package: only sessions for remaining weeks
         const sessionsPerWeek = sessionsIncluded / 4;
@@ -186,8 +195,18 @@ export async function POST(req: Request) {
       const sessionType = getSessionType(type);
       let description: string;
 
-      // Check if package is prorated
-      if (sessions === sessionsIncluded) {
+      // Check if package is prorated or single session
+      if (purchaseOption === "single_session") {
+        // Special description for single sessions (no expiry)
+        let singleDesc = `🎯 Single ${sessionType.replace(/s$/, '')} — book anytime after purchase!`;
+        if (discount) {
+          const discountText = discount.type === 'percent' 
+            ? `${discount.value}% off` 
+            : `$${(discount.value / 100).toFixed(2)} off`;
+          singleDesc += ` • 🎉 ${discountText} applied!`;
+        }
+        description = singleDesc;
+      } else if (sessions === sessionsIncluded) {
         // Simple version for non-prorated packages
         let baseDesc = `🎯 Includes ${sessions} ${sessionType} — book after checkout! • ⏳ Expires ${expiryDate}`;
         if (discount) {

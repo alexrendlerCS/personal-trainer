@@ -637,6 +637,54 @@ function PackagesContent() {
     [promoCodes]
   );
 
+  const handleSingleSessionCheckout = async (sessionType: PackageType) => {
+    if (!user?.id) {
+      return;
+    }
+
+    try {
+      setIsLoading('single-session');
+
+      console.log("🛍️ Creating single session checkout with:", {
+        userId: user.id,
+        packageType: sessionType,
+        sessionsIncluded: 1, // Single session
+        purchaseOption: 'single_session', // Special option for single sessions
+        promoCode: singleSessionPromoCode?.trim() || undefined,
+      });
+
+      const response = await fetch("/api/stripe/checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          packageType: sessionType,
+          sessionsIncluded: 1, // Single session
+          purchaseOption: 'single_session', // Special identifier
+          promoCode: singleSessionPromoCode?.trim() || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create checkout session");
+      }
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
+    } catch (error) {
+      console.error("Single session checkout error:", error);
+      // You might want to show an error toast here
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
   const handleCheckout = async (pkg: Package, section: PackageSection) => {
     // Show purchase options modal instead of going directly to checkout
     setSelectedPackage(pkg);
@@ -798,19 +846,10 @@ function PackagesContent() {
           <DialogFooter>
             <Button
               className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
-              disabled={!selectedSessionType}
+              disabled={!selectedSessionType || isLoading === 'single-session'}
               onClick={() => {
                 if (selectedSessionType) {
-                  handleCheckout(
-                    {
-                      ...singleSessionPkg,
-                      monthlyPrice: singleSessionDiscountedPrice != null ? singleSessionDiscountedPrice : 150,
-                    },
-                    {
-                      ...singleSessionSection,
-                      title: selectedSessionType,
-                    }
-                  );
+                  handleSingleSessionCheckout(selectedSessionType as PackageType);
                   setShowSingleSessionModal(false);
                   setSelectedSessionType(null);
                   setSingleSessionPromoCode("");
@@ -819,6 +858,9 @@ function PackagesContent() {
                 }
               }}
             >
+              {isLoading === 'single-session' ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
               Continue to Checkout
             </Button>
           </DialogFooter>
