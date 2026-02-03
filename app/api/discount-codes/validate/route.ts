@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Calculate discount - ensure we get the same result as checkout
+    // baseAmount is now in cents (to match checkout API)
     let discountedAmount = baseAmount;
     let discountAmount = 0;
     let type = null;
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
       discountedAmount = baseAmount - discountAmount;
       type = "percent";
     } else if (data.amount_off) {
+      // Both baseAmount and amount_off are in cents
       discountAmount = Math.min(data.amount_off, baseAmount); // Don't discount more than total
       discountedAmount = Math.max(0, baseAmount - discountAmount);
       type = "amount";
@@ -59,9 +61,9 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json({ 
       valid: true, 
-      discountedAmount,
-      discountAmount,
-      originalAmount: baseAmount,
+      discountedAmount: discountedAmount / 100, // Convert back to dollars for frontend display
+      discountAmount: discountAmount / 100, // Convert back to dollars for frontend display
+      originalAmount: baseAmount / 100, // Convert back to dollars for frontend display
       type,
       code: data.code
     });

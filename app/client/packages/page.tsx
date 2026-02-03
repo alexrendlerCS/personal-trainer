@@ -313,7 +313,7 @@ function PackagesContent() {
         body: JSON.stringify({
           code,
           packageType: selectedSessionType ? selectedSessionType : "Single Session",
-          baseAmount: 150,
+          baseAmount: 15000, // Send in cents to match database
         }),
       });
       const data = await res.json();
@@ -602,7 +602,7 @@ function PackagesContent() {
             packageType: section.title.endsWith("Training")
               ? section.title
               : `${section.title} Training`,
-            baseAmount: pkg.monthlyPrice,
+            baseAmount: pkg.monthlyPrice * 100, // Convert to cents to match database
           }),
         });
         const data = await res.json();
