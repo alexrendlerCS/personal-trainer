@@ -67,7 +67,7 @@ type PackageTypeCounts = {
   [K in PackageType]: PackageTypeCount;
 };
 
-type PurchaseOption = "prorated" | "current_month" | "next_month";
+type PurchaseOption = "current_month" | "next_month";
 
 const packageSections: PackageSection[] = [
   {
@@ -689,7 +689,7 @@ function PackagesContent() {
     // Show purchase options modal instead of going directly to checkout
     setSelectedPackage(pkg);
     setSelectedSection(section);
-    setSelectedPurchaseOption(null);
+    setSelectedPurchaseOption("current_month"); // Default to current month
     setShowPurchaseOptionsModal(true);
   };
 
@@ -888,42 +888,8 @@ function PackagesContent() {
               )}
             </DialogDescription>
           </DialogHeader>
-          <div className="relative flex flex-col gap-2 sm:gap-4 overflow-y-auto flex-1 min-h-0 -mx-3 sm:mx-0 px-3 sm:px-0 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
-            {/* Top fade indicator */}
-            <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-white to-transparent dark:from-gray-900 pointer-events-none z-10"></div>
-            {/* Bottom fade indicator */}
-            <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white to-transparent dark:from-gray-900 pointer-events-none z-10"></div>
-            {/* Scroll hint for mobile */}
-            <div className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 text-xs opacity-50 sm:hidden pointer-events-none">
-              ↕️
-            </div>
-            {/* Option 1: Prorated Package */}
-            <div
-              className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all mt-2 ${
-                selectedPurchaseOption === "prorated"
-                  ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
-                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-              }`}
-              onClick={() => setSelectedPurchaseOption("prorated")}
-            >
-              <div className="flex justify-between items-start mb-1 sm:mb-2">
-                <div className="font-semibold text-sm sm:text-lg dark:text-gray-100">
-                  Prorated Package
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
-                  Best Value
-                </div>
-              </div>
-              <div className="text-xs sm:text-base text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
-                Only pay for the sessions you'll use this month. Perfect if
-                you're starting mid-month.
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">
-                Sessions: Calculated based on remaining weeks
-              </div>
-            </div>
-
-            {/* Option 2: Full Package for Current Month */}
+          <div className="flex flex-col gap-2 sm:gap-4 overflow-y-auto flex-1 min-h-0 pb-2">
+            {/* Option 1: Full Package for Current Month */}
             <div
               className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                 selectedPurchaseOption === "current_month"
@@ -936,8 +902,8 @@ function PackagesContent() {
                 <div className="font-semibold text-sm sm:text-lg dark:text-gray-100">
                   Full Package - This Month
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
-                  Most Sessions
+                <div className="text-xs text-gray-600 dark:text-gray-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
+                  Best Value
                 </div>
               </div>
               <div className="text-xs sm:text-base text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
@@ -953,7 +919,7 @@ function PackagesContent() {
               </div>
             </div>
 
-            {/* Option 3: Full Package for Next Month */}
+            {/* Option 2: Full Package for Next Month */}
             <div
               className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all mb-2 ${
                 selectedPurchaseOption === "next_month"

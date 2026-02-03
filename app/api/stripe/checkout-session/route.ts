@@ -75,7 +75,6 @@ export async function POST(req: Request) {
 
     let actualSessions = sessionsIncluded;
     let amount = baseAmount;
-    let isProrated = false;
     let expiryDate = nextMonthStart;
 
     // Determine pricing based on purchase option
@@ -84,43 +83,28 @@ export async function POST(req: Request) {
         // Single session: no expiry, just 1 session
         actualSessions = 1;
         amount = baseAmount; // Should always be the single session price
-        isProrated = false;
         // Single sessions don't expire, set to far future
         expiryDate = new Date(today.getFullYear() + 10, today.getMonth(), today.getDate());
         break;
 
-      case "prorated":
-        // Prorated package: only sessions for remaining weeks
-        const sessionsPerWeek = sessionsIncluded / 4;
-        actualSessions = Math.round(weeksRemaining * sessionsPerWeek);
-        const ratePerSession = baseAmount / sessionsIncluded;
-        amount = Math.round(ratePerSession * actualSessions);
-        isProrated = true;
-        break;
-
       case "current_month":
-        // Full package for current month: all sessions (not prorated)
+        // Full package for current month: all sessions
         actualSessions = sessionsIncluded;
         amount = baseAmount;
-        isProrated = false;
         break;
 
       case "next_month":
         // Full package for next month: all sessions
         actualSessions = sessionsIncluded;
         amount = baseAmount;
-        isProrated = false;
         // Set expiry to end of next month
         expiryDate = new Date(today.getFullYear(), today.getMonth() + 2, 1);
         break;
 
       default:
-        // Fallback to original prorated logic for backward compatibility
-        const fallbackSessionsPerWeek = sessionsIncluded / 4;
-        actualSessions = Math.round(weeksRemaining * fallbackSessionsPerWeek);
-        const fallbackRatePerSession = baseAmount / sessionsIncluded;
-        amount = Math.round(fallbackRatePerSession * actualSessions);
-        isProrated = true;
+        // Default to current month behavior
+        actualSessions = sessionsIncluded;
+        amount = baseAmount;
         break;
     }
 
@@ -134,7 +118,6 @@ export async function POST(req: Request) {
       actualSessions,
       originalAmount: baseAmount,
       finalAmount: amount,
-      isProrated,
       expiryDate: expiryDate.toISOString(),
     });
 
@@ -195,7 +178,7 @@ export async function POST(req: Request) {
       const sessionType = getSessionType(type);
       let description: string;
 
-      // Check if package is prorated or single session
+      // Check if single session or regular package
       if (purchaseOption === "single_session") {
         // Special description for single sessions (no expiry)
         let singleDesc = `🎯 Single ${sessionType.replace(/s$/, '')} — book anytime after purchase!`;
@@ -206,8 +189,8 @@ export async function POST(req: Request) {
           singleDesc += ` • 🎉 ${discountText} applied!`;
         }
         description = singleDesc;
-      } else if (sessions === sessionsIncluded) {
-        // Simple version for non-prorated packages
+      } else {
+        // Standard package description
         let baseDesc = `🎯 Includes ${sessions} ${sessionType} — book after checkout! • ⏳ Expires ${expiryDate}`;
         if (discount) {
           const discountText = discount.type === 'percent' 
@@ -216,23 +199,6 @@ export async function POST(req: Request) {
           baseDesc += ` • 🎉 ${discountText} applied!`;
         }
         description = baseDesc;
-      } else {
-        // Detailed version for prorated packages
-        const prorationDiscount = baseAmount - amount;
-        let desc = [
-          `🔥 Prorated Package: ${sessions} of ${sessionsIncluded} ${type} Sessions`,
-          `💸 Original: ${formatPrice(baseAmount)} | Proration: ${formatPrice(prorationDiscount)}`,
-        ];
-        
-        if (discount) {
-          desc.push(`🎉 Promo: ${formatPrice(discount.discountAmount)} additional off`);
-          desc.push(`Final: ${formatPrice(finalAmount)}`);
-        } else {
-          desc.push(`Final: ${formatPrice(amount)}`);
-        }
-        
-        desc.push(`📆 You're joining mid-month — cost adjusted for ${weeksRemaining} week(s)`);
-        description = desc.join(' | ');
       }
 
       // Return package details with appropriate image and description
@@ -340,14 +306,9 @@ export async function POST(req: Request) {
           price_data: {
             currency: "usd",
             product_data: {
-              name:
-                actualSessions === sessionsIncluded
-                  ? discountInfo
-                    ? `Transform with ${actualSessions} ${packageType} Sessions 💪 (${discountInfo.type === 'percent' ? `${discountInfo.value}%` : `$${discountInfo.value / 100}`} off!)`
-                    : `Transform with ${actualSessions} ${packageType} Sessions 💪`
-                  : discountInfo
-                    ? `Prorated Package: ${actualSessions} of ${sessionsIncluded} ${packageType} Sessions 💪 (${discountInfo.type === 'percent' ? `${discountInfo.value}%` : `$${discountInfo.value / 100}`} off!)`
-                    : `Prorated Package: ${actualSessions} of ${sessionsIncluded} ${packageType} Sessions 💪`,
+              name: discountInfo
+                ? `Transform with ${actualSessions} ${packageType} Sessions 💪 (${discountInfo.type === 'percent' ? `${discountInfo.value}%` : `$${discountInfo.value / 100}`} off!)`
+                : `Transform with ${actualSessions} ${packageType} Sessions 💪`,
               description: packageDetails.description,
             },
             unit_amount: finalAmount, // Use the discounted amount
@@ -368,7 +329,6 @@ export async function POST(req: Request) {
         user_id: userId,
         sessions_included: actualSessions.toString(), // actual # of sessions this user is buying
         original_sessions: sessionsIncluded.toString(), // original full package size
-        is_prorated: isProrated ? "true" : "false",
         package_type: packageType,
         expiry_date: expiryDate.toISOString(),
         ...(promoCode ? { promo_code: promoCode } : {}),
