@@ -35,18 +35,36 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    // Check max redemptions (if needed)
-    // ...
+    
+    // Check max redemptions if specified
+    if (data.max_redemptions && data.max_redemptions > 0) {
+      // TODO: Implement redemption tracking if needed
+      // For now, we'll assume unlimited redemptions if max_redemptions is null or 0
+    }
+
+    // Calculate discount - ensure we get the same result as checkout
     let discountedAmount = baseAmount;
+    let discountAmount = 0;
     let type = null;
+    
     if (data.percent_off) {
-      discountedAmount = Math.round(baseAmount * (1 - data.percent_off / 100));
+      discountAmount = Math.round(baseAmount * (data.percent_off / 100));
+      discountedAmount = baseAmount - discountAmount;
       type = "percent";
     } else if (data.amount_off) {
-      discountedAmount = Math.max(0, baseAmount - data.amount_off);
+      discountAmount = Math.min(data.amount_off, baseAmount); // Don't discount more than total
+      discountedAmount = Math.max(0, baseAmount - discountAmount);
       type = "amount";
     }
-    return NextResponse.json({ valid: true, discountedAmount, type });
+    
+    return NextResponse.json({ 
+      valid: true, 
+      discountedAmount,
+      discountAmount,
+      originalAmount: baseAmount,
+      type,
+      code: data.code
+    });
   } catch (err) {
     return NextResponse.json(
       { valid: false, error: "Server error" },

@@ -152,7 +152,8 @@ export async function POST(req: Request) {
     const getPackageDetails = (
       type: string,
       sessions: number,
-      nextMonthDate: Date
+      nextMonthDate: Date,
+      discount?: { type: string; value: number; discountAmount: number } | null
     ) => {
       const baseImageUrl = process.env.NEXT_PUBLIC_SITE_URL || origin;
       const expiryDate = nextMonthDate.toLocaleDateString("en-US", {
@@ -188,19 +189,31 @@ export async function POST(req: Request) {
       // Check if package is prorated
       if (sessions === sessionsIncluded) {
         // Simple version for non-prorated packages
-        description = `🎯 Includes ${sessions} ${sessionType} — book after checkout! • ⏳ Expires ${expiryDate}`;
+        let baseDesc = `🎯 Includes ${sessions} ${sessionType} — book after checkout! • ⏳ Expires ${expiryDate}`;
+        if (discount) {
+          const discountText = discount.type === 'percent' 
+            ? `${discount.value}% off` 
+            : `$${(discount.value / 100).toFixed(2)} off`;
+          baseDesc += ` • 🎉 ${discountText} applied!`;
+        }
+        description = baseDesc;
       } else {
         // Detailed version for prorated packages
-        const discountAmount = baseAmount - amount;
-        description = [
+        const prorationDiscount = baseAmount - amount;
+        let desc = [
           `🔥 Prorated Package: ${sessions} of ${sessionsIncluded} ${type} Sessions`,
-          `💸 Original: ${formatPrice(baseAmount)} |  Discount: ${formatPrice(
-            discountAmount
-          )} | Final: ${formatPrice(amount)}`,
-          `📆 You're joining mid-month — cost adjusted for ${weeksRemaining} week(s)`,
-          `🎯 ${sessions} ${sessionType}`,
-          `⏳ Book after checkout • Expires ${expiryDate}`,
-        ].join(" • ");
+          `💸 Original: ${formatPrice(baseAmount)} | Proration: ${formatPrice(prorationDiscount)}`,
+        ];
+        
+        if (discount) {
+          desc.push(`🎉 Promo: ${formatPrice(discount.discountAmount)} additional off`);
+          desc.push(`Final: ${formatPrice(finalAmount)}`);
+        } else {
+          desc.push(`Final: ${formatPrice(amount)}`);
+        }
+        
+        desc.push(`📆 You're joining mid-month — cost adjusted for ${weeksRemaining} week(s)`);
+        description = desc.join(' | ');
       }
 
       // Return package details with appropriate image and description
@@ -228,36 +241,79 @@ export async function POST(req: Request) {
       }
     };
 
-    const packageDetails = getPackageDetails(
-      packageType,
-      actualSessions,
-      expiryDate
-    );
-
-    // Validate promo code if provided
-    let promotionCodeId: string | undefined = undefined;
+    // Validate promo code and calculate discount if provided
+    let finalAmount = amount;
+    let discountInfo: { type: string; value: number; discountAmount: number } | null = null;
+    
     if (promoCode) {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("discount_codes")
-        .select("stripe_promotion_code_id, code, expires_at, max_redemptions")
+        .select("percent_off, amount_off, code, expires_at, max_redemptions")
         .eq("code", promoCode)
         .maybeSingle();
+        
       if (error) {
+        console.error("❌ Error validating promo code:", error);
         return NextResponse.json(
           { error: "Error validating promo code" },
           { status: 400 }
         );
       }
-      if (!data || !data.stripe_promotion_code_id) {
+      
+      if (!data) {
         return NextResponse.json(
           { error: "Invalid promo code" },
           { status: 400 }
         );
       }
-      // Optionally: check expiry and redemptions here if needed
-      promotionCodeId = data.stripe_promotion_code_id;
+      
+      // Check if promo code is expired
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        return NextResponse.json(
+          { error: "Promo code has expired" },
+          { status: 400 }
+        );
+      }
+      
+      // Calculate the discount amount
+      let discountAmount = 0;
+      if (data.percent_off) {
+        discountAmount = Math.round(amount * (data.percent_off / 100));
+        discountInfo = {
+          type: "percent",
+          value: data.percent_off,
+          discountAmount
+        };
+      } else if (data.amount_off) {
+        discountAmount = Math.min(data.amount_off, amount); // Don't discount more than the total
+        discountInfo = {
+          type: "amount",
+          value: data.amount_off,
+          discountAmount
+        };
+      }
+      
+      // Apply the discount to the final amount
+      finalAmount = Math.max(0, amount - discountAmount);
+      
+      console.log("💰 Promo code applied:", {
+        code: promoCode,
+        originalAmount: amount,
+        discountType: discountInfo?.type,
+        discountValue: discountInfo?.value,
+        discountAmount,
+        finalAmount
+      });
     }
+
+    // Get package-specific details with discount information
+    const packageDetails = getPackageDetails(
+      packageType,
+      actualSessions,
+      expiryDate,
+      discountInfo
+    );
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -267,11 +323,15 @@ export async function POST(req: Request) {
             product_data: {
               name:
                 actualSessions === sessionsIncluded
-                  ? `Transform with ${actualSessions} ${packageType} Sessions 💪`
-                  : `Prorated Package: ${actualSessions} of ${sessionsIncluded} ${packageType} Sessions 💪`,
+                  ? discountInfo
+                    ? `Transform with ${actualSessions} ${packageType} Sessions 💪 (${discountInfo.type === 'percent' ? `${discountInfo.value}%` : `$${discountInfo.value / 100}`} off!)`
+                    : `Transform with ${actualSessions} ${packageType} Sessions 💪`
+                  : discountInfo
+                    ? `Prorated Package: ${actualSessions} of ${sessionsIncluded} ${packageType} Sessions 💪 (${discountInfo.type === 'percent' ? `${discountInfo.value}%` : `$${discountInfo.value / 100}`} off!)`
+                    : `Prorated Package: ${actualSessions} of ${sessionsIncluded} ${packageType} Sessions 💪`,
               description: packageDetails.description,
             },
-            unit_amount: amount,
+            unit_amount: finalAmount, // Use the discounted amount
           },
           quantity: 1, // Total package, not per session
         },
@@ -293,10 +353,13 @@ export async function POST(req: Request) {
         package_type: packageType,
         expiry_date: expiryDate.toISOString(),
         ...(promoCode ? { promo_code: promoCode } : {}),
+        ...(discountInfo ? {
+          discount_type: discountInfo.type,
+          discount_value: discountInfo.value.toString(),
+          discount_amount: discountInfo.discountAmount.toString(),
+          original_amount: amount.toString()
+        } : {}),
       },
-      ...(promotionCodeId
-        ? { discounts: [{ promotion_code: promotionCodeId }] }
-        : {}),
     });
 
     console.log("✅ Checkout session created:", {
