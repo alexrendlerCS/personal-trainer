@@ -45,6 +45,11 @@ export async function POST(req: Request) {
         16: 120000, // $1,200
         20: 140000, // $1,400
       },
+      "Posing Package": {
+        1: 8000, // $80 for 1 pack
+        4: 28000, // $280 for 4 pack
+        8: 48000, // $480 for 8 pack
+      },
     };
 
     let baseAmount = pricingMatrix?.[packageType]?.[sessionsIncluded];
@@ -135,6 +140,8 @@ export async function POST(req: Request) {
           return `🎯 Includes ${count} virtual live training sessions via video call — book anytime after purchase!`;
         case "Partner Training":
           return `🎯 Includes ${count} small group sessions — train with a partner and save!`;
+        case "Posing Package":
+          return `🎯 Includes ${count} specialized posing coaching session${count > 1 ? 's' : ''} — perfect your technique!`;
         default:
           return `🎯 Includes ${count} training sessions — ready to schedule after checkout!`;
       }
@@ -163,6 +170,8 @@ export async function POST(req: Request) {
             return "live virtual training sessions";
           case "Partner Training":
             return "partner training sessions";
+          case "Posing Package":
+            return "specialized posing coaching sessions";
           default:
             return "training sessions";
         }
@@ -214,6 +223,11 @@ export async function POST(req: Request) {
             description,
           };
         case "Partner Training":
+          return {
+            image: `${baseImageUrl}/placeholder.jpg`,
+            description,
+          };
+        case "Posing Package":
           return {
             image: `${baseImageUrl}/placeholder.jpg`,
             description,

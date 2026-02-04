@@ -61,7 +61,8 @@ interface PackageTypeCount {
 type PackageType =
   | "In-Person Training"
   | "Virtual Training"
-  | "Partner Training";
+  | "Partner Training"
+  | "Posing Package";
 
 type PackageTypeCounts = {
   [K in PackageType]: PackageTypeCount;
@@ -226,6 +227,40 @@ const packageSections: PackageSection[] = [
       },
     ],
   },
+  {
+    title: "Posing Package",
+    description: "Perfect your posing technique with specialized coaching",
+    icon: "💃",
+    packages: [
+      {
+        id: "posing-1",
+        name: "1 Pack",
+        sessionsPerWeek: 0, // No commitment
+        hourlyRate: 80,
+        monthlySessionCount: 1,
+        monthlyPrice: 80,
+        priceId: "price_PLACEHOLDER_POSING_1",
+      },
+      {
+        id: "posing-4",
+        name: "4 Pack - 1x/Week",
+        sessionsPerWeek: 1,
+        hourlyRate: 70,
+        monthlySessionCount: 4,
+        monthlyPrice: 280,
+        priceId: "price_PLACEHOLDER_POSING_4",
+      },
+      {
+        id: "posing-8",
+        name: "8 Pack - 2x/Week",
+        sessionsPerWeek: 2,
+        hourlyRate: 60,
+        monthlySessionCount: 8,
+        monthlyPrice: 480,
+        priceId: "price_PLACEHOLDER_POSING_8",
+      },
+    ],
+  },
 ];
 
 interface PurchasedPackageInfo {
@@ -254,6 +289,10 @@ function PackagesContent() {
   const [showSingleSessionModal, setShowSingleSessionModal] = useState(false);
   const [selectedSessionType, setSelectedSessionType] =
     useState<PackageType | null>(null);
+  
+  // Package filter state
+  const [selectedPackageType, setSelectedPackageType] = useState<PackageType>("In-Person Training");
+  
   const singleSessionPrice = 150;
   const singleSessionSection: PackageSection = {
     title: selectedSessionType || "In-Person Training",
@@ -448,6 +487,11 @@ function PackagesContent() {
         },
         "Partner Training": {
           type: "Partner Training",
+          remaining: 0,
+          total: 0,
+        },
+        "Posing Package": {
+          type: "Posing Package",
           remaining: 0,
           total: 0,
         },
@@ -1151,28 +1195,116 @@ function PackagesContent() {
       </div>
 
       <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
+        {/* Package Type Filter */}
+        <div className="mb-8 sm:mb-12">
+          <div className="flex flex-col items-center space-y-4">
+            {/* Try a Single Session Button - Always visible at top */}
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded shadow-lg font-semibold transition-all duration-150"
+              onClick={() => {
+                setSelectedSessionType(selectedPackageType); // Default to current filter
+                setShowSingleSessionModal(true);
+              }}
+            >
+              <PlusCircle className="h-5 w-5 mr-2" />
+              Try a Single Session
+            </Button>
+
+            {/* Package Type Slider */}
+            <div className="w-full max-w-5xl">
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 text-center mb-4">
+                Choose Your Training Type
+              </h3>
+              <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-1 overflow-hidden">
+                {/* Glossy red background slider */}
+                <div 
+                  className="absolute top-1 bottom-1 rounded-xl shadow-lg transition-all duration-500 ease-in-out transform"
+                  style={{
+                    width: `${100 / packageSections.length}%`,
+                    left: `${(packageSections.findIndex(s => s.title === selectedPackageType) * 100) / packageSections.length}%`,
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+                    boxShadow: '0 8px 20px rgba(239, 68, 68, 0.3), 0 4px 12px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  {/* Glossy highlight overlay */}
+                  <div 
+                    className="absolute inset-0 rounded-xl"
+                    style={{
+                      background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 0, 0, 0.1) 100%)'
+                    }}
+                  />
+                </div>
+                
+                {/* Filter buttons */}
+                <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-0">
+                  {packageSections.map((section, index) => (
+                    <button
+                      key={section.title}
+                      onClick={() => setSelectedPackageType(section.title as PackageType)}
+                      className={`relative px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 rounded-xl z-10 hover:scale-[1.02] active:scale-[0.98] ${
+                        selectedPackageType === section.title
+                          ? 'text-white drop-shadow-sm transform scale-[1.01]'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1 sm:gap-2">
+                        <span className="font-medium leading-tight text-center tracking-wide">
+                          {section.title === "In-Person Training" ? (
+                            <>
+                              <span className="block sm:hidden text-xs">In-Person</span>
+                              <span className="hidden sm:block lg:hidden text-sm">In-Person</span>
+                              <span className="hidden lg:block">In-Person Training</span>
+                            </>
+                          ) : section.title === "Virtual Training" ? (
+                            <>
+                              <span className="block sm:hidden text-xs">Virtual</span>
+                              <span className="hidden sm:block lg:hidden text-sm">Virtual</span>
+                              <span className="hidden lg:block">Virtual Training</span>
+                            </>
+                          ) : section.title === "Partner Training" ? (
+                            <>
+                              <span className="block sm:hidden text-xs">Partner</span>
+                              <span className="hidden sm:block lg:hidden text-sm">Partner</span>
+                              <span className="hidden lg:block">Partner Training</span>
+                            </>
+                          ) : section.title === "Posing Package" ? (
+                            <>
+                              <span className="block sm:hidden text-xs">Posing</span>
+                              <span className="hidden sm:block lg:hidden text-sm">Posing</span>
+                              <span className="hidden lg:block">Posing Package</span>
+                            </>
+                          ) : section.title}
+                        </span>
+                        
+                        {/* Active indicator line */}
+                        <div className={`w-8 sm:w-12 h-0.5 rounded-full transition-all duration-300 ${
+                          selectedPackageType === section.title 
+                            ? 'bg-white/60 shadow-sm' 
+                            : 'bg-transparent'
+                        }`} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-8 sm:space-y-12">
-          {packageSections.map((section) => (
-            <div key={section.title} className="space-y-4 sm:space-y-6">
+          {packageSections
+            .filter((section) => section.title === selectedPackageType)
+            .map((section) => (
+            <div key={section.title} className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <span>{section.icon}</span>
-                    <span>{section.title}</span>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    {section.title}
                   </h2>
                   <p className="mt-1 sm:mt-2 text-base sm:text-lg text-gray-600 dark:text-gray-400">
                     {section.description}
                   </p>
                 </div>
-                {section.title === "In-Person Training" && (
-                  <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg px-4 sm:px-6 py-2 sm:py-3 rounded shadow-lg font-semibold transition-all duration-150 w-full sm:w-auto"
-                    onClick={() => setShowSingleSessionModal(true)}
-                  >
-                    <PlusCircle className="h-5 w-5 mr-2" />
-                    Try a Single Session
-                  </Button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
@@ -1203,13 +1335,20 @@ function PackagesContent() {
                             <>${pkg.monthlyPrice}</>
                           )}
                           <span className="text-xs sm:text-sm lg:text-base font-normal text-gray-500 dark:text-gray-400">
-                            /month
+                            {section.title === "Posing Package" && pkg.sessionsPerWeek === 0 
+                              ? " total" 
+                              : "/month"}
                           </span>
                         </div>
                         <ul className="space-y-1 lg:space-y-2 text-xs sm:text-sm lg:text-sm text-gray-600 dark:text-gray-400">
-                          <li>• {pkg.sessionsPerWeek}x sessions per week</li>
                           <li>
-                            • {pkg.monthlySessionCount} sessions per month
+                            • {section.title === "Posing Package" && pkg.sessionsPerWeek === 0 
+                              ? "No commitment" 
+                              : `${pkg.sessionsPerWeek}x sessions per week`}
+                          </li>
+                          <li>
+                            • {pkg.monthlySessionCount} session{pkg.monthlySessionCount > 1 ? 's' : ''} 
+                            {section.title === "Posing Package" && pkg.sessionsPerWeek === 0 ? " total" : " per month"}
                           </li>
                           <li>• ${pkg.hourlyRate} per hour</li>
                         </ul>
