@@ -526,6 +526,11 @@ export default function ClientDashboard() {
             remaining: 0,
             total: 0,
           },
+          "Posing Package": {
+            type: "Posing Package",
+            remaining: 0,
+            total: 0,
+          },
         };
 
         let totalUsed = 0;
@@ -1040,7 +1045,7 @@ export default function ClientDashboard() {
                                 }`}
                               ></div>
                               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {type.type.split(" ")[0]}
+                                {type.type === "Posing Package" ? "Posing" : type.type.split(" ")[0]}
                               </span>
                             </div>
                             <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
