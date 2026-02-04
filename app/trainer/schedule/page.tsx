@@ -216,6 +216,12 @@ const sessionTypes = [
     duration: "60 min",
     description: "Train with a partner for a more engaging workout experience",
   },
+  {
+    id: "Posing Package",
+    name: "Posing Package",
+    duration: "60 min",
+    description: "Virtual posing coaching and competition preparation sessions",
+  },
 ];
 
 export default function TrainerSchedulePage() {

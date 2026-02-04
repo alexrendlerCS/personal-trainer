@@ -106,6 +106,12 @@ const sessionTypes = [
     duration: "60 min",
     description: "Train with a partner for a more engaging workout experience",
   },
+  {
+    id: "Posing Package",
+    name: "Posing Package",
+    duration: "60 min",
+    description: "Virtual posing coaching and competition preparation sessions",
+  },
 ];
 
 interface Trainer {
@@ -161,7 +167,8 @@ interface PackageTypeCount {
 type PackageType =
   | "In-Person Training"
   | "Virtual Training"
-  | "Partner Training";
+  | "Partner Training"
+  | "Posing Package";
 
 type PackageTypeCounts = {
   [K in PackageType]: PackageTypeCount;
@@ -886,6 +893,11 @@ export default function BookingPage() {
           },
           "Partner Training": {
             type: "Partner Training",
+            remaining: 0,
+            total: 0,
+          },
+          "Posing Package": {
+            type: "Posing Package",
             remaining: 0,
             total: 0,
           },

@@ -817,6 +817,7 @@ function AddSessionsModal({
               <option value="In-Person Training">In-Person Training</option>
               <option value="Virtual Training">Virtual Training</option>
               <option value="Partner Training">Partner Training</option>
+              <option value="Posing Package">Posing Package</option>
             </select>
           </div>
           <div>
