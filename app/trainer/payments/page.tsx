@@ -143,7 +143,8 @@ export default function TrainerPaymentsPage() {
         .from("payments")
         .select(
           "id, client_id, amount, method, session_count, status, transaction_id, paid_at"
-        );
+        )
+        .order("paid_at", { ascending: false });
       if (paymentsError) {
         console.error("❌ Error fetching payments:", paymentsError);
         setPayments([]);
