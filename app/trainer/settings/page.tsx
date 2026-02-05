@@ -17,6 +17,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Upload,
   Palette,
   CreditCard,
@@ -32,6 +37,9 @@ import {
   Eye,
   Loader2,
   Trash2,
+  Search,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import GoogleCalendarPopup from "@/components/GoogleCalendarPopup";
 import GoogleCalendarSuccessDialog from "@/components/GoogleCalendarSuccessDialog";
@@ -464,6 +472,8 @@ function GoogleCalendarSection() {
 function ClientContractsSection() {
   const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -511,6 +521,18 @@ function ClientContractsSection() {
     fetchContractsAndUsers();
   }, [supabase]);
 
+  // Filter contracts based on search term
+  const filteredContracts = contracts.filter((contract) => {
+    const clientName = contract.user?.full_name || contract.user_id || "";
+    const clientEmail = contract.user?.email || "";
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      clientName.toLowerCase().includes(searchLower) ||
+      clientEmail.toLowerCase().includes(searchLower)
+    );
+  });
+
   const handleView = (url: string) => {
     if (url) window.open(url, "_blank");
   };
@@ -531,26 +553,64 @@ function ClientContractsSection() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <FileText className="h-5 w-5 text-red-600" />
-          <span>Client Contracts</span>
-        </CardTitle>
-        <CardDescription>
-          View and download signed contracts from your clients
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="text-sm">Loading contracts...</div>
-        ) : contracts.length === 0 ? (
-          <div className="text-sm text-gray-500">No contracts found.</div>
-        ) : (
-          <>
-            {/* Mobile Card Layout */}
-            <div className="block sm:hidden space-y-3">
-              {contracts.map((contract) => (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-red-600" />
+                <span>Client Contracts</span>
+                <Badge variant="secondary" className="ml-2">
+                  {contracts.length}
+                </Badge>
+              </div>
+              {isOpen ? (
+                <ChevronUp className="h-5 w-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              )}
+            </CardTitle>
+            <CardDescription>
+              View and download signed contracts from your clients
+            </CardDescription>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent>
+            {/* Search Bar */}
+            {contracts.length > 0 && (
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search by client name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                {searchTerm && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Showing {filteredContracts.length} of {contracts.length} contracts
+                  </p>
+                )}
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-sm">Loading contracts...</div>
+            ) : contracts.length === 0 ? (
+              <div className="text-sm text-gray-500">No contracts found.</div>
+            ) : filteredContracts.length === 0 && searchTerm ? (
+              <div className="text-sm text-gray-500">
+                No contracts found matching "{searchTerm}".
+              </div>
+            ) : (
+              <>
+                {/* Mobile Card Layout */}
+                <div className="block sm:hidden space-y-3">
+                  {filteredContracts.map((contract) => (
                 <div
                   key={contract.id}
                   className="border rounded-lg p-3 bg-white dark:bg-gray-900"
@@ -600,74 +660,76 @@ function ClientContractsSection() {
               ))}
             </div>
 
-            {/* Desktop Table Layout */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                      Client
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                      Email
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                      Date Signed
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-                  {contracts.map((contract) => (
-                    <tr
-                      key={contract.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/70"
-                    >
-                      <td className="px-4 py-2 whitespace-nowrap text-gray-900 dark:text-gray-200">
-                        {contract.user?.full_name || contract.user_id}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">
-                        {contract.user?.email || "-"}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">
-                        {contract.signed_at
-                          ? new Date(contract.signed_at).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleView(contract.pdf_url)}
-                          disabled={!contract.pdf_url}
+                {/* Desktop Table Layout */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+                    <thead>
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          Client
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          Email
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          Date Signed
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                      {filteredContracts.map((contract) => (
+                        <tr
+                          key={contract.id}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-800/70"
                         >
-                          <Eye className="h-4 w-4 mr-1" /> View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleDownload(
-                              contract.pdf_url,
-                              contract.user?.full_name || contract.user_id
-                            )
-                          }
-                          disabled={!contract.pdf_url}
-                        >
-                          <Download className="h-4 w-4 mr-1" /> Download
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+                          <td className="px-4 py-2 whitespace-nowrap text-gray-900 dark:text-gray-200">
+                            {contract.user?.full_name || contract.user_id}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                            {contract.user?.email || "-"}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                            {contract.signed_at
+                              ? new Date(contract.signed_at).toLocaleDateString()
+                              : "-"}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleView(contract.pdf_url)}
+                              disabled={!contract.pdf_url}
+                            >
+                              <Eye className="h-4 w-4 mr-1" /> View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                handleDownload(
+                                  contract.pdf_url,
+                                  contract.user?.full_name || contract.user_id
+                                )
+                              }
+                              disabled={!contract.pdf_url}
+                            >
+                              <Download className="h-4 w-4 mr-1" /> Download
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
 
