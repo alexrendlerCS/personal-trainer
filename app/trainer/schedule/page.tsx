@@ -1823,8 +1823,26 @@ export default function TrainerSchedulePage() {
 
       // Sync Google Calendar events
       try {
+        console.log("[Edit Session] Fetching fresh session data for sync");
+        const { data: freshSession, error: fetchError } = await supabase
+          .from("sessions")
+          .select(`
+            id, client_id, trainer_id, date, start_time, end_time, type, status, notes, session_notes,
+            duration_minutes, timezone, google_event_id, client_google_event_id,
+            users!sessions_client_id_fkey (full_name, email)
+          `)
+          .eq("id", editingSession.id)
+          .single();
+
+        if (fetchError || !freshSession) {
+          console.error("[Edit Session] Failed to fetch fresh session data:", fetchError);
+          throw new Error("Failed to fetch updated session data");
+        }
+
+        console.log("[Edit Session] Fresh session data retrieved:", freshSession);
+
         await syncGoogleCalendarEvents(
-          editingSession,
+          freshSession,
           editSessionData.date,
           editSessionData.startTime,
           editSessionData.endTime
@@ -4041,10 +4059,29 @@ export default function TrainerSchedulePage() {
                       // Show syncing state
                       setIsSyncingCalendar(true);
 
-                      // Sync Google Calendar events
+                      // Fetch fresh session data with user details before syncing
                       try {
+                        console.log("[Reschedule] Fetching fresh session data for sync");
+                        const { data: freshSession, error: fetchError } = await supabase
+                          .from("sessions")
+                          .select(`
+                            id, client_id, trainer_id, date, start_time, end_time, type, status, notes, session_notes,
+                            duration_minutes, timezone, google_event_id, client_google_event_id,
+                            users!sessions_client_id_fkey (full_name, email)
+                          `)
+                          .eq("id", session.id)
+                          .single();
+
+                        if (fetchError || !freshSession) {
+                          console.error("[Reschedule] Failed to fetch fresh session data:", fetchError);
+                          throw new Error("Failed to fetch updated session data");
+                        }
+
+                        console.log("[Reschedule] Fresh session data retrieved:", freshSession);
+
+                        // Sync Google Calendar events with fresh session data
                         await syncGoogleCalendarEvents(
-                          session,
+                          freshSession,
                           newDateStr,
                           newStartTime,
                           newEndTime
@@ -4453,17 +4490,32 @@ function addMinutesToTime(time: string, minutesToAdd: number): string {
 
 // Function to sync Google Calendar events after session update
 async function syncGoogleCalendarEvents(
-  session: DatabaseSession,
+  session: any, // Fresh database session with user data
   newDate: string,
   newStartTime: string,
   newEndTime: string
 ) {
-  // Get client and trainer details
-  const clientId = session._dbData?.client_id;
-  const trainerId = session._dbData?.trainer_id;
+  // Get client and trainer details from the fresh database session
+  const clientId = session.client_id;
+  const trainerId = session.trainer_id;
+  const clientName = session.users?.full_name;
+  const clientEmail = session.users?.email;
+
+  console.log("[Calendar Sync] Session data:", {
+    sessionId: session.id,
+    clientId,
+    trainerId,
+    clientName,
+    clientEmail,
+    sessionType: session.type,
+  });
 
   if (!clientId || !trainerId) {
     throw new Error("Missing client or trainer ID");
+  }
+
+  if (!clientName) {
+    console.warn("[Calendar Sync] No client name found in session data");
   }
 
   // Build event details
@@ -4471,9 +4523,9 @@ async function syncGoogleCalendarEvents(
   const endDateTime = new Date(`${newDate}T${newEndTime}`);
 
   const eventDetails = {
-    type: session._dbData?.type || "Training",
-    clientName: session.users?.full_name || "Client",
-    description: `${session._dbData?.type || "Training"} session${session.description ? ` - ${session.description}` : ""}`,
+    type: session.type || "Training",
+    clientName: clientName || "Client",
+    description: `${session.type || "Training"} session${session.session_notes || session.notes ? ` - ${session.session_notes || session.notes}` : ""}`,
     start: {
       dateTime: startDateTime.toISOString(),
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -4482,11 +4534,19 @@ async function syncGoogleCalendarEvents(
       dateTime: endDateTime.toISOString(),
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
-    attendees: session.users?.email ? [{ email: session.users.email }] : [],
+    attendees: clientEmail ? [{ email: clientEmail }] : [],
     reminders: {
       useDefault: true,
     },
   };
+
+  console.log("[Calendar Sync] Event details being sent:", {
+    type: eventDetails.type,
+    clientName: eventDetails.clientName,
+    trainerId,
+    clientId,
+    sessionId: session.id,
+  });
 
   // Update the current session
   console.log("[Calendar Sync] Updating current session calendar events");
