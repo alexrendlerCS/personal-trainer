@@ -192,8 +192,8 @@ export async function POST(req: Request) {
         // Special description for single sessions (no expiry)
         let singleDesc = `🎯 Single ${sessionType.replace(/s$/, '')} — book anytime after purchase!`;
         if (discount) {
-          const discountText = discount.type === 'percent' 
-            ? `${discount.value}% off` 
+          const discountText = discount.type === 'percent'
+            ? `${discount.value}% off`
             : `$${(discount.value / 100).toFixed(2)} off`;
           singleDesc += ` • 🎉 ${discountText} applied!`;
         }
@@ -202,8 +202,8 @@ export async function POST(req: Request) {
         // Standard package description
         let baseDesc = `🎯 Includes ${sessions} ${sessionType} — book after checkout! • ⏳ Expires ${expiryDate}`;
         if (discount) {
-          const discountText = discount.type === 'percent' 
-            ? `${discount.value}% off` 
+          const discountText = discount.type === 'percent'
+            ? `${discount.value}% off`
             : `$${(discount.value / 100).toFixed(2)} off`;
           baseDesc += ` • 🎉 ${discountText} applied!`;
         }
@@ -243,7 +243,7 @@ export async function POST(req: Request) {
     // Validate promo code and calculate discount if provided
     let finalAmount = amount;
     let discountInfo: { type: string; value: number; discountAmount: number } | null = null;
-    
+
     if (promoCode) {
       const supabase = createClient();
       const { data, error } = await supabase
@@ -251,7 +251,7 @@ export async function POST(req: Request) {
         .select("percent_off, amount_off, code, expires_at, max_redemptions")
         .eq("code", promoCode)
         .maybeSingle();
-        
+
       if (error) {
         console.error("❌ Error validating promo code:", error);
         return NextResponse.json(
@@ -259,14 +259,14 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      
+
       if (!data) {
         return NextResponse.json(
           { error: "Invalid promo code" },
           { status: 400 }
         );
       }
-      
+
       // Check if promo code is expired
       if (data.expires_at && new Date(data.expires_at) < new Date()) {
         return NextResponse.json(
@@ -274,7 +274,7 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      
+
       // Calculate the discount amount
       let discountAmount = 0;
       if (data.percent_off) {
@@ -292,10 +292,10 @@ export async function POST(req: Request) {
           discountAmount
         };
       }
-      
+
       // Apply the discount to the final amount
       finalAmount = Math.max(0, amount - discountAmount);
-      
+
       console.log("💰 Promo code applied:", {
         code: promoCode,
         originalAmount: amount,
@@ -331,7 +331,7 @@ export async function POST(req: Request) {
         },
       ],
       mode: "payment",
-      success_url: `${origin}/client/packages?success=true`,
+      success_url: `${origin}/client/checkout?success=true&sessionsIncluded=${actualSessions}&packageType=${encodeURIComponent(packageType)}`,
       cancel_url: `${origin}/client/packages?canceled=true`,
       custom_text: {
         submit: {

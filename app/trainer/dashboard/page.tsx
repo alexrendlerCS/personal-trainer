@@ -984,7 +984,7 @@ export default function TrainerDashboard() {
                       {Math.round(
                         ((revenueThisMonth - revenueLastMonth) /
                           revenueLastMonth) *
-                          100
+                        100
                       )}
                       % from last month
                     </>
@@ -1053,7 +1053,7 @@ export default function TrainerDashboard() {
                           );
                           end = new Date(
                             startDate.getTime() +
-                              session.duration_minutes * 60000
+                            session.duration_minutes * 60000
                           );
                         } else if (session.start_time) {
                           const startDate = new Date(
@@ -1064,10 +1064,10 @@ export default function TrainerDashboard() {
                         const formatTime = (date: Date | null) =>
                           date
                             ? date.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })
                             : "";
                         const formattedTime = `${formatTime(start)} - ${formatTime(end)}`;
                         // Status badge color
@@ -1254,7 +1254,7 @@ export default function TrainerDashboard() {
                               </p>
                             </div>
                           </div>
-                          
+
                           {/* Right side - Badges and button */}
                           <div className="flex flex-wrap sm:flex-col lg:flex-row items-start sm:items-end lg:items-center gap-2 sm:gap-1 lg:gap-2 flex-shrink-0">
                             <div className="flex gap-2">
@@ -1264,11 +1264,10 @@ export default function TrainerDashboard() {
                                     ? "default"
                                     : "secondary"
                                 }
-                                className={`text-xs ${
-                                  client.google_account_connected
+                                className={`text-xs ${client.google_account_connected
                                     ? "bg-green-500 text-white"
                                     : "bg-gray-400 text-white"
-                                }`}
+                                  }`}
                               >
                                 Google
                               </Badge>
@@ -1278,11 +1277,10 @@ export default function TrainerDashboard() {
                                     ? "default"
                                     : "secondary"
                                 }
-                                className={`text-xs ${
-                                  client.contract_accepted
+                                className={`text-xs ${client.contract_accepted
                                     ? "bg-green-500 text-white"
                                     : "bg-gray-400 text-white"
-                                }`}
+                                  }`}
                               >
                                 Contract
                               </Badge>
@@ -1372,13 +1370,12 @@ export default function TrainerDashboard() {
                             </p>
                             <Badge
                               variant="default"
-                              className={`text-xs ${
-                                payment.status === "completed"
+                              className={`text-xs ${payment.status === "completed"
                                   ? "bg-green-100 text-green-800"
                                   : payment.status === "pending"
                                     ? "bg-yellow-100 text-yellow-800"
                                     : "bg-red-100 text-red-800"
-                              }`}
+                                }`}
                             >
                               {payment.status === "completed"
                                 ? "Completed"

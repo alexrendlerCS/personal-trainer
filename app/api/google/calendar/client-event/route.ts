@@ -94,30 +94,29 @@ export async function POST(request: Request) {
     } catch (authError) {
       // Handle authentication errors gracefully
       console.warn("Client Google Calendar authentication failed:", authError);
-      
+
       // Check if it's an authentication/token error
       const errorMessage = authError instanceof Error ? authError.message : String(authError);
-      if (errorMessage.includes('invalid_grant') || 
-          errorMessage.includes('invalid_token') || 
-          errorMessage.includes('unauthorized') ||
-          errorMessage.includes('authentication')) {
-        
+      if (errorMessage.includes('invalid_grant') ||
+        errorMessage.includes('invalid_token') ||
+        errorMessage.includes('unauthorized') ||
+        errorMessage.includes('authentication')) {
+
         console.log("Returning success despite calendar auth failure to allow session booking to continue");
-        return NextResponse.json({ 
-          eventId: null, 
+        return NextResponse.json({
+          eventId: null,
           error: 'calendar_auth_failed',
-          message: 'Session created but client calendar sync failed - client needs to reconnect Google Calendar' 
+          message: 'Session created but client calendar sync failed - client needs to reconnect Google Calendar'
         });
       }
-      
+
       // Re-throw non-auth errors
       throw authError;
     }
   } catch (error) {
     console.error("Client calendar event creation error:", error);
     return new NextResponse(
-      `Failed to create client calendar event: ${
-        error instanceof Error ? error.message : "Unknown error"
+      `Failed to create client calendar event: ${error instanceof Error ? error.message : "Unknown error"
       }`,
       { status: 500 }
     );

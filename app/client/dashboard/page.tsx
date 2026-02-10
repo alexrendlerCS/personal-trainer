@@ -973,22 +973,20 @@ export default function ClientDashboard() {
                   <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          totalSessionsRemaining === 0
+                        className={`w-12 h-12 rounded-full flex items-center justify-center ${totalSessionsRemaining === 0
                             ? "bg-red-100"
                             : totalSessionsRemaining <= 2
                               ? "bg-yellow-500"
                               : "bg-green-100"
-                        }`}
+                          }`}
                       >
                         <span
-                          className={`text-xl font-bold ${
-                            totalSessionsRemaining === 0
+                          className={`text-xl font-bold ${totalSessionsRemaining === 0
                               ? "text-red-600"
                               : totalSessionsRemaining <= 2
                                 ? "text-yellow-900"
                                 : "text-green-600"
-                          }`}
+                            }`}
                         >
                           {totalSessionsRemaining}
                         </span>
@@ -1008,16 +1006,15 @@ export default function ClientDashboard() {
                     </div>
                     {(totalSessionsRemaining === 0 ||
                       totalSessionsRemaining <= 2) && (
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                          totalSessionsRemaining === 0
-                            ? "bg-red-500"
-                            : "bg-yellow-500"
-                        }`}
-                      >
-                        <AlertCircle className="h-3 w-3 text-white" />
-                      </div>
-                    )}
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center ${totalSessionsRemaining === 0
+                              ? "bg-red-500"
+                              : "bg-yellow-500"
+                            }`}
+                        >
+                          <AlertCircle className="h-3 w-3 text-white" />
+                        </div>
+                      )}
                   </div>
 
                   {/* Package Breakdown - Compact */}
@@ -1034,15 +1031,14 @@ export default function ClientDashboard() {
                           >
                             <div className="flex items-center gap-2">
                               <div
-                                className={`w-2 h-2 rounded-full ${
-                                  index === 0
+                                className={`w-2 h-2 rounded-full ${index === 0
                                     ? "bg-red-500"
                                     : index === 1
                                       ? "bg-blue-500"
                                       : index === 2
                                         ? "bg-green-500"
                                         : "bg-purple-500"
-                                }`}
+                                  }`}
                               ></div>
                               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                 {type.type === "Posing Package" ? "Posing" : type.type.split(" ")[0]}
@@ -1106,26 +1102,24 @@ export default function ClientDashboard() {
                             <div className="flex items-center gap-2">
                               <div className="flex-1 bg-gray-200 rounded-full h-1.5">
                                 <div
-                                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                                    daysUntilExpiration <= 1
+                                  className={`h-1.5 rounded-full transition-all duration-300 ${daysUntilExpiration <= 1
                                       ? "bg-red-500"
                                       : daysUntilExpiration <= 7
                                         ? "bg-yellow-500"
                                         : "bg-green-500"
-                                  }`}
+                                    }`}
                                   style={{
                                     width: `${Math.max(5, Math.min(100, (daysUntilExpiration / 30) * 100))}%`,
                                   }}
                                 ></div>
                               </div>
                               <span
-                                className={`text-xs font-medium ${
-                                  daysUntilExpiration <= 1
+                                className={`text-xs font-medium ${daysUntilExpiration <= 1
                                     ? "text-red-700"
                                     : daysUntilExpiration <= 7
                                       ? "text-yellow-700"
                                       : "text-green-700"
-                                }`}
+                                  }`}
                               >
                                 {daysUntilExpiration}d
                               </span>

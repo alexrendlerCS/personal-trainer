@@ -289,10 +289,10 @@ function PackagesContent() {
   const [showSingleSessionModal, setShowSingleSessionModal] = useState(false);
   const [selectedSessionType, setSelectedSessionType] =
     useState<PackageType | null>(null);
-  
+
   // Package filter state
   const [selectedPackageType, setSelectedPackageType] = useState<PackageType>("In-Person Training");
-  
+
   const singleSessionPrice = 150;
   const singleSessionSection: PackageSection = {
     title: selectedSessionType || "In-Person Training",
@@ -940,11 +940,10 @@ function PackagesContent() {
           <div className="flex flex-col gap-2 sm:gap-4 overflow-y-auto flex-1 min-h-0 pb-2">
             {/* Option 1: Full Package for Current Month */}
             <div
-              className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                selectedPurchaseOption === "current_month"
+              className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedPurchaseOption === "current_month"
                   ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
                   : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-              }`}
+                }`}
               onClick={() => setSelectedPurchaseOption("current_month")}
             >
               <div className="flex justify-between items-start mb-1 sm:mb-2">
@@ -970,11 +969,10 @@ function PackagesContent() {
 
             {/* Option 2: Full Package for Next Month */}
             <div
-              className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all mb-2 ${
-                selectedPurchaseOption === "next_month"
+              className={`p-2 sm:p-4 border-2 rounded-lg cursor-pointer transition-all mb-2 ${selectedPurchaseOption === "next_month"
                   ? "border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400"
                   : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-              }`}
+                }`}
               onClick={() => setSelectedPurchaseOption("next_month")}
             >
               <div className="flex justify-between items-start mb-1 sm:mb-2">
@@ -1073,13 +1071,12 @@ function PackagesContent() {
                     return (
                       <div
                         key={packageType.type}
-                        className={`p-4 rounded-lg ${
-                          isNewlyPurchased
+                        className={`p-4 rounded-lg ${isNewlyPurchased
                             ? "bg-green-50 border-2 border-green-200"
                             : packageType.remaining > 0
                               ? "bg-gray-50 border border-gray-200"
                               : "bg-gray-50 border border-gray-100"
-                        }`}
+                          }`}
                       >
                         <div className="flex justify-between items-center">
                           <div className="text-gray-700 font-medium">
@@ -1087,13 +1084,12 @@ function PackagesContent() {
                           </div>
                           <div className="text-sm">
                             <span
-                              className={`font-semibold ${
-                                isNewlyPurchased
+                              className={`font-semibold ${isNewlyPurchased
                                   ? "text-green-600"
                                   : packageType.remaining > 0
                                     ? "text-gray-700"
                                     : "text-gray-500"
-                              }`}
+                                }`}
                             >
                               {isNewlyPurchased ? (
                                 <CountUp
@@ -1222,7 +1218,7 @@ function PackagesContent() {
               </h3>
               <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-1 overflow-hidden">
                 {/* Glossy red background slider */}
-                <div 
+                <div
                   className="absolute top-1 bottom-1 rounded-xl shadow-lg transition-all duration-500 ease-in-out transform bg-red-600"
                   style={{
                     width: `${100 / packageSections.length}%`,
@@ -1231,25 +1227,24 @@ function PackagesContent() {
                   }}
                 >
                   {/* Glossy highlight overlay */}
-                  <div 
+                  <div
                     className="absolute inset-0 rounded-xl"
                     style={{
                       background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 0, 0, 0.1) 100%)'
                     }}
                   />
                 </div>
-                
+
                 {/* Filter buttons */}
                 <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-0">
                   {packageSections.map((section, index) => (
                     <button
                       key={section.title}
                       onClick={() => setSelectedPackageType(section.title as PackageType)}
-                      className={`relative px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 rounded-xl z-10 hover:scale-[1.02] active:scale-[0.98] ${
-                        selectedPackageType === section.title
+                      className={`relative px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 rounded-xl z-10 hover:scale-[1.02] active:scale-[0.98] ${selectedPackageType === section.title
                           ? 'text-white drop-shadow-sm transform scale-[1.01]'
                           : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                      }`}
+                        }`}
                     >
                       <div className="flex flex-col items-center gap-1 sm:gap-2">
                         <span className="font-medium leading-tight text-center tracking-wide">
@@ -1279,13 +1274,12 @@ function PackagesContent() {
                             </>
                           ) : section.title}
                         </span>
-                        
+
                         {/* Active indicator line */}
-                        <div className={`w-8 sm:w-12 h-0.5 rounded-full transition-all duration-300 ${
-                          selectedPackageType === section.title 
-                            ? 'bg-white/60 shadow-sm' 
+                        <div className={`w-8 sm:w-12 h-0.5 rounded-full transition-all duration-300 ${selectedPackageType === section.title
+                            ? 'bg-white/60 shadow-sm'
                             : 'bg-transparent'
-                        }`} />
+                          }`} />
                       </div>
                     </button>
                   ))}
@@ -1299,196 +1293,196 @@ function PackagesContent() {
           {packageSections
             .filter((section) => section.title === selectedPackageType)
             .map((section) => (
-            <div key={section.title} className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-                    {section.title}
-                  </h2>
-                  <p className="mt-1 sm:mt-2 text-base sm:text-lg text-gray-600 dark:text-gray-400">
-                    {section.description}
-                  </p>
+              <div key={section.title} className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                      {section.title}
+                    </h2>
+                    <p className="mt-1 sm:mt-2 text-base sm:text-lg text-gray-600 dark:text-gray-400">
+                      {section.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-                {section.packages.map((pkg) => (
-                  <div key={pkg.id} className="relative pt-3">
-                    {/* Top center badge - positioned above the card */}
-                    {(pkg.sessionsPerWeek === 4 || (pkg.sessionsPerWeek > 2 && pkg.sessionsPerWeek !== 4)) && (
-                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-10">
-                        {pkg.sessionsPerWeek === 4 && (
-                          <span className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold shadow-lg animate-pulse whitespace-nowrap">
-                            ⭐ MOST POPULAR
-                          </span>
-                        )}
-                        {pkg.sessionsPerWeek > 2 && pkg.sessionsPerWeek !== 4 && (
-                          <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
-                            Popular
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden group hover:scale-[1.02]">
-                      {/* Header with package name */}
-                      <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-600">
-                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-white leading-tight text-center">
-                          {pkg.name}
-                        </h3>
-                      </div>
-
-                    {/* Price section */}
-                    <div className="px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6">
-                      <div className="text-center mb-4 sm:mb-5 lg:mb-6">
-                        <div className="flex items-baseline justify-center gap-1">
-                          {discountedPrices[pkg.id] != null ? (
-                            <>
-                              <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black text-red-600 dark:text-red-400">
-                                ${discountedPrices[pkg.id]}
-                              </span>
-                              <span className="text-xs sm:text-sm text-gray-500 line-through ml-1 sm:ml-2">
-                                ${pkg.monthlyPrice}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black text-gray-900 dark:text-white">
-                              ${pkg.monthlyPrice}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+                  {section.packages.map((pkg) => (
+                    <div key={pkg.id} className="relative pt-3">
+                      {/* Top center badge - positioned above the card */}
+                      {(pkg.sessionsPerWeek === 4 || (pkg.sessionsPerWeek > 2 && pkg.sessionsPerWeek !== 4)) && (
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-10">
+                          {pkg.sessionsPerWeek === 4 && (
+                            <span className="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold shadow-lg animate-pulse whitespace-nowrap">
+                              ⭐ MOST POPULAR
                             </span>
                           )}
-                          <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 ml-1">
-                            {section.title === "Posing Package" && pkg.sessionsPerWeek === 0 
-                              ? "total" 
-                              : "/month"}
-                          </span>
-                        </div>
-                        <div className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
-                          ${pkg.hourlyRate}/hour • {pkg.monthlySessionCount} sessions/month
-                        </div>
-                      </div>
-
-                      {/* Features */}
-                      <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5 lg:mb-6">
-                        <div className="flex items-center justify-center text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {section.title === "Posing Package" && pkg.sessionsPerWeek === 0 ? (
-                            <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-center">
-                              No Commitment
-                            </div>
-                          ) : (
-                            <div className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-center">
-                              {pkg.sessionsPerWeek}x per week
-                            </div>
+                          {pkg.sessionsPerWeek > 2 && pkg.sessionsPerWeek !== 4 && (
+                            <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
+                              Popular
+                            </span>
                           )}
                         </div>
-                        <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                          {pkg.monthlySessionCount} session{pkg.monthlySessionCount > 1 ? 's' : ''} 
-                          {section.title === "Posing Package" && pkg.sessionsPerWeek === 0 ? " included" : " per month"}
-                        </div>
-                      </div>
+                      )}
 
-                      {/* Detailed features list */}
-                      <div className="space-y-3 mb-4 sm:mb-5 lg:mb-6">
-                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4">
-                          <div className="space-y-2.5">
-                            <div className="flex items-center gap-2.5">
-                              <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                                <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
-                              </div>
-                              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                {pkg.sessionsPerWeek}x sessions per week
+                      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden group hover:scale-[1.02]">
+                        {/* Header with package name */}
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-600">
+                          <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-white leading-tight text-center">
+                            {pkg.name}
+                          </h3>
+                        </div>
+
+                        {/* Price section */}
+                        <div className="px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6">
+                          <div className="text-center mb-4 sm:mb-5 lg:mb-6">
+                            <div className="flex items-baseline justify-center gap-1">
+                              {discountedPrices[pkg.id] != null ? (
+                                <>
+                                  <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black text-red-600 dark:text-red-400">
+                                    ${discountedPrices[pkg.id]}
+                                  </span>
+                                  <span className="text-xs sm:text-sm text-gray-500 line-through ml-1 sm:ml-2">
+                                    ${pkg.monthlyPrice}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black text-gray-900 dark:text-white">
+                                  ${pkg.monthlyPrice}
+                                </span>
+                              )}
+                              <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 ml-1">
+                                {section.title === "Posing Package" && pkg.sessionsPerWeek === 0
+                                  ? "total"
+                                  : "/month"}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2.5">
-                              <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                                <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
-                              </div>
-                              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                {pkg.monthlySessionCount} sessions per month
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2.5">
-                              <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                                <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
-                              </div>
-                              <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                ${pkg.hourlyRate} per hour
-                              </span>
+                            <div className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
+                              ${pkg.hourlyRate}/hour • {pkg.monthlySessionCount} sessions/month
                             </div>
                           </div>
-                        </div>
-                      </div>
 
-                      {/* Promo code section */}
-                      <div className="mb-4 sm:mb-5 lg:mb-6">
-                        <label htmlFor={`promo-code-${pkg.id}`} className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
-                          Promo Code (optional)
-                        </label>
-                        <div className="relative">
-                          <input
-                            id={`promo-code-${pkg.id}`}
-                            type="text"
-                            value={promoCodes[pkg.id] || ""}
-                            onChange={(e) => {
-                              setPromoCodes((prev) => ({
-                                ...prev,
-                                [pkg.id]: e.target.value,
-                              }));
-                            }}
-                            className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 focus:outline-none focus:border-red-500 dark:focus:border-red-400 placeholder:text-gray-400 dark:bg-gray-800 dark:text-gray-100 text-xs sm:text-sm transition-colors"
-                            placeholder="Enter Promo Code"
-                            disabled={
-                              isLoading === pkg.id || validatingPromo === pkg.id
-                            }
-                            autoComplete="off"
-                          />
-                          <button
-                            type="button"
-                            className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 focus:outline-none transition-colors"
-                            onClick={() => validatePromoCode(pkg, section)}
-                            disabled={
-                              isLoading === pkg.id ||
-                              validatingPromo === pkg.id ||
-                              !promoCodes[pkg.id]?.trim()
-                            }
-                          >
-                            {validatingPromo === pkg.id ? (
-                              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                            ) : discountedPrices[pkg.id] != null ? (
-                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
-                            ) : (
-                              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                          {/* Features */}
+                          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5 lg:mb-6">
+                            <div className="flex items-center justify-center text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {section.title === "Posing Package" && pkg.sessionsPerWeek === 0 ? (
+                                <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-center">
+                                  No Commitment
+                                </div>
+                              ) : (
+                                <div className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-center">
+                                  {pkg.sessionsPerWeek}x per week
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                              {pkg.monthlySessionCount} session{pkg.monthlySessionCount > 1 ? 's' : ''}
+                              {section.title === "Posing Package" && pkg.sessionsPerWeek === 0 ? " included" : " per month"}
+                            </div>
+                          </div>
+
+                          {/* Detailed features list */}
+                          <div className="space-y-3 mb-4 sm:mb-5 lg:mb-6">
+                            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4">
+                              <div className="space-y-2.5">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+                                  </div>
+                                  <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                    {pkg.sessionsPerWeek}x sessions per week
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                  <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+                                  </div>
+                                  <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                    {pkg.monthlySessionCount} sessions per month
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                  <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+                                  </div>
+                                  <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                    ${pkg.hourlyRate} per hour
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Promo code section */}
+                          <div className="mb-4 sm:mb-5 lg:mb-6">
+                            <label htmlFor={`promo-code-${pkg.id}`} className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
+                              Promo Code (optional)
+                            </label>
+                            <div className="relative">
+                              <input
+                                id={`promo-code-${pkg.id}`}
+                                type="text"
+                                value={promoCodes[pkg.id] || ""}
+                                onChange={(e) => {
+                                  setPromoCodes((prev) => ({
+                                    ...prev,
+                                    [pkg.id]: e.target.value,
+                                  }));
+                                }}
+                                className="w-full border-2 border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 focus:outline-none focus:border-red-500 dark:focus:border-red-400 placeholder:text-gray-400 dark:bg-gray-800 dark:text-gray-100 text-xs sm:text-sm transition-colors"
+                                placeholder="Enter Promo Code"
+                                disabled={
+                                  isLoading === pkg.id || validatingPromo === pkg.id
+                                }
+                                autoComplete="off"
+                              />
+                              <button
+                                type="button"
+                                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 focus:outline-none transition-colors"
+                                onClick={() => validatePromoCode(pkg, section)}
+                                disabled={
+                                  isLoading === pkg.id ||
+                                  validatingPromo === pkg.id ||
+                                  !promoCodes[pkg.id]?.trim()
+                                }
+                              >
+                                {validatingPromo === pkg.id ? (
+                                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                                ) : discountedPrices[pkg.id] != null ? (
+                                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
+                                ) : (
+                                  <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                                )}
+                              </button>
+                            </div>
+                            {promoErrors[pkg.id] && (
+                              <div className="text-red-500 dark:text-red-400 text-xs mt-2 text-center bg-red-50 dark:bg-red-900/20 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
+                                {promoErrors[pkg.id]}
+                              </div>
                             )}
-                          </button>
-                        </div>
-                        {promoErrors[pkg.id] && (
-                          <div className="text-red-500 dark:text-red-400 text-xs mt-2 text-center bg-red-50 dark:bg-red-900/20 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
-                            {promoErrors[pkg.id]}
                           </div>
-                        )}
-                      </div>
 
-                      {/* Purchase button */}
-                      <Button
-                        className="w-full bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white py-3 sm:py-4 text-sm sm:text-base font-semibold rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group-hover:scale-[1.02]"
-                        onClick={() => handleCheckout(pkg, section)}
-                        disabled={isLoading === pkg.id}
-                      >
-                        {isLoading === pkg.id ? (
-                          <>
-                            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-2" />
-                            Processing...
-                          </>
-                        ) : (
-                          "Purchase Package"
-                        )}
-                      </Button>
+                          {/* Purchase button */}
+                          <Button
+                            className="w-full bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white py-3 sm:py-4 text-sm sm:text-base font-semibold rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group-hover:scale-[1.02]"
+                            onClick={() => handleCheckout(pkg, section)}
+                            disabled={isLoading === pkg.id}
+                          >
+                            {isLoading === pkg.id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-2" />
+                                Processing...
+                              </>
+                            ) : (
+                              "Purchase Package"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </main>
     </div>

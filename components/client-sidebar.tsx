@@ -139,9 +139,8 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
           <span className="sr-only">Close</span>
         </button>
         <h2
-          className={`text-lg font-semibold mb-2 pr-6 ${
-            variant === "success" ? "text-green-600" : "text-red-600"
-          }`}
+          className={`text-lg font-semibold mb-2 pr-6 ${variant === "success" ? "text-green-600" : "text-red-600"
+            }`}
         >
           {title}
         </h2>

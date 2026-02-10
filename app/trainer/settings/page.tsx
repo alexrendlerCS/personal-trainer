@@ -526,7 +526,7 @@ function ClientContractsSection() {
     const clientName = contract.user?.full_name || contract.user_id || "";
     const clientEmail = contract.user?.email || "";
     const searchLower = searchTerm.toLowerCase();
-    
+
     return (
       clientName.toLowerCase().includes(searchLower) ||
       clientEmail.toLowerCase().includes(searchLower)
@@ -611,54 +611,54 @@ function ClientContractsSection() {
                 {/* Mobile Card Layout */}
                 <div className="block sm:hidden space-y-3">
                   {filteredContracts.map((contract) => (
-                <div
-                  key={contract.id}
-                  className="border rounded-lg p-3 bg-white dark:bg-gray-900"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                        {contract.user?.full_name || contract.user_id}
-                      </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {contract.user?.email || "-"}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Signed:{" "}
-                        {contract.signed_at
-                          ? new Date(contract.signed_at).toLocaleDateString()
-                          : "-"}
-                      </p>
+                    <div
+                      key={contract.id}
+                      className="border rounded-lg p-3 bg-white dark:bg-gray-900"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                            {contract.user?.full_name || contract.user_id}
+                          </h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {contract.user?.email || "-"}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Signed:{" "}
+                            {contract.signed_at
+                              ? new Date(contract.signed_at).toLocaleDateString()
+                              : "-"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleView(contract.pdf_url)}
+                          disabled={!contract.pdf_url}
+                          className="flex-1 text-xs h-8"
+                        >
+                          <Eye className="h-3 w-3 mr-1" /> View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleDownload(
+                              contract.pdf_url,
+                              contract.user?.full_name || contract.user_id
+                            )
+                          }
+                          disabled={!contract.pdf_url}
+                          className="flex-1 text-xs h-8"
+                        >
+                          <Download className="h-3 w-3 mr-1" /> Download
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleView(contract.pdf_url)}
-                      disabled={!contract.pdf_url}
-                      className="flex-1 text-xs h-8"
-                    >
-                      <Eye className="h-3 w-3 mr-1" /> View
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        handleDownload(
-                          contract.pdf_url,
-                          contract.user?.full_name || contract.user_id
-                        )
-                      }
-                      disabled={!contract.pdf_url}
-                      className="flex-1 text-xs h-8"
-                    >
-                      <Download className="h-3 w-3 mr-1" /> Download
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
                 {/* Desktop Table Layout */}
                 <div className="hidden sm:block overflow-x-auto">

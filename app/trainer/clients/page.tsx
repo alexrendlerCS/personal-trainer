@@ -174,7 +174,7 @@ export default function TrainerClientsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
-  
+
   // Add Sessions Modal State
   const [showAddSessionsModal, setShowAddSessionsModal] = useState(false);
   const [selectedClientForSessions, setSelectedClientForSessions] = useState<Client | null>(null);
@@ -184,7 +184,7 @@ export default function TrainerClientsPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  
+
   const supabase = createClient();
   const router = useRouter();
   const { toast } = useToast();
@@ -412,9 +412,8 @@ export default function TrainerClientsPage() {
               {pkg.package_type}:
             </span>
             <span
-              className={`font-bold ${
-                pkg.remaining > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-              }`}
+              className={`font-bold ${pkg.remaining > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                }`}
             >
               {pkg.remaining} remaining
             </span>
@@ -478,7 +477,7 @@ export default function TrainerClientsPage() {
   // Handle submitting Add Sessions
   const handleSubmitAddSessions = async () => {
     if (!selectedClientForSessions) return;
-    
+
     setIsAddingSession(true);
     try {
       const numSessionsNum = parseInt(numSessions);
@@ -491,9 +490,9 @@ export default function TrainerClientsPage() {
         .eq("package_type", sessionType)
         .eq("status", "active")
         .single();
-      
+
       if (pkgError && pkgError.code !== "PGRST116") throw pkgError;
-      
+
       if (existing) {
         // Add sessions to existing package
         const { error: updateError } = await supabase
@@ -503,9 +502,9 @@ export default function TrainerClientsPage() {
             original_sessions: (existing.original_sessions || 0) + numSessionsNum,
           })
           .eq("id", existing.id);
-        
+
         if (updateError) throw updateError;
-        
+
         setSuccessMessage(
           `Added ${numSessionsNum} session(s) to ${selectedClientForSessions.full_name}'s existing package.`
         );
@@ -519,21 +518,21 @@ export default function TrainerClientsPage() {
           status: "active",
           purchase_date: new Date().toISOString().split("T")[0],
         });
-        
+
         if (createError) throw createError;
-        
+
         setSuccessMessage(
           `Created new package and added ${numSessionsNum} session(s) to ${selectedClientForSessions.full_name}.`
         );
       }
-      
+
       setShowSuccessDialog(true);
       setShowAddSessionsModal(false);
       setShowConfirmDialog(false);
-      
+
       // Refresh client data to show updated packages
       await fetchClients();
-      
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
       toast({
@@ -745,20 +744,18 @@ export default function TrainerClientsPage() {
                 <Button
                   variant={statusFilter === "all" ? "default" : "outline"}
                   onClick={() => setStatusFilter("all")}
-                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${
-                    statusFilter === "all" ? "bg-red-600 hover:bg-red-700" : ""
-                  }`}
+                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${statusFilter === "all" ? "bg-red-600 hover:bg-red-700" : ""
+                    }`}
                 >
                   All
                 </Button>
                 <Button
                   variant={statusFilter === "active" ? "default" : "outline"}
                   onClick={() => setStatusFilter("active")}
-                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${
-                    statusFilter === "active"
+                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${statusFilter === "active"
                       ? "bg-red-600 hover:bg-red-700"
                       : ""
-                  }`}
+                    }`}
                 >
                   Active
                 </Button>
@@ -767,11 +764,10 @@ export default function TrainerClientsPage() {
                     statusFilter === "no_upcoming" ? "default" : "outline"
                   }
                   onClick={() => setStatusFilter("no_upcoming")}
-                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${
-                    statusFilter === "no_upcoming"
+                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${statusFilter === "no_upcoming"
                       ? "bg-red-600 hover:bg-red-700"
                       : ""
-                  }`}
+                    }`}
                 >
                   <span className="hidden sm:inline">No Upcoming Sessions</span>
                   <span className="sm:hidden">No Sessions</span>
@@ -781,11 +777,10 @@ export default function TrainerClientsPage() {
                     statusFilter === "new_this_month" ? "default" : "outline"
                   }
                   onClick={() => setStatusFilter("new_this_month")}
-                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${
-                    statusFilter === "new_this_month"
+                  className={`text-xs sm:text-sm px-3 py-1.5 h-8 ${statusFilter === "new_this_month"
                       ? "bg-red-600 hover:bg-red-700"
                       : ""
-                  }`}
+                    }`}
                 >
                   <span className="hidden sm:inline">New This Month</span>
                   <span className="sm:hidden">New</span>

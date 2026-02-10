@@ -597,12 +597,12 @@ export default function TrainerSchedulePage() {
   }, [events]);
 
   // Log when selected client changes
-  useEffect(() => {}, [selectedClient]);
+  useEffect(() => { }, [selectedClient]);
 
   // Log when package state changes
-  useEffect(() => {}, [packageInfo]);
+  useEffect(() => { }, [packageInfo]);
 
-  useEffect(() => {}, [packageSummary]);
+  useEffect(() => { }, [packageSummary]);
 
   // Generate time slots when date is selected (for booking modal)
   useEffect(() => {
@@ -1114,7 +1114,7 @@ export default function TrainerSchedulePage() {
         );
         setErrorMessage(
           calendarErrorMsg ||
-            "Session booked, but there was a problem adding to Google Calendar."
+          "Session booked, but there was a problem adding to Google Calendar."
         );
         setShowErrorDialog(true);
       }
@@ -1610,9 +1610,8 @@ export default function TrainerSchedulePage() {
     return (
       <div
         key={event.id}
-        className={`rounded-md p-1 sm:p-2 ${clientColor.bg} ${clientColor.border} border shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-[1.02] ${
-          isEditMode ? "cursor-pointer" : "cursor-pointer"
-        } relative group`}
+        className={`rounded-md p-1 sm:p-2 ${clientColor.bg} ${clientColor.border} border shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-[1.02] ${isEditMode ? "cursor-pointer" : "cursor-pointer"
+          } relative group`}
         onClick={handleSessionClick}
       >
         {/* Delete button - only show in edit mode */}
@@ -2149,11 +2148,10 @@ export default function TrainerSchedulePage() {
             {days.map((day, index) => (
               <div
                 key={index}
-                className={`bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[120px] border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-y-auto ${
-                  isToday(day)
+                className={`bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[120px] border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-y-auto ${isToday(day)
                     ? "bg-red-50 hover:bg-red-100 ring-2 ring-red-500 ring-opacity-50"
                     : ""
-                }`}
+                  }`}
               >
                 {day && (
                   <>
@@ -2557,29 +2555,26 @@ export default function TrainerSchedulePage() {
               return (
                 <div
                   key={date.toISOString()}
-                  className={`border rounded-lg p-3 ${
-                    isToday(date.getDate())
+                  className={`border rounded-lg p-3 ${isToday(date.getDate())
                       ? "bg-red-50 border-red-200"
                       : "bg-white border-gray-200"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div
-                        className={`font-medium text-sm ${
-                          isToday(date.getDate())
+                        className={`font-medium text-sm ${isToday(date.getDate())
                             ? "text-red-900"
                             : "text-gray-900"
-                        }`}
+                          }`}
                       >
                         {daysOfWeek[index]}
                       </div>
                       <div
-                        className={`text-lg font-bold ${
-                          isToday(date.getDate())
+                        className={`text-lg font-bold ${isToday(date.getDate())
                             ? "text-red-600"
                             : "text-gray-700"
-                        }`}
+                          }`}
                       >
                         {date.getDate()}
                       </div>
@@ -2705,22 +2700,20 @@ export default function TrainerSchedulePage() {
               {days.map((day, index) => (
                 <div
                   key={`day-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
-                  className={`relative p-1 sm:p-2 min-h-[100px] sm:min-h-[120px] ${
-                    !day
+                  className={`relative p-1 sm:p-2 min-h-[100px] sm:min-h-[120px] ${!day
                       ? "bg-gray-50 dark:bg-gray-900/40"
                       : isToday(day)
                         ? "bg-red-50 dark:bg-red-900/20 ring-1 ring-red-500/70 dark:ring-red-700 ring-inset"
                         : "bg-white dark:bg-gray-900"
-                  }`}
+                    }`}
                 >
                   {day && (
                     <>
                       <div
-                        className={`font-medium text-xs mb-1 sticky top-0 z-10 ${
-                          isToday(day)
+                        className={`font-medium text-xs mb-1 sticky top-0 z-10 ${isToday(day)
                             ? "text-red-900 dark:text-red-300 font-bold"
                             : "dark:text-gray-100"
-                        }`}
+                          }`}
                       >
                         {day}
                       </div>
@@ -2773,12 +2766,11 @@ export default function TrainerSchedulePage() {
         {/* Status indicator dot */}
         <div
           className={`absolute top-1 right-1 h-1.5 w-1.5 rounded-full 
-            ${
-              event?.status?.toLowerCase() === "confirmed"
-                ? "bg-green-500"
-                : event?.status?.toLowerCase() === "pending"
-                  ? "bg-yellow-500"
-                  : "bg-red-500"
+            ${event?.status?.toLowerCase() === "confirmed"
+              ? "bg-green-500"
+              : event?.status?.toLowerCase() === "pending"
+                ? "bg-yellow-500"
+                : "bg-red-500"
             }`}
         />
       </div>
@@ -2886,11 +2878,10 @@ export default function TrainerSchedulePage() {
               .map(([dateString, { dateKey, events }]) => (
                 <div key={dateString} className="border rounded-lg">
                   <div
-                    className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      isToday(dateString)
+                    className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${isToday(dateString)
                         ? "bg-red-50 border-red-200"
                         : "bg-gray-50"
-                    }`}
+                      }`}
                     onClick={() => {
                       const newExpanded = new Set(expandedDates);
                       if (expandedDates.has(dateString)) {
@@ -2914,9 +2905,8 @@ export default function TrainerSchedulePage() {
                         </p>
                       </div>
                       <ChevronDown
-                        className={`h-4 w-4 text-gray-400 transition-transform ${
-                          expandedDates.has(dateString) ? "rotate-180" : ""
-                        }`}
+                        className={`h-4 w-4 text-gray-400 transition-transform ${expandedDates.has(dateString) ? "rotate-180" : ""
+                          }`}
                       />
                     </div>
                   </div>
@@ -3505,7 +3495,7 @@ export default function TrainerSchedulePage() {
                       const baseDate = new Date(selectedDateForSession + 'T00:00:00');
                       const sessionDate = new Date(baseDate);
                       sessionDate.setDate(baseDate.getDate() + index * 7);
-                      
+
                       // Format the date in the user's timezone
                       const formattedDate = format(sessionDate, 'EEEE, MMMM d, yyyy');
 
@@ -3704,153 +3694,153 @@ export default function TrainerSchedulePage() {
                 recurringWeeks > 0 &&
                 selectedDateForSession &&
                 selectedTimeForSession)) && (
-              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h4 className="font-medium mb-3 text-gray-900 dark:text-gray-100">
-                  Booking Review
-                </h4>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h4 className="font-medium mb-3 text-gray-900 dark:text-gray-100">
+                    Booking Review
+                  </h4>
 
-                {/* Current Session Preview */}
-                {isRecurring &&
-                  recurringWeeks > 0 &&
-                  selectedDateForSession &&
-                  selectedTimeForSession && (
-                    <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                      <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                        Current Session:
+                  {/* Current Session Preview */}
+                  {isRecurring &&
+                    recurringWeeks > 0 &&
+                    selectedDateForSession &&
+                    selectedTimeForSession && (
+                      <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                          Current Session:
+                        </h5>
+                        <div className="space-y-1">
+                          {Array.from({ length: recurringWeeks }, (_, index) => {
+                            const sessionDate = new Date(selectedDateForSession);
+                            sessionDate.setDate(
+                              sessionDate.getDate() + index * 7
+                            );
+
+                            return (
+                              <div
+                                key={index}
+                                className="text-sm text-blue-700 dark:text-blue-300"
+                              >
+                                •{" "}
+                                {sessionDate.toLocaleDateString("en-US", {
+                                  weekday: "long",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}{" "}
+                                at {selectedTimeForSession}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 font-medium">
+                          {recurringWeeks} session
+                          {recurringWeeks !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    )}
+
+                  {/* Confirmed Sessions */}
+                  {trainerRecurringSessions.length > 0 && (
+                    <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                      <h5 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
+                        Confirmed Sessions:
                       </h5>
                       <div className="space-y-1">
-                        {Array.from({ length: recurringWeeks }, (_, index) => {
-                          const sessionDate = new Date(selectedDateForSession);
-                          sessionDate.setDate(
-                            sessionDate.getDate() + index * 7
-                          );
+                        {trainerRecurringSessions.map((session, index) => {
+                          const dayNames = [
+                            "Sunday",
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday",
+                          ];
 
                           return (
                             <div
                               key={index}
-                              className="text-sm text-blue-700 dark:text-blue-300"
+                              className="text-sm text-green-700 dark:text-green-300 flex items-center justify-between"
                             >
-                              •{" "}
-                              {sessionDate.toLocaleDateString("en-US", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              })}{" "}
-                              at {selectedTimeForSession}
+                              <span>
+                                • {dayNames[session.dayOfWeek]} at {session.time}{" "}
+                                for {session.weeks} week
+                                {session.weeks !== 1 ? "s" : ""}
+                              </span>
+                              <Button
+                                onClick={() => {
+                                  const newSessions =
+                                    trainerRecurringSessions.filter(
+                                      (_, i) => i !== index
+                                    );
+                                  setTrainerRecurringSessions(newSessions);
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
+                              >
+                                ×
+                              </Button>
                             </div>
                           );
                         })}
                       </div>
-                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 font-medium">
-                        {recurringWeeks} session
-                        {recurringWeeks !== 1 ? "s" : ""}
-                      </p>
                     </div>
                   )}
 
-                {/* Confirmed Sessions */}
-                {trainerRecurringSessions.length > 0 && (
-                  <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-                    <h5 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
-                      Confirmed Sessions:
-                    </h5>
-                    <div className="space-y-1">
-                      {trainerRecurringSessions.map((session, index) => {
-                        const dayNames = [
-                          "Sunday",
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                        ];
-
-                        return (
-                          <div
-                            key={index}
-                            className="text-sm text-green-700 dark:text-green-300 flex items-center justify-between"
-                          >
-                            <span>
-                              • {dayNames[session.dayOfWeek]} at {session.time}{" "}
-                              for {session.weeks} week
-                              {session.weeks !== 1 ? "s" : ""}
-                            </span>
-                            <Button
-                              onClick={() => {
-                                const newSessions =
-                                  trainerRecurringSessions.filter(
-                                    (_, i) => i !== index
-                                  );
-                                setTrainerRecurringSessions(newSessions);
-                              }}
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
-                            >
-                              ×
-                            </Button>
-                          </div>
-                        );
-                      })}
+                  {/* Total Summary */}
+                  <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Total Sessions:
+                      </span>
+                      <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                        {trainerRecurringSessions.reduce(
+                          (sum, session) => sum + session.weeks,
+                          0
+                        ) +
+                          (isRecurring &&
+                            recurringWeeks > 0 &&
+                            selectedDateForSession &&
+                            selectedTimeForSession
+                            ? recurringWeeks
+                            : 0)}
+                      </span>
                     </div>
-                  </div>
-                )}
 
-                {/* Total Summary */}
-                <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Total Sessions:
-                    </span>
-                    <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      {trainerRecurringSessions.reduce(
-                        (sum, session) => sum + session.weeks,
-                        0
-                      ) +
+                    {/* Package Info */}
+                    {(() => {
+                      const packageInfo = getSelectedClientPackageInfo();
+                      if (!packageInfo) return null;
+
+                      const totalSessions =
+                        trainerRecurringSessions.reduce(
+                          (sum, session) => sum + session.weeks,
+                          0
+                        ) +
                         (isRecurring &&
-                        recurringWeeks > 0 &&
-                        selectedDateForSession &&
-                        selectedTimeForSession
+                          recurringWeeks > 0 &&
+                          selectedDateForSession &&
+                          selectedTimeForSession
                           ? recurringWeeks
-                          : 0)}
-                    </span>
+                          : 0);
+
+                      return (
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            Remaining in package:
+                          </span>
+                          <span
+                            className={`text-xs font-medium ${packageInfo.remaining >= totalSessions ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                          >
+                            {packageInfo.remaining}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
-
-                  {/* Package Info */}
-                  {(() => {
-                    const packageInfo = getSelectedClientPackageInfo();
-                    if (!packageInfo) return null;
-
-                    const totalSessions =
-                      trainerRecurringSessions.reduce(
-                        (sum, session) => sum + session.weeks,
-                        0
-                      ) +
-                      (isRecurring &&
-                      recurringWeeks > 0 &&
-                      selectedDateForSession &&
-                      selectedTimeForSession
-                        ? recurringWeeks
-                        : 0);
-
-                    return (
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          Remaining in package:
-                        </span>
-                        <span
-                          className={`text-xs font-medium ${packageInfo.remaining >= totalSessions ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                        >
-                          {packageInfo.remaining}
-                        </span>
-                      </div>
-                    );
-                  })()}
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           <DialogFooter className="flex space-x-2 sm:space-x-0">
@@ -3885,9 +3875,9 @@ export default function TrainerSchedulePage() {
                   );
                   const currentSession =
                     isRecurring &&
-                    recurringWeeks > 0 &&
-                    selectedDateForSession &&
-                    selectedTimeForSession
+                      recurringWeeks > 0 &&
+                      selectedDateForSession &&
+                      selectedTimeForSession
                       ? recurringWeeks
                       : 0;
                   const totalSessions = confirmedSessions + currentSession;

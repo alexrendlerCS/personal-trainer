@@ -232,26 +232,26 @@ const convertTrainerTimeToUserTime = (
   try {
     // Create a date representing the trainer's time
     const dateTimeString = `${selectedDate}T${timeString}`;
-    
+
     // Create two date objects representing the same moment in time
     const referenceDate = new Date();
-    
+
     // Get the time in trainer's timezone
-    const trainerTime = new Date(referenceDate.toLocaleString("sv-SE", {timeZone: TRAINER_TIMEZONE}));
-    
+    const trainerTime = new Date(referenceDate.toLocaleString("sv-SE", { timeZone: TRAINER_TIMEZONE }));
+
     // Get the time in user's timezone 
-    const userTime = new Date(referenceDate.toLocaleString("sv-SE", {timeZone: userTimezone}));
-    
+    const userTime = new Date(referenceDate.toLocaleString("sv-SE", { timeZone: userTimezone }));
+
     // Calculate the offset in minutes
     const offsetMinutes = (trainerTime.getTime() - userTime.getTime()) / (1000 * 60);
-    
+
     // Apply the offset to the trainer's scheduled time
     const [hours, minutes, seconds = '00'] = timeString.split(':');
     const scheduledTime = new Date(`${selectedDate}T${hours}:${minutes}:${seconds}`);
     const convertedTime = new Date(scheduledTime.getTime() - (offsetMinutes * 60 * 1000));
-    
+
     const result = format(convertedTime, 'HH:mm:ss');
-    
+
     return result;
   } catch (error) {
     console.warn('Timezone conversion failed, using original time:', error);
@@ -273,7 +273,7 @@ const formatTimeForEmail = (
   userTimezone: string
 ): string => {
   const isInPerson = sessionType === "In-Person Training";
-  
+
   if (isTrainerEmail) {
     // Trainer always gets Colorado time
     const [hours, minutes] = timeString.split(":");
@@ -281,7 +281,7 @@ const formatTimeForEmail = (
     date.setHours(parseInt(hours, 10));
     date.setMinutes(parseInt(minutes, 10));
     const timeDisplay = format(date, "h:mm a");
-    
+
     if (isInPerson) {
       return `${timeDisplay} MT`; // Mountain Time for in-person
     } else {
@@ -343,21 +343,21 @@ const getTimezoneAbbreviation = (timezone: string): string => {
 
 // Helper function to format time for display (now timezone-aware)
 const formatTimeForDisplay = (
-  timeString: string, 
-  selectedDate?: string, 
+  timeString: string,
+  selectedDate?: string,
   sessionType?: string
 ) => {
   if (selectedDate) {
     const userTimezone = getUserTimezone();
     const isInPerson = sessionType === "In-Person Training";
-    
+
     if (isInPerson) {
       // For in-person sessions, show trainer's time (Colorado time)
       const [hours, minutes] = timeString.split(":");
       const date = new Date();
       date.setHours(parseInt(hours, 10));
       date.setMinutes(parseInt(minutes, 10));
-      
+
       const timeDisplay = format(date, "h:mm a");
       if (userTimezone !== TRAINER_TIMEZONE) {
         const trainerTzAbbr = getTimezoneAbbreviation(TRAINER_TIMEZONE);
@@ -371,7 +371,7 @@ const formatTimeForDisplay = (
       const date = new Date();
       date.setHours(parseInt(hours, 10));
       date.setMinutes(parseInt(minutes, 10));
-      
+
       const timeDisplay = format(date, "h:mm a");
       if (userTimezone !== TRAINER_TIMEZONE) {
         const userTzAbbr = getTimezoneAbbreviation(userTimezone);
@@ -465,10 +465,10 @@ const getDayName = (index: number): string => {
 function parseLocalDateString(dateStr: string): Date {
   // Parse the date components
   const [year, month, day] = dateStr.split("-").map(Number);
-  
+
   // Create date string with time set to noon to avoid timezone edge cases
   const dateWithTime = `${dateStr}T12:00:00`;
-  
+
   // Parse as ISO string which will respect the user's timezone
   return new Date(dateWithTime);
 }
@@ -847,7 +847,7 @@ export default function BookingPage() {
   }, [user, supabase]);
 
   // Add an additional effect to monitor profile state
-  useEffect(() => {}, [userProfile]);
+  useEffect(() => { }, [userProfile]);
 
   useEffect(() => {
     const checkRemainingSession = async () => {
@@ -1317,8 +1317,8 @@ export default function BookingPage() {
 
     // Determine the correct timezone for sessions
     // For in-person sessions, always use trainer timezone regardless of input
-    const sessionTimezone = (selectedPackageType === "In-Person Training") 
-      ? TRAINER_TIMEZONE 
+    const sessionTimezone = (selectedPackageType === "In-Person Training")
+      ? TRAINER_TIMEZONE
       : timezone;
 
     // Get the user's packages for this session type
@@ -1330,27 +1330,27 @@ export default function BookingPage() {
       .eq("status", "active")
       .order("purchase_date", { ascending: false });
 
-        if (packagesError) {
-          throw new Error(`Failed to fetch packages: ${packagesError.message}`);
-        }
+    if (packagesError) {
+      throw new Error(`Failed to fetch packages: ${packagesError.message}`);
+    }
 
-        // Calculate total available sessions across all packages
-        const availablePackages = (userPackages || [])
-          .filter((pkg) => (pkg.sessions_included || 0) - (pkg.sessions_used || 0) > 0)
-          .sort((a, b) => new Date(a.purchase_date).getTime() - new Date(b.purchase_date).getTime()); // Sort by oldest first
+    // Calculate total available sessions across all packages
+    const availablePackages = (userPackages || [])
+      .filter((pkg) => (pkg.sessions_included || 0) - (pkg.sessions_used || 0) > 0)
+      .sort((a, b) => new Date(a.purchase_date).getTime() - new Date(b.purchase_date).getTime()); // Sort by oldest first
 
-        if (!availablePackages.length) {
-          throw new Error("No available packages found for this session type");
-        }
+    if (!availablePackages.length) {
+      throw new Error("No available packages found for this session type");
+    }
 
-        // Calculate total available sessions
-        const totalAvailableSessions = availablePackages.reduce(
-          (total, pkg) => total + ((pkg.sessions_included || 0) - (pkg.sessions_used || 0)),
-          0
-        );
+    // Calculate total available sessions
+    const totalAvailableSessions = availablePackages.reduce(
+      (total, pkg) => total + ((pkg.sessions_included || 0) - (pkg.sessions_used || 0)),
+      0
+    );
 
-        // Calculate total sessions needed
-        const totalSessions = calculateTotalRecurringSessions(recurringSessions);    // Check if we have enough sessions across all packages
+    // Calculate total sessions needed
+    const totalSessions = calculateTotalRecurringSessions(recurringSessions);    // Check if we have enough sessions across all packages
     if (totalAvailableSessions < totalSessions) {
       throw new Error(
         `You only have ${totalAvailableSessions} sessions remaining, but you're trying to book ${totalSessions} sessions`
@@ -1363,38 +1363,38 @@ export default function BookingPage() {
 
     try {
       // Distribute sessions across available packages
-      const sessionDistribution = new Map<string, { 
-        pkg: any, 
+      const sessionDistribution = new Map<string, {
+        pkg: any,
         sessions: Array<RecurringSession>
       }>();
-      
+
       let sessionsToAllocate = [...recurringSessions];
-      
+
       // Allocate sessions to packages
       for (const pkg of availablePackages) {
         if (sessionsToAllocate.length === 0) break;
-        
+
         const packageAvailable = (pkg.sessions_included || 0) - (pkg.sessions_used || 0);
         const sessionsForThisPackage = Math.min(packageAvailable, sessionsToAllocate.length);
-        
+
         if (sessionsForThisPackage <= 0) continue;
-        
+
         // Get sessions for this package
         const allocatedSessions = sessionsToAllocate.slice(0, sessionsForThisPackage);
-        sessionDistribution.set(pkg.id, { 
-          pkg, 
-          sessions: allocatedSessions 
+        sessionDistribution.set(pkg.id, {
+          pkg,
+          sessions: allocatedSessions
         });
-        
-        updatedPackages.set(pkg.id, { 
-          package: pkg, 
-          sessionsToAdd: sessionsForThisPackage 
+
+        updatedPackages.set(pkg.id, {
+          package: pkg,
+          sessionsToAdd: sessionsForThisPackage
         });
-        
+
         // Update remaining sessions
         sessionsToAllocate = sessionsToAllocate.slice(sessionsForThisPackage);
       }
-      
+
       // Create sessions for each package
       for (const [packageId, { pkg, sessions }] of sessionDistribution.entries()) {
         for (const session of sessions) {
@@ -1405,7 +1405,7 @@ export default function BookingPage() {
               addDays(parseISO(session.startDate), weekIndex * 7),
               'yyyy-MM-dd'
             );
-            
+
             const { data, error } = await supabase
               .from("sessions")
               .insert({
@@ -1420,17 +1420,17 @@ export default function BookingPage() {
               })
               .select()
               .single();
-              
+
             if (error) {
               throw new Error(`Failed to create session: ${error.message}`);
             }
-            
+
             if (data) {
               createdSessionIds.push(data.id);
             }
           }
         }
-        
+
         // Update package sessions used count - sum up total individual sessions created
         const totalSessionsCreated = sessions.reduce((sum, session) => sum + session.weeks, 0);
         const { error: updateError } = await supabase
@@ -1451,7 +1451,7 @@ export default function BookingPage() {
           .select("*")
           .eq("id", sessionId)
           .single();
-          
+
         if (session) {
           await createCalendarEvents(
             session,
@@ -1483,7 +1483,7 @@ export default function BookingPage() {
         if (rollbackError) {
           console.error("Failed to rollback sessions:", rollbackError);
         }
-        
+
         // Rollback all package updates
         for (const [packageId, { package: pkg }] of updatedPackages.entries()) {
           console.log(`Rolling back package ${packageId} update`);
@@ -1533,7 +1533,7 @@ export default function BookingPage() {
           timeZone: trainerTimezone,
         },
         end: {
-          dateTime: endDate.toISOString(), 
+          dateTime: endDate.toISOString(),
           timeZone: trainerTimezone,
         },
         attendees: [{ email: profile.email }, { email: trainer.email }],
@@ -1669,14 +1669,14 @@ export default function BookingPage() {
   // Check if we can show the booking button
   const canShowBookingButton = isRecurring
     ? selectedTrainer &&
-      selectedType &&
-      selectedDate &&
-      selectedTimeSlot &&
-      recurringSessions.length > 0 &&
-      calculateTotalRecurringSessions(recurringSessions) <=
-        (sessionsByType.find(
-          (pkg) => pkg.type === getSelectedSessionType()?.name
-        )?.remaining || 0)
+    selectedType &&
+    selectedDate &&
+    selectedTimeSlot &&
+    recurringSessions.length > 0 &&
+    calculateTotalRecurringSessions(recurringSessions) <=
+    (sessionsByType.find(
+      (pkg) => pkg.type === getSelectedSessionType()?.name
+    )?.remaining || 0)
     : selectedTrainer && selectedDate && selectedTimeSlot && selectedType;
 
   // Fetch trainer availability when trainer is selected
@@ -1789,7 +1789,7 @@ export default function BookingPage() {
 
       // Determine timezone based on session type
       const userTimezone = getUserTimezone();
-      const sessionTimezone = (selectedType === "In-Person Training") 
+      const sessionTimezone = (selectedType === "In-Person Training")
         ? TRAINER_TIMEZONE  // Always use trainer's timezone for in-person
         : userTimezone;     // Use user's timezone for virtual sessions
 
@@ -1803,7 +1803,7 @@ export default function BookingPage() {
 
           throw new Error(
             `Cannot book recurring sessions due to conflicts: ${overlapDetails}. ` +
-              `These time slots are already booked by other clients. Please choose different dates or times.`
+            `These time slots are already booked by other clients. Please choose different dates or times.`
           );
         }
 
@@ -1962,7 +1962,7 @@ export default function BookingPage() {
           success:
             !verifyError &&
             verifyData?.sessions_used ===
-              (currentPackage?.sessions_used || 0) + 1,
+            (currentPackage?.sessions_used || 0) + 1,
           expectedUsed: (currentPackage?.sessions_used || 0) + 1,
           actualUsed: verifyData?.sessions_used,
           verifyError,
@@ -2153,7 +2153,7 @@ export default function BookingPage() {
         const emailSessionTypeName = getSelectedSessionType()?.name || selectedType;
         const userTimezone = getUserTimezone();
         const emailDate = selectedDate!; // We know it's not null at this point
-        
+
         const emailPayload = {
           trainer_email: selectedTrainer.email,
           trainer_name: selectedTrainer.full_name,
@@ -2163,47 +2163,47 @@ export default function BookingPage() {
           session_type: emailSessionTypeName,
           // Times for trainer (always Colorado time)
           trainer_start_time: formatTimeForEmail(
-            selectedTimeSlot.startTime, 
-            emailDate, 
-            emailSessionTypeName, 
-            true, 
+            selectedTimeSlot.startTime,
+            emailDate,
+            emailSessionTypeName,
+            true,
             userTimezone
           ),
           trainer_end_time: formatTimeForEmail(
-            selectedTimeSlot.endTime, 
-            emailDate, 
-            emailSessionTypeName, 
-            true, 
+            selectedTimeSlot.endTime,
+            emailDate,
+            emailSessionTypeName,
+            true,
             userTimezone
           ),
           // Times for client (appropriate timezone based on session type)
           client_start_time: formatTimeForEmail(
-            selectedTimeSlot.startTime, 
-            emailDate, 
-            emailSessionTypeName, 
-            false, 
+            selectedTimeSlot.startTime,
+            emailDate,
+            emailSessionTypeName,
+            false,
             userTimezone
           ),
           client_end_time: formatTimeForEmail(
-            selectedTimeSlot.endTime, 
-            emailDate, 
-            emailSessionTypeName, 
-            false, 
+            selectedTimeSlot.endTime,
+            emailDate,
+            emailSessionTypeName,
+            false,
             userTimezone
           ),
           // Legacy fields for backward compatibility (trainer timezone)
           start_time: formatTimeForEmail(
-            selectedTimeSlot.startTime, 
-            emailDate, 
-            emailSessionTypeName, 
-            true, 
+            selectedTimeSlot.startTime,
+            emailDate,
+            emailSessionTypeName,
+            true,
             userTimezone
           ),
           end_time: formatTimeForEmail(
-            selectedTimeSlot.endTime, 
-            emailDate, 
-            emailSessionTypeName, 
-            true, 
+            selectedTimeSlot.endTime,
+            emailDate,
+            emailSessionTypeName,
+            true,
             userTimezone
           ),
         };
@@ -2417,13 +2417,12 @@ export default function BookingPage() {
                   return (
                     <div
                       key={type.id}
-                      className={`p-4 border rounded-lg transition-all ${
-                        isDisabled
+                      className={`p-4 border rounded-lg transition-all ${isDisabled
                           ? "opacity-50 cursor-not-allowed border-gray-200 dark:border-gray-700"
                           : selectedType === type.id
                             ? "border-red-600 dark:border-red-700 bg-red-50 dark:bg-red-900/20 cursor-pointer"
                             : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
-                      }`}
+                        }`}
                       onClick={() => {
                         if (!isDisabled) {
                           setSelectedType(type.id);
@@ -2542,7 +2541,7 @@ export default function BookingPage() {
                               className={cn(
                                 "w-full",
                                 !slot.isAvailable &&
-                                  "opacity-50 cursor-not-allowed"
+                                "opacity-50 cursor-not-allowed"
                               )}
                               onClick={() => setSelectedTimeSlot(slot)}
                               disabled={!slot.isAvailable}
@@ -2670,13 +2669,13 @@ export default function BookingPage() {
                                         // Parse the base date and add weeks
                                         const baseDate = parseLocalDateString(selectedDate);
                                         const sessionDate = addDays(baseDate, index * 7);
-                                        
+
                                         // Format the date in the user's timezone
                                         const formattedDate = format(
                                           sessionDate,
                                           "EEEE, MMMM d, yyyy",
                                         );
-                                        
+
                                         return (
                                           <div
                                             key={index}
@@ -2895,7 +2894,7 @@ export default function BookingPage() {
                                   className={cn(
                                     "w-full",
                                     !slot.isAvailable &&
-                                      "opacity-50 cursor-not-allowed"
+                                    "opacity-50 cursor-not-allowed"
                                   )}
                                   onClick={() =>
                                     setAdditionalSessionTimeSlot(slot)
@@ -2963,14 +2962,14 @@ export default function BookingPage() {
                                   {calculateTotalRecurringSessions(
                                     recurringSessions
                                   ) > 0 && (
-                                    <span className="block text-xs text-blue-600 mt-1">
-                                      (
-                                      {calculateTotalRecurringSessions(
-                                        recurringSessions
-                                      )}{" "}
-                                      sessions already confirmed)
-                                    </span>
-                                  )}
+                                      <span className="block text-xs text-blue-600 mt-1">
+                                        (
+                                        {calculateTotalRecurringSessions(
+                                          recurringSessions
+                                        )}{" "}
+                                        sessions already confirmed)
+                                      </span>
+                                    )}
                                 </p>
                               </div>
                             </div>
@@ -3471,7 +3470,7 @@ export default function BookingPage() {
               Google Calendar Sync Issue
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Your sessions were successfully booked, but we couldn't sync them to your Google Calendar. 
+              Your sessions were successfully booked, but we couldn't sync them to your Google Calendar.
               Your Google Calendar connection has expired and needs to be refreshed.
               <br /><br />
               To fix this, please go to <strong>Settings</strong> and click <strong>"Sync with Google Calendar"</strong> to reconnect your account.
@@ -3521,46 +3520,42 @@ export default function BookingPage() {
               {sessionsByType.map((packageType) => (
                 <div
                   key={packageType.type}
-                  className={`${
-                    packageType.remaining >= 4
+                  className={`${packageType.remaining >= 4
                       ? "bg-green-50 dark:bg-green-900/20"
                       : packageType.remaining >= 2
                         ? "bg-yellow-50 dark:bg-yellow-900/20"
                         : "bg-red-50 dark:bg-red-900/20"
-                  } p-4 rounded-lg`}
+                    } p-4 rounded-lg`}
                 >
                   <h3
-                    className={`font-semibold ${
-                      packageType.remaining >= 4
+                    className={`font-semibold ${packageType.remaining >= 4
                         ? "text-green-700 dark:text-green-300"
                         : packageType.remaining >= 2
                           ? "text-yellow-700 dark:text-yellow-300"
                           : "text-red-700 dark:text-red-300"
-                    }`}
+                      }`}
                   >
                     {packageType.type}
                   </h3>
                   <div className="mt-2 flex justify-between items-center">
                     <span
-                      className={`text-sm ${
-                        packageType.remaining >= 4
+                      className={`text-sm ${packageType.remaining >= 4
                           ? "text-green-600 dark:text-green-300"
                           : packageType.remaining >= 2
                             ? "text-yellow-600 dark:text-yellow-300"
                             : "text-red-600 dark:text-red-300"
-                      }`}
+                        }`}
                     >
                       {packageType.remaining} remaining
                     </span>
                     <Badge
                       variant="secondary"
-                      className={`${
-                        packageType.remaining >= 4
+                      className={`${packageType.remaining >= 4
                           ? "bg-green-100 dark:bg-green-900/30 dark:text-green-300"
                           : packageType.remaining >= 2
                             ? "bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-300"
                             : "bg-red-100 dark:bg-red-900/30 dark:text-red-300"
-                      }`}
+                        }`}
                     >
                       {packageType.remaining}/{packageType.total} sessions
                     </Badge>

@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Check max redemptions if specified
     if (data.max_redemptions && data.max_redemptions > 0) {
       // TODO: Implement redemption tracking if needed
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     let discountedAmount = baseAmount;
     let discountAmount = 0;
     let type = null;
-    
+
     if (data.percent_off) {
       discountAmount = Math.round(baseAmount * (data.percent_off / 100));
       discountedAmount = baseAmount - discountAmount;
@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
       discountedAmount = Math.max(0, baseAmount - discountAmount);
       type = "amount";
     }
-    
-    return NextResponse.json({ 
-      valid: true, 
+
+    return NextResponse.json({
+      valid: true,
       discountedAmount: discountedAmount / 100, // Convert back to dollars for frontend display
       discountAmount: discountAmount / 100, // Convert back to dollars for frontend display
       originalAmount: baseAmount / 100, // Convert back to dollars for frontend display
