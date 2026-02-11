@@ -13,13 +13,9 @@ import buffer from "@/lib/raw-body";
 // - Always create new packages for manual/free packages (packages without transaction_id)
 // - This prevents data corruption and maintains package source separation
 
-// Use the appropriate webhook secret based on environment
-// In development, use STRIPE_CLI_WEBHOOK_SECRET (from Stripe CLI)
-// In production, use STRIPE_WEBHOOK_SECRET (from Stripe Dashboard)
-const endpointSecret =
-  process.env.NODE_ENV === "production"
-    ? process.env.STRIPE_WEBHOOK_SECRET!
-    : process.env.STRIPE_CLI_WEBHOOK_SECRET!;
+// Use STRIPE_WEBHOOK_SECRET for production/live webhooks
+// This should match the webhook secret from your Stripe Dashboard
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
