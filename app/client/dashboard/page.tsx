@@ -12,6 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Calendar,
   CreditCard,
   Clock,
@@ -259,6 +267,11 @@ export default function ClientDashboard() {
   const [showCalendarPopup, setShowCalendarPopup] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showPackageSuccessDialog, setShowPackageSuccessDialog] = useState(false);
+  const [packageSuccessInfo, setPackageSuccessInfo] = useState<{
+    sessionsIncluded: number;
+    packageType: string;
+  } | null>(null);
   // const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   // const [selectedSessionForReschedule, setSelectedSessionForReschedule] =
   //   useState<Session | null>(null);
@@ -457,6 +470,26 @@ export default function ClientDashboard() {
     checkUserStatus();
   }, []);
 
+  // Handle package purchase success from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const sessionsIncluded = urlParams.get('sessionsIncluded');
+    const packageType = urlParams.get('packageType');
+
+    if (success === 'true' && sessionsIncluded && packageType) {
+      setPackageSuccessInfo({
+        sessionsIncluded: parseInt(sessionsIncluded),
+        packageType: decodeURIComponent(packageType)
+      });
+      setShowPackageSuccessDialog(true);
+
+      // Clear URL parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, []);
+
   // Add effect to handle cookie-based state updates
   useEffect(() => {
     const checkGoogleConnected = async () => {
@@ -633,6 +666,54 @@ export default function ClientDashboard() {
           onOpenChange={setShowSuccessDialog}
           calendarName={calendarName}
         />
+
+        {/* Package Purchase Success Dialog */}
+        <Dialog
+          open={showPackageSuccessDialog}
+          onOpenChange={setShowPackageSuccessDialog}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-center gap-2 text-xl">
+                <span className="text-2xl">🎉</span>
+                Successful Purchase!
+              </DialogTitle>
+              <DialogDescription className="text-center pt-2">
+                Thank you for your purchase!
+              </DialogDescription>
+            </DialogHeader>
+            {packageSuccessInfo && (
+              <div className="py-6 text-center">
+                <div className="text-green-600 text-lg font-bold mb-2">
+                  {packageSuccessInfo.packageType}
+                </div>
+                <div className="text-2xl font-bold text-green-700 mb-2">
+                  +{packageSuccessInfo.sessionsIncluded} Sessions
+                </div>
+                <div className="text-green-600 font-medium">
+                  Ready to book with your trainer!
+                </div>
+              </div>
+            )}
+            <DialogFooter className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowPackageSuccessDialog(false)}
+              >
+                Continue
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  setShowPackageSuccessDialog(false);
+                  router.push("/client/booking");
+                }}
+              >
+                Book Your First Session
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <ContractFlowModal
           open={showContractModal}

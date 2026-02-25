@@ -331,7 +331,7 @@ export async function POST(req: Request) {
         },
       ],
       mode: "payment",
-      success_url: `${origin}/client/checkout?success=true&sessionsIncluded=${actualSessions}&packageType=${encodeURIComponent(packageType)}`,
+      success_url: `${origin}/client/dashboard?success=true&sessionsIncluded=${actualSessions}&packageType=${encodeURIComponent(packageType)}`,
       cancel_url: `${origin}/client/packages?canceled=true`,
       custom_text: {
         submit: {
@@ -345,6 +345,7 @@ export async function POST(req: Request) {
         original_sessions: sessionsIncluded.toString(), // original full package size
         package_type: packageType,
         expiry_date: expiryDate.toISOString(),
+        is_prorated: (actualSessions !== sessionsIncluded).toString(), // true if sessions differ from original
         ...(promoCode ? { promo_code: promoCode } : {}),
         ...(discountInfo ? {
           discount_type: discountInfo.type,
