@@ -331,7 +331,7 @@ export async function POST(req: Request) {
         },
       ],
       mode: "payment",
-      success_url: `${origin}/client/dashboard?success=true&sessionsIncluded=${actualSessions}&packageType=${encodeURIComponent(packageType)}`,
+      success_url: `${origin}/client/checkout?success=true&sessionsIncluded=${actualSessions}&packageType=${encodeURIComponent(packageType)}`,
       cancel_url: `${origin}/client/packages?canceled=true`,
       custom_text: {
         submit: {
