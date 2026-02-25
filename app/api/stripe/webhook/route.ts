@@ -150,6 +150,7 @@ export async function POST(req: Request) {
             "In-Person Training",
             "Virtual Training",
             "Partner Training",
+            "Posing Package",
           ];
           const packageType = session.metadata.package_type;
 
