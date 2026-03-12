@@ -1418,11 +1418,114 @@ export default function TrainerSchedulePage() {
     }
   };
 
-  // Helper function to create calendar events (extracted from original function)
+  // Helper function to create calendar events for recurring sessions
   const createCalendarEvents = async (session: any, client: any) => {
-    // Implementation would be similar to the calendar event creation in the original function
-    // For now, we'll just log it - this can be implemented later
-    console.log("Creating calendar event for session:", session.id);
+    let trainerEventId = null;
+    let clientEventId = null;
+
+    // Create calendar event details
+    const baseEventDetails = {
+      description: `${selectedSessionType} training session${sessionNotes ? ` - ${sessionNotes}` : ""}`,
+      start: {
+        dateTime: `${session.date}T${session.start_time}`,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      end: {
+        dateTime: `${session.date}T${session.end_time}`,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      attendees: [
+        { email: client.email },
+        { email: session.user.email || "" },
+      ],
+      reminders: {
+        useDefault: true,
+      },
+    };
+
+    // Create trainer calendar event
+    try {
+      const trainerEventDetails = {
+        ...baseEventDetails,
+        summary: `${selectedSessionType} with ${client.full_name}`,
+      };
+
+      const trainerEventResponse = await fetch(
+        `/api/google/calendar/event?trainerId=${session.user.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(trainerEventDetails),
+        }
+      );
+
+      if (trainerEventResponse.ok) {
+        const trainerEventData = await trainerEventResponse.json();
+        trainerEventId = trainerEventData.eventId;
+        console.log(`📅 [TRAINER] Calendar event created: ${trainerEventId}`);
+      } else {
+        console.warn("Failed to create trainer calendar event:", await trainerEventResponse.text());
+      }
+    } catch (error) {
+      console.warn("Failed to create trainer calendar event:", error);
+    }
+
+    // Create client calendar event
+    try {
+      const clientEventDetails = {
+        ...baseEventDetails,
+        summary: `${selectedSessionType} with ${session.user.user_metadata?.full_name || "Trainer"}`,
+      };
+
+      const clientEventResponse = await fetch(
+        `/api/google/calendar/client-event?clientId=${client.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(clientEventDetails),
+        }
+      );
+
+      if (clientEventResponse.ok) {
+        const clientEventData = await clientEventResponse.json();
+        if (clientEventData.eventId) {
+          clientEventId = clientEventData.eventId;
+          console.log(`📅 [CLIENT] Calendar event created: ${clientEventId}`);
+        } else if (clientEventData.error === 'calendar_auth_failed') {
+          console.warn('Client calendar sync failed:', clientEventData.message);
+        }
+      } else {
+        console.warn("Failed to create client calendar event:", await clientEventResponse.text());
+      }
+    } catch (error) {
+      console.warn("Failed to create client calendar event:", error);
+    }
+
+    // Update the session with calendar event IDs if they were created successfully
+    if (trainerEventId || clientEventId) {
+      try {
+        const updateData: any = {};
+        if (trainerEventId) {
+          updateData.google_event_id = trainerEventId;
+        }
+        if (clientEventId) {
+          updateData.client_google_event_id = clientEventId;
+        }
+
+        await supabase
+          .from("sessions")
+          .update(updateData)
+          .eq("id", session.id);
+
+        console.log(`📝 [UPDATE] Session ${session.id} updated with calendar event IDs`);
+      } catch (error) {
+        console.error("Error updating session with Google Calendar event IDs:", error);
+      }
+    }
   };
 
   // Helper function to calculate maximum weeks for additional sessions
