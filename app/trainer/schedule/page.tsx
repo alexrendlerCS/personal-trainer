@@ -45,6 +45,7 @@ import {
   ChevronRight,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
   Loader2,
   Users,
   User,
@@ -264,6 +265,7 @@ export default function TrainerSchedulePage() {
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [calendarWarningMessage, setCalendarWarningMessage] = useState("");
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -1057,19 +1059,25 @@ export default function TrainerSchedulePage() {
             const clientEventData = await clientEventResponse.json();
             clientEventId = clientEventData.eventId;
           } else {
-            calendarSuccess = false;
-            // Check if the client doesn't have Google Calendar connected
-            if (clientEventResponse.status === 400) {
-              const responseText = await clientEventResponse.text();
-              if (
-                responseText.includes("Client Google Calendar not connected")
-              ) {
-                calendarErrorMsg +=
-                  "Client's Google Calendar is not connected. The session was booked successfully, but the client will need to connect their Google Calendar to view it there. ";
+            // Parse error response
+            const errorData = await clientEventResponse.json().catch(() => ({}));
+            
+            if (clientEventResponse.status === 401 && errorData.error === 'calendar_auth_expired') {
+              // Client's Google Calendar auth expired
+              calendarSuccess = false;
+              calendarErrorMsg += `${selectedClient.full_name}'s Google Calendar authentication has expired. The session was booked successfully, but they need to reconnect their Google Calendar to sync events. `;
+            } else if (clientEventResponse.status === 400) {
+              // Client doesn't have Google Calendar connected
+              const responseText = errorData.message || await clientEventResponse.text();
+              if (responseText.includes("Client Google Calendar not connected")) {
+                calendarSuccess = false;
+                calendarErrorMsg += `${selectedClient.full_name}'s Google Calendar is not connected. The session was booked successfully, but they need to connect their Google Calendar to view it there. `;
               } else {
+                calendarSuccess = false;
                 calendarErrorMsg += "Failed to create client calendar event. ";
               }
             } else {
+              calendarSuccess = false;
               calendarErrorMsg += "Failed to create client calendar event. ";
             }
           }
@@ -1422,6 +1430,7 @@ export default function TrainerSchedulePage() {
           let successfulCalendarEvents = 0;
           let failedCalendarEvents = 0;
           const calendarErrors: string[] = [];
+          const clientCalendarIssues: string[] = [];
 
           // Create calendar events for all sessions
           for (const sessionResult of sessionResults) {
@@ -1430,6 +1439,12 @@ export default function TrainerSchedulePage() {
 
               try {
                 const eventIds = await createCalendarEvents(dbSession, selectedClient, session);
+                
+                // Check if there was a client calendar error
+                if (eventIds.clientCalendarError) {
+                  clientCalendarIssues.push(eventIds.clientCalendarError);
+                }
+                
                 calendarEventsCreated.push({
                   sessionId: dbSession.id,
                   trainerEventId: eventIds.trainerEventId || undefined,
@@ -1460,6 +1475,15 @@ export default function TrainerSchedulePage() {
           // If some calendar events failed due to connection issues, warn the user but don't rollback
           if (failedCalendarEvents > 0 && successfulCalendarEvents > 0) {
             console.warn(`⚠️ [CALENDAR] Partial calendar sync: ${successfulCalendarEvents}/${sessionResults.length} events created`);
+          }
+          
+          // Store client calendar issues for later display
+          if (clientCalendarIssues.length > 0) {
+            // Get unique issues
+            const uniqueIssues = [...new Set(clientCalendarIssues)];
+            console.warn(`⚠️ [CLIENT-CALENDAR] Issues detected: ${uniqueIssues.join(', ')}`);
+            // Store the first unique issue to show in the success message
+            (window as any).__clientCalendarWarning = uniqueIssues[0];
           }
         }
 
@@ -1521,10 +1545,20 @@ export default function TrainerSchedulePage() {
       setRecurringWeeks(0);
       setTrainerRecurringSessions([]);
 
+      // Check for client calendar warnings
+      const clientCalendarWarning = (window as any).__clientCalendarWarning;
+      delete (window as any).__clientCalendarWarning;
+
       // Show success message
-      setSuccessMessage(
-        "The session was successfully booked and added to both calendars."
-      );
+      if (clientCalendarWarning) {
+        setSuccessMessage("Sessions successfully booked!");
+        setCalendarWarningMessage(clientCalendarWarning);
+      } else {
+        setSuccessMessage(
+          "The sessions were successfully booked and added to both calendars."
+        );
+        setCalendarWarningMessage("");
+      }
       setShowSuccessDialog(true);
 
       // Refresh events
@@ -1572,11 +1606,12 @@ export default function TrainerSchedulePage() {
   };
 
   // Helper function to create calendar events for recurring sessions
-  const createCalendarEvents = async (dbSession: any, client: any, trainerSession: any): Promise<{ trainerEventId: string | null, clientEventId: string | null }> => {
+  const createCalendarEvents = async (dbSession: any, client: any, trainerSession: any): Promise<{ trainerEventId: string | null, clientEventId: string | null, clientCalendarError?: string }> => {
     console.log(`📅 [CALENDAR] Creating events for session ${dbSession.id} on ${dbSession.date}`);
 
     let trainerEventId: string | null = null;
     let clientEventId: string | null = null;
+    let clientCalendarError: string | undefined = undefined;
 
     // Create calendar event details using correct data sources
     const baseEventDetails = {
@@ -1682,8 +1717,12 @@ export default function TrainerSchedulePage() {
         // Client calendar failures are non-critical - log but don't throw
         if (errorData?.error === 'calendar_not_connected') {
           console.log("ℹ️ [CLIENT] Client's Google Calendar is not connected - skipping client calendar event");
+          clientCalendarError = `${client.full_name}'s Google Calendar is not connected`;
         } else if (errorData?.error === 'calendar_auth_expired') {
           console.log("ℹ️ [CLIENT] Client's Google Calendar authentication expired - skipping client calendar event");
+          clientCalendarError = `${client.full_name}'s Google Calendar authentication has expired and needs to be reconnected`;
+        } else {
+          clientCalendarError = `Failed to sync to ${client.full_name}'s calendar`;
         }
       }
     } catch (error) {
@@ -1713,7 +1752,7 @@ export default function TrainerSchedulePage() {
       }
     }
 
-    return { trainerEventId, clientEventId };
+    return { trainerEventId, clientEventId, clientCalendarError };
   };
 
   // Helper function to calculate maximum weeks for additional sessions
@@ -3554,7 +3593,7 @@ export default function TrainerSchedulePage() {
                 <PopoverContent className="w-full p-0" align="start">
                   <Command>
                     <CommandInput placeholder="Search clients..." />
-                    <CommandList>
+                    <CommandList className="max-h-[300px] overflow-y-auto">
                       <CommandEmpty>No client found.</CommandEmpty>
                       <CommandGroup>
                         {clients.map((client) => (
@@ -4235,6 +4274,26 @@ export default function TrainerSchedulePage() {
             </DialogDescription>
           </DialogHeader>
 
+          {/* Calendar Warning Section */}
+          {calendarWarningMessage && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-amber-900 mb-1">
+                    Client Calendar Sync Issue
+                  </h4>
+                  <p className="text-sm text-amber-800">
+                    {calendarWarningMessage}
+                  </p>
+                  <p className="text-xs text-amber-700 mt-2">
+                    Sessions were added to your calendar. The client will need to reconnect their Google Calendar to see these sessions.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {sessionTrackingInfo && (
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -4268,6 +4327,7 @@ export default function TrainerSchedulePage() {
               onClick={() => {
                 setShowSuccessDialog(false);
                 setSuccessMessage("");
+                setCalendarWarningMessage("");
                 setDeleteSuccessMessage("");
               }}
             >

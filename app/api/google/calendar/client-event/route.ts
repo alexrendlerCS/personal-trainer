@@ -136,12 +136,12 @@ export async function POST(request: Request) {
         errorMessage.includes('unauthorized') ||
         errorMessage.includes('authentication')) {
 
-        console.log("Returning success despite calendar auth failure to allow session booking to continue");
+        console.log("Returning auth error to notify user that client needs to reconnect Google Calendar");
         return NextResponse.json({
-          eventId: null,
-          error: 'calendar_auth_failed',
-          message: 'Session created but client calendar sync failed - client needs to reconnect Google Calendar'
-        });
+          error: 'calendar_auth_expired',
+          message: "Client's Google Calendar authentication has expired. They need to reconnect their Google Calendar.",
+          details: errorMessage
+        }, { status: 401 });
       }
 
       // Re-throw non-auth errors
