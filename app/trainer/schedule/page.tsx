@@ -26,6 +26,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Calendar as CalendarIcon,
   Plus,
   ChevronLeft,
@@ -42,6 +55,8 @@ import {
   Trash2,
   List,
   ChevronDown,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { GoogleCalendarBanner } from "@/components/GoogleCalendarBanner";
 import { createClient } from "@/lib/supabaseClient";
@@ -54,6 +69,7 @@ import {
 } from "@dnd-kit/core";
 import { useToast } from "@/components/ui/use-toast";
 import { DatePicker } from "@/components/DatePicker";
+import { cn } from "@/lib/utils";
 
 interface DatabaseSession {
   id: string;
@@ -239,6 +255,7 @@ export default function TrainerSchedulePage() {
   const [trainerAvailability, setTrainerAvailability] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClientForSession, setSelectedClientForSession] = useState("");
+  const [clientComboboxOpen, setClientComboboxOpen] = useState(false);
   const [selectedDateForSession, setSelectedDateForSession] = useState("");
   const [selectedTimeForSession, setSelectedTimeForSession] = useState("");
   const [selectedSessionType, setSelectedSessionType] = useState("");
@@ -3520,21 +3537,54 @@ export default function TrainerSchedulePage() {
             {/* Client Selection */}
             <div className="space-y-2">
               <Label htmlFor="client">Client</Label>
-              <Select
-                value={selectedClientForSession}
-                onValueChange={setSelectedClientForSession}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={clientComboboxOpen} onOpenChange={setClientComboboxOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={clientComboboxOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedClientForSession
+                      ? clients.find((client) => client.id === selectedClientForSession)?.full_name
+                      : "Select a client..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search clients..." />
+                    <CommandList>
+                      <CommandEmpty>No client found.</CommandEmpty>
+                      <CommandGroup>
+                        {clients.map((client) => (
+                          <CommandItem
+                            key={client.id}
+                            value={client.full_name}
+                            onSelect={() => {
+                              setSelectedClientForSession(client.id);
+                              setClientComboboxOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedClientForSession === client.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span>{client.full_name}</span>
+                              <span className="text-xs text-muted-foreground">{client.email}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Session Type */}
