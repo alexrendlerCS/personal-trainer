@@ -58,6 +58,7 @@ import {
   BarChart,
   Gift,
   FileText,
+  UserPen,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -75,7 +76,10 @@ import { useToast } from "@/hooks/use-toast";
 interface Client {
   id: string;
   full_name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   email: string;
+  phone?: string | null;
   avatar_url: string | null;
   google_account_connected: boolean;
   contract_accepted: boolean;
@@ -185,6 +189,17 @@ export default function TrainerClientsPage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Edit Client Modal State
+  const [showEditClientModal, setShowEditClientModal] = useState(false);
+  const [selectedClientForEdit, setSelectedClientForEdit] = useState<Client | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+  });
+  const [isUpdatingClient, setIsUpdatingClient] = useState(false);
+
   const supabase = createClient();
   const router = useRouter();
   const { toast } = useToast();
@@ -248,7 +263,10 @@ export default function TrainerClientsPage() {
           `
           id,
           full_name,
+          first_name,
+          last_name,
           email,
+          phone,
           avatar_url,
           google_account_connected,
           contract_accepted,
@@ -472,6 +490,137 @@ export default function TrainerClientsPage() {
     setSessionType("");
     setNumSessions("1");
     setShowAddSessionsModal(true);
+  };
+
+  // Handle opening Edit Client modal
+  const handleOpenEditClient = (client: Client) => {
+    setSelectedClientForEdit(client);
+    // Pre-fill form with existing data or split full_name if needed
+    const firstName = client.first_name || client.full_name.split(" ")[0] || "";
+    const lastName = client.last_name || client.full_name.split(" ").slice(1).join(" ") || "";
+    
+    setEditFormData({
+      first_name: firstName,
+      last_name: lastName,
+      email: client.email,
+      phone: client.phone || "",
+    });
+    setShowEditClientModal(true);
+  };
+
+  // Handle edit form input changes
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle submitting Edit Client
+  const handleSubmitEditClient = async () => {
+    if (!selectedClientForEdit) return;
+
+    // Validation
+    if (!editFormData.first_name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "First name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!editFormData.last_name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Last name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editFormData.email)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate phone if provided
+    if (editFormData.phone.trim()) {
+      const phoneRegex = /^[\d\s\-\(\)\+]+$/;
+      const digitsOnly = editFormData.phone.replace(/\D/g, "");
+      if (!phoneRegex.test(editFormData.phone) || digitsOnly.length < 10) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid phone number (at least 10 digits)",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setIsUpdatingClient(true);
+    try {
+      const response = await fetch("/api/trainer/update-client", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clientId: selectedClientForEdit.id,
+          first_name: editFormData.first_name.trim(),
+          last_name: editFormData.last_name.trim(),
+          email: editFormData.email.trim(),
+          phone: editFormData.phone.trim() || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update client");
+      }
+
+      // Update the client in local state
+      setClients((prevClients) =>
+        prevClients.map((client) =>
+          client.id === selectedClientForEdit.id
+            ? {
+                ...client,
+                first_name: editFormData.first_name.trim(),
+                last_name: editFormData.last_name.trim(),
+                full_name: `${editFormData.first_name.trim()} ${editFormData.last_name.trim()}`,
+                email: editFormData.email.trim(),
+                phone: editFormData.phone.trim() || null,
+              }
+            : client
+        )
+      );
+
+      toast({
+        title: "Client Updated",
+        description: `Successfully updated ${editFormData.first_name} ${editFormData.last_name}'s information.`,
+      });
+
+      setShowEditClientModal(false);
+      setSelectedClientForEdit(null);
+    } catch (error) {
+      console.error("Error updating client:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to update client",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingClient(false);
+    }
   };
 
   // Handle submitting Add Sessions
@@ -929,6 +1078,12 @@ export default function TrainerClientsPage() {
                               <FileText className="h-4 w-4 mr-2" />
                               View Contract
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleOpenEditClient(client)}
+                            >
+                              <UserPen className="h-4 w-4 mr-2" />
+                              Edit Client Info
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -1124,6 +1279,92 @@ export default function TrainerClientsPage() {
               onClick={() => setShowSuccessDialog(false)}
             >
               Great! Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Client Info Modal */}
+      <Dialog open={showEditClientModal} onOpenChange={setShowEditClientModal}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Client Information</DialogTitle>
+            <DialogDescription>
+              Update {selectedClientForEdit?.full_name}'s contact information.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit_first_name">First Name *</Label>
+              <Input
+                id="edit_first_name"
+                name="first_name"
+                value={editFormData.first_name}
+                onChange={handleEditFormChange}
+                placeholder="Enter first name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_last_name">Last Name *</Label>
+              <Input
+                id="edit_last_name"
+                name="last_name"
+                value={editFormData.last_name}
+                onChange={handleEditFormChange}
+                placeholder="Enter last name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_email">Email *</Label>
+              <Input
+                id="edit_email"
+                name="email"
+                type="email"
+                value={editFormData.email}
+                onChange={handleEditFormChange}
+                placeholder="Enter email address"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_phone">Phone Number</Label>
+              <Input
+                id="edit_phone"
+                name="phone"
+                type="tel"
+                value={editFormData.phone}
+                onChange={handleEditFormChange}
+                placeholder="(555) 555-5555"
+              />
+              <p className="text-xs text-gray-500">
+                Optional - for scheduling updates
+              </p>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowEditClientModal(false)}
+              className="w-full"
+              disabled={isUpdatingClient}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmitEditClient}
+              disabled={isUpdatingClient}
+              className="w-full bg-red-600 hover:bg-red-700"
+            >
+              {isUpdatingClient ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
             </Button>
           </div>
         </DialogContent>

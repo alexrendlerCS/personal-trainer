@@ -3,14 +3,17 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, full_name, role } = await req.json();
+    const { email, password, first_name, last_name, phone, role } = await req.json();
 
-    if (!email || !password || !full_name || !role) {
+    if (!email || !password || !first_name || !last_name || !role) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400 }
       );
     }
+
+    // Construct full_name for backward compatibility
+    const full_name = `${first_name} ${last_name}`;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -41,6 +44,9 @@ export async function POST(req: Request) {
         email_confirm: true,
         user_metadata: {
           full_name,
+          first_name,
+          last_name,
+          phone,
           role,
         },
       });
@@ -51,6 +57,9 @@ export async function POST(req: Request) {
           id: data.user.id,
           email: email,
           full_name: full_name,
+          first_name: first_name,
+          last_name: last_name,
+          phone: phone || null,
           role: role,
           created_at: new Date().toISOString(),
           contract_accepted: false,

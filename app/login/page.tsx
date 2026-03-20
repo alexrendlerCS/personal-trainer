@@ -35,7 +35,9 @@ interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
 }
 
 export default function LoginPage() {
@@ -47,7 +49,9 @@ export default function LoginPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    full_name: "",
+    first_name: "",
+    last_name: "",
+    phone: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
@@ -69,6 +73,47 @@ export default function LoginPage() {
   };
 
   const validateSignupForm = () => {
+    // Validate first name
+    if (!formData.first_name.trim()) {
+      setStatusMessage({
+        type: "error",
+        message: "First name is required",
+      });
+      return false;
+    }
+
+    // Validate last name
+    if (!formData.last_name.trim()) {
+      setStatusMessage({
+        type: "error",
+        message: "Last name is required",
+      });
+      return false;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setStatusMessage({
+        type: "error",
+        message: "Please enter a valid email address",
+      });
+      return false;
+    }
+
+    // Validate phone if provided
+    if (formData.phone.trim()) {
+      const phoneRegex = /^[\d\s\-\(\)\+]+$/;
+      if (!phoneRegex.test(formData.phone) || formData.phone.replace(/\D/g, '').length < 10) {
+        setStatusMessage({
+          type: "error",
+          message: "Please enter a valid phone number (at least 10 digits)",
+        });
+        return false;
+      }
+    }
+
+    // Validate password match
     if (formData.password !== formData.confirmPassword) {
       setStatusMessage({
         type: "error",
@@ -76,6 +121,8 @@ export default function LoginPage() {
       });
       return false;
     }
+
+    // Validate password length
     if (formData.password.length < 6) {
       setStatusMessage({
         type: "error",
@@ -83,6 +130,7 @@ export default function LoginPage() {
       });
       return false;
     }
+
     return true;
   };
 
@@ -226,7 +274,9 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          full_name: formData.full_name,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone: formData.phone || null,
           role: userType,
         }),
       });
@@ -242,7 +292,9 @@ export default function LoginPage() {
         email: "",
         password: "",
         confirmPassword: "",
-        full_name: "",
+        first_name: "",
+        last_name: "",
+        phone: "",
       });
 
       // Show signup welcome message (leave isLogin as false)
@@ -535,13 +587,24 @@ export default function LoginPage() {
                         </Alert>
                       )}
                       <div className="flex flex-col space-y-1.5">
-                        <Label htmlFor="full_name">Full Name</Label>
+                        <Label htmlFor="first_name">First Name</Label>
                         <Input
-                          id="full_name"
-                          name="full_name"
-                          value={formData.full_name}
+                          id="first_name"
+                          name="first_name"
+                          value={formData.first_name}
                           onChange={handleInputChange}
-                          placeholder="Enter your full name"
+                          placeholder="Enter your first name"
+                          required
+                        />
+                      </div>
+                      <div className="flex flex-col space-y-1.5">
+                        <Label htmlFor="last_name">Last Name</Label>
+                        <Input
+                          id="last_name"
+                          name="last_name"
+                          value={formData.last_name}
+                          onChange={handleInputChange}
+                          placeholder="Enter your last name"
                           required
                         />
                       </div>
@@ -556,6 +619,20 @@ export default function LoginPage() {
                           placeholder="Enter your email"
                           required
                         />
+                      </div>
+                      <div className="flex flex-col space-y-1.5">
+                        <Label htmlFor="phone">Phone Number (Optional)</Label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          placeholder="(555) 555-5555"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Optional - for scheduling updates and communication
+                        </p>
                       </div>
                       <div className="flex flex-col space-y-1.5">
                         <Label htmlFor="password">Password</Label>
