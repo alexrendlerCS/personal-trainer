@@ -1199,6 +1199,8 @@ export default function TrainerSchedulePage() {
         ))
     ) {
       console.warn("❌ Missing required form data for recurring sessions");
+      setErrorMessage("Please fill in all required fields to book sessions.");
+      setShowErrorDialog(true);
       return;
     }
 
@@ -1211,7 +1213,10 @@ export default function TrainerSchedulePage() {
       } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        throw new Error("No authenticated user found");
+        setErrorMessage("You are not logged in. Please log in and try again.");
+        setShowErrorDialog(true);
+        setIsCreatingSession(false);
+        return;
       }
 
       // Create sessions array including current session if it exists
@@ -1225,7 +1230,7 @@ export default function TrainerSchedulePage() {
         selectedTimeForSession
       ) {
         const currentSession = {
-          dayOfWeek: new Date(selectedDateForSession).getDay(),
+          dayOfWeek: new Date(selectedDateForSession + 'T00:00:00').getDay(),
           time: selectedTimeForSession,
           weeks: recurringWeeks,
           startDate: selectedDateForSession,
@@ -1258,7 +1263,11 @@ export default function TrainerSchedulePage() {
         .eq("status", "active");
 
       if (packageError) {
-        throw new Error(`Failed to fetch packages: ${packageError.message}`);
+        console.error("❌ [PACKAGE] Database error:", packageError);
+        setErrorMessage(`Failed to check package availability: ${packageError.message}. Please try again or contact support if the issue persists.`);
+        setShowErrorDialog(true);
+        setIsCreatingSession(false);
+        return;
       }
 
       // Find the first package with remaining sessions
@@ -1267,7 +1276,10 @@ export default function TrainerSchedulePage() {
       );
 
       if (!packageToUpdate) {
-        throw new Error("No available package found for this session type");
+        setErrorMessage(`No active package found for ${selectedSessionType}. Please purchase a package before booking sessions.`);
+        setShowErrorDialog(true);
+        setIsCreatingSession(false);
+        return;
       }
 
       // Check if package has enough sessions
@@ -1276,114 +1288,209 @@ export default function TrainerSchedulePage() {
         (packageToUpdate.sessions_used || 0);
 
       if (availableSessions < totalSessions) {
-        throw new Error(
-          `Package only has ${availableSessions} sessions remaining, but you're trying to book ${totalSessions} sessions`
+        setErrorMessage(
+          `This package only has ${availableSessions} session${availableSessions !== 1 ? 's' : ''} remaining, but you're trying to book ${totalSessions} sessions. Please select fewer sessions or purchase a new package.`
         );
+        setShowErrorDialog(true);
+        setIsCreatingSession(false);
+        return;
       }
 
       // Store created session IDs for potential rollback
       const createdSessionIds: string[] = [];
       let packageUpdated = false;
+      let calendarEventsCreated: { sessionId: string; trainerEventId?: string; clientEventId?: string }[] = [];
 
-      // Create all recurring sessions
-      const sessionPromises = sessionsToCreate.flatMap((sessionData) => {
-        const sessions = [];
-        const startDate = new Date(sessionData.startDate);
+      try {
+        // Create all recurring sessions first
+        const sessionPromises = sessionsToCreate.flatMap((sessionData) => {
+          const sessions = [];
+          const startDate = new Date(sessionData.startDate);
 
-        for (let week = 0; week < sessionData.weeks; week++) {
-          // Create date using the local date string to ensure timezone consistency
-          const baseDate = new Date(sessionData.startDate + 'T00:00:00');
-          const sessionDate = new Date(baseDate);
-          sessionDate.setDate(baseDate.getDate() + week * 7);
-          const dateString = sessionDate.toISOString().split('T')[0];
+          for (let week = 0; week < sessionData.weeks; week++) {
+            // Create date using the local date string to ensure timezone consistency
+            const baseDate = new Date(sessionData.startDate + 'T00:00:00');
+            const sessionDate = new Date(baseDate);
+            sessionDate.setDate(baseDate.getDate() + week * 7);
+            const dateString = sessionDate.toISOString().split('T')[0];
 
-          // Parse time to HH:mm:ss format
-          const timeMatch = sessionData.time.match(/(\d+):(\d+)\s*(AM|PM)/);
-          let startHour = parseInt(timeMatch?.[1] || "0", 10);
-          const startMinute = parseInt(timeMatch?.[2] || "0", 10);
-          const period = timeMatch?.[3] || "AM";
-          if (period === "PM" && startHour !== 12) startHour += 12;
-          if (period === "AM" && startHour === 12) startHour = 0;
-          const startTimeStr = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}:00`;
+            // Parse time to HH:mm:ss format
+            const timeMatch = sessionData.time.match(/(\d+):(\d+)\s*(AM|PM)/);
+            let startHour = parseInt(timeMatch?.[1] || "0", 10);
+            const startMinute = parseInt(timeMatch?.[2] || "0", 10);
+            const period = timeMatch?.[3] || "AM";
+            if (period === "PM" && startHour !== 12) startHour += 12;
+            if (period === "AM" && startHour === 12) startHour = 0;
+            const startTimeStr = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}:00`;
 
-          // Calculate end time (60 minutes after start time)
-          const endDate = new Date(`2000-01-01T${startTimeStr}`);
-          endDate.setMinutes(endDate.getMinutes() + 60);
-          const endTimeStr = endDate.toTimeString().slice(0, 8);
+            // Calculate end time (60 minutes after start time)
+            const endDate = new Date(`2000-01-01T${startTimeStr}`);
+            endDate.setMinutes(endDate.getMinutes() + 60);
+            const endTimeStr = endDate.toTimeString().slice(0, 8);
 
-          const userTimezone =
-            Intl.DateTimeFormat().resolvedOptions().timeZone ||
-            "America/Denver";
+            const userTimezone =
+              Intl.DateTimeFormat().resolvedOptions().timeZone ||
+              "America/Denver";
 
-          sessions.push(
-            supabase
-              .from("sessions")
-              .insert({
-                client_id: selectedClientForSession,
-                trainer_id: session.user.id,
-                date: dateString,
-                start_time: startTimeStr,
-                end_time: endTimeStr,
-                duration_minutes: 60,
-                type: selectedSessionType,
-                status: "confirmed",
-                notes: sessionNotes || null,
-                is_recurring: true,
-                session_notes: sessionNotes || null,
-                timezone: userTimezone,
-              })
-              .select()
-              .single()
+            sessions.push(
+              supabase
+                .from("sessions")
+                .insert({
+                  client_id: selectedClientForSession,
+                  trainer_id: session.user.id,
+                  date: dateString,
+                  start_time: startTimeStr,
+                  end_time: endTimeStr,
+                  duration_minutes: 60,
+                  type: selectedSessionType,
+                  status: "confirmed",
+                  notes: sessionNotes || null,
+                  is_recurring: true,
+                  session_notes: sessionNotes || null,
+                  timezone: userTimezone,
+                })
+                .select()
+                .single()
+            );
+          }
+          return sessions;
+        });
+
+        // Execute all session creation promises
+        const sessionResults = await Promise.all(sessionPromises);
+
+        // Check for errors in session creation
+        const errors = sessionResults.filter((result) => result.error);
+        if (errors.length > 0) {
+          console.error("❌ [SESSIONS] Failed to create sessions:", errors);
+          const errorMessages = errors.map(e => e.error?.message || 'Unknown error').join(', ');
+          throw new Error(
+            `Failed to create ${errors.length} of ${sessionResults.length} sessions in the database. Error details: ${errorMessages}. Please try again.`
           );
         }
-        return sessions;
-      });
 
-      // Execute all session creation promises
-      const sessionResults = await Promise.all(sessionPromises);
+        // Store created session IDs for potential rollback
+        sessionResults.forEach((result) => {
+          if (result.data) {
+            createdSessionIds.push(result.data.id);
+          }
+        });
 
-      // Check for errors
-      const errors = sessionResults.filter((result) => result.error);
-      if (errors.length > 0) {
-        throw new Error(
-          `Failed to create ${errors.length} sessions: ${errors[0]?.error?.message}`
-        );
-      }
+        console.log(`✅ [SESSIONS] Created ${createdSessionIds.length} sessions in database`);
 
-      // Store created session IDs for potential rollback
-      sessionResults.forEach((result) => {
-        if (result.data) {
-          createdSessionIds.push(result.data.id);
+        // Update package sessions_used
+        const { error: updateError } = await supabase
+          .from("packages")
+          .update({
+            sessions_used: (packageToUpdate.sessions_used || 0) + totalSessions,
+          })
+          .eq("id", packageToUpdate.id);
+
+        if (updateError) {
+          console.error("❌ [PACKAGE] Failed to update package:", updateError);
+          throw new Error(`Failed to update package information: ${updateError.message}. Sessions were created but package count may be incorrect. Please contact support.`);
         }
-      });
 
-      // Update package sessions_used
-      const { error: updateError } = await supabase
-        .from("packages")
-        .update({
-          sessions_used: (packageToUpdate.sessions_used || 0) + totalSessions,
-        })
-        .eq("id", packageToUpdate.id);
+        packageUpdated = true;
+        console.log(`✅ [PACKAGE] Updated package ${packageToUpdate.id} with ${totalSessions} sessions`);
 
-      if (updateError) {
-        throw new Error(`Failed to update package: ${updateError.message}`);
-      }
+        // Get client and trainer details for calendar events
+        const selectedClient = clients.find(
+          (c) => c.id === selectedClientForSession
+        );
 
-      packageUpdated = true;
+        if (selectedClient) {
+          console.log(`📅 [CALENDAR] Starting calendar event creation for ${sessionResults.length} sessions`);
 
-      // Get client and trainer details for calendar events
-      const selectedClient = clients.find(
-        (c) => c.id === selectedClientForSession
-      );
+          let successfulCalendarEvents = 0;
+          let failedCalendarEvents = 0;
+          const calendarErrors: string[] = [];
 
-      if (selectedClient) {
-        // Create calendar events for all sessions
-        for (const sessionResult of sessionResults) {
-          if (sessionResult.data) {
-            const session = sessionResult.data;
-            await createCalendarEvents(session, selectedClient);
+          // Create calendar events for all sessions
+          for (const sessionResult of sessionResults) {
+            if (sessionResult.data) {
+              const dbSession = sessionResult.data;
+
+              try {
+                const eventIds = await createCalendarEvents(dbSession, selectedClient, session);
+                calendarEventsCreated.push({
+                  sessionId: dbSession.id,
+                  trainerEventId: eventIds.trainerEventId || undefined,
+                  clientEventId: eventIds.clientEventId || undefined
+                });
+                successfulCalendarEvents++;
+                console.log(`✅ [CALENDAR] Created events for session ${dbSession.id}`);
+              } catch (calendarError) {
+                failedCalendarEvents++;
+                const errorMessage = calendarError instanceof Error ? calendarError.message : 'Unknown error';
+                calendarErrors.push(errorMessage);
+                console.error(`❌ [CALENDAR] Failed to create events for session ${dbSession.id}:`, calendarError);
+                
+                // Check if it's an authentication error
+                if (errorMessage.includes('not connected') || errorMessage.includes('authentication') || errorMessage.includes('Unauthorized')) {
+                  console.warn(`⚠️ [CALENDAR] Calendar connection issue detected`);
+                  // Don't throw - allow booking to continue without calendar events
+                } else {
+                  // For other calendar errors, throw to trigger rollback
+                  throw new Error(`Calendar event creation failed: ${errorMessage}`);
+                }
+              }
+            }
+          }
+
+          console.log(`✅ [CALENDAR] Calendar sync complete: ${successfulCalendarEvents} successful, ${failedCalendarEvents} failed`);
+
+          // If some calendar events failed due to connection issues, warn the user but don't rollback
+          if (failedCalendarEvents > 0 && successfulCalendarEvents > 0) {
+            console.warn(`⚠️ [CALENDAR] Partial calendar sync: ${successfulCalendarEvents}/${sessionResults.length} events created`);
           }
         }
+
+      } catch (error) {
+        console.error("❌ [ROLLBACK] Error occurred, initiating rollback:", error);
+
+        // Rollback: Delete created sessions
+        if (createdSessionIds.length > 0) {
+          console.log(`🔄 [ROLLBACK] Deleting ${createdSessionIds.length} created sessions...`);
+          try {
+            const { error: deleteError } = await supabase
+              .from("sessions")
+              .delete()
+              .in("id", createdSessionIds);
+
+            if (deleteError) {
+              console.error("❌ [ROLLBACK] Failed to delete sessions:", deleteError);
+            } else {
+              console.log("✅ [ROLLBACK] Successfully deleted sessions");
+            }
+          } catch (deleteError) {
+            console.error("❌ [ROLLBACK] Exception during session deletion:", deleteError);
+          }
+        }
+
+        // Rollback: Restore package sessions_used
+        if (packageUpdated) {
+          console.log(`🔄 [ROLLBACK] Restoring package ${packageToUpdate.id} sessions...`);
+          try {
+            const { error: restoreError } = await supabase
+              .from("packages")
+              .update({
+                sessions_used: packageToUpdate.sessions_used,
+              })
+              .eq("id", packageToUpdate.id);
+
+            if (restoreError) {
+              console.error("❌ [ROLLBACK] Failed to restore package:", restoreError);
+            } else {
+              console.log("✅ [ROLLBACK] Successfully restored package");
+            }
+          } catch (restoreError) {
+            console.error("❌ [ROLLBACK] Exception during package restore:", restoreError);
+          }
+        }
+
+        // Re-throw the error to show user error message
+        throw error;
       }
 
       // Reset form
@@ -1407,11 +1514,40 @@ export default function TrainerSchedulePage() {
       await fetchEvents();
     } catch (error) {
       console.error("Error in handleCreateRecurringSessions:", error);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred while creating the sessions. Please try again."
-      );
+      
+      // Provide specific error messages based on error type
+      let userErrorMessage = "An unexpected error occurred while creating the sessions.";
+      
+      if (error instanceof Error) {
+        const errorMsg = error.message.toLowerCase();
+        
+        // Database connection errors
+        if (errorMsg.includes('connection') || errorMsg.includes('network')) {
+          userErrorMessage = "Unable to connect to the database. Please check your internet connection and try again.";
+        }
+        // Package-related errors (already have good messages)
+        else if (errorMsg.includes('package') || errorMsg.includes('sessions remaining')) {
+          userErrorMessage = error.message;
+        }
+        // Calendar errors
+        else if (errorMsg.includes('calendar')) {
+          userErrorMessage = `${error.message}\n\nThe sessions were created in the database but may not appear in Google Calendar. You can manually sync them later or contact support if needed.`;
+        }
+        // Authentication errors
+        else if (errorMsg.includes('authenticated') || errorMsg.includes('unauthorized') || errorMsg.includes('logged in')) {
+          userErrorMessage = error.message;
+        }
+        // Session creation errors
+        else if (errorMsg.includes('failed to create')) {
+          userErrorMessage = error.message;
+        }
+        // Generic error with the actual message
+        else {
+          userErrorMessage = `${error.message}\n\nPlease try again or contact support if the issue persists.`;
+        }
+      }
+      
+      setErrorMessage(userErrorMessage);
       setShowErrorDialog(true);
     } finally {
       setIsCreatingSession(false);
@@ -1419,24 +1555,26 @@ export default function TrainerSchedulePage() {
   };
 
   // Helper function to create calendar events for recurring sessions
-  const createCalendarEvents = async (session: any, client: any) => {
-    let trainerEventId = null;
-    let clientEventId = null;
+  const createCalendarEvents = async (dbSession: any, client: any, trainerSession: any): Promise<{ trainerEventId: string | null, clientEventId: string | null }> => {
+    console.log(`📅 [CALENDAR] Creating events for session ${dbSession.id} on ${dbSession.date}`);
 
-    // Create calendar event details
+    let trainerEventId: string | null = null;
+    let clientEventId: string | null = null;
+
+    // Create calendar event details using correct data sources
     const baseEventDetails = {
       description: `${selectedSessionType} training session${sessionNotes ? ` - ${sessionNotes}` : ""}`,
       start: {
-        dateTime: `${session.date}T${session.start_time}`,
+        dateTime: `${dbSession.date}T${dbSession.start_time}`,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       end: {
-        dateTime: `${session.date}T${session.end_time}`,
+        dateTime: `${dbSession.date}T${dbSession.end_time}`,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       attendees: [
         { email: client.email },
-        { email: session.user.email || "" },
+        { email: trainerSession.user.email || "" },
       ],
       reminders: {
         useDefault: true,
@@ -1451,7 +1589,7 @@ export default function TrainerSchedulePage() {
       };
 
       const trainerEventResponse = await fetch(
-        `/api/google/calendar/event?trainerId=${session.user.id}`,
+        `/api/google/calendar/event?trainerId=${trainerSession.user.id}`,
         {
           method: "POST",
           headers: {
@@ -1466,17 +1604,37 @@ export default function TrainerSchedulePage() {
         trainerEventId = trainerEventData.eventId;
         console.log(`📅 [TRAINER] Calendar event created: ${trainerEventId}`);
       } else {
-        console.warn("Failed to create trainer calendar event:", await trainerEventResponse.text());
+        const errorData = await trainerEventResponse.json().catch(() => null);
+        const errorMessage = errorData?.message || `Failed to create trainer calendar event (${trainerEventResponse.status})`;
+        console.error(`❌ [TRAINER] Calendar error:`, errorData);
+        
+        // Handle specific error types
+        if (errorData?.error === 'calendar_not_connected') {
+          throw new Error("Your Google Calendar is not connected. Please reconnect your calendar in settings before booking sessions.");
+        } else if (errorData?.error === 'calendar_auth_expired') {
+          throw new Error("Your Google Calendar authentication has expired. Please reconnect your calendar in settings.");
+        } else if (errorData?.error === 'rate_limit') {
+          throw new Error("Too many calendar requests. Please wait a moment and try again.");
+        } else if (trainerEventResponse.status === 401 || trainerEventResponse.status === 400) {
+          throw new Error(errorMessage);
+        } else {
+          console.warn("⚠️ [TRAINER] Non-critical calendar error, continuing without trainer calendar event");
+        }
       }
     } catch (error) {
-      console.warn("Failed to create trainer calendar event:", error);
+      console.error("❌ [TRAINER] Calendar event creation error:", error);
+      // Re-throw connection errors, but allow other errors to continue
+      if (error instanceof Error && (error.message.includes('not connected') || error.message.includes('not configured'))) {
+        throw error;
+      }
+      console.warn("⚠️ [TRAINER] Continuing without trainer calendar event");
     }
 
     // Create client calendar event
     try {
       const clientEventDetails = {
         ...baseEventDetails,
-        summary: `${selectedSessionType} with ${session.user.user_metadata?.full_name || "Trainer"}`,
+        summary: `${selectedSessionType} with ${trainerSession.user.user_metadata?.full_name || "Trainer"}`,
       };
 
       const clientEventResponse = await fetch(
@@ -1496,13 +1654,24 @@ export default function TrainerSchedulePage() {
           clientEventId = clientEventData.eventId;
           console.log(`📅 [CLIENT] Calendar event created: ${clientEventId}`);
         } else if (clientEventData.error === 'calendar_auth_failed') {
-          console.warn('Client calendar sync failed:', clientEventData.message);
+          console.warn('⚠️ [CLIENT] Calendar authentication failed:', clientEventData.message);
+          // Don't throw - this is expected if client hasn't connected calendar
         }
       } else {
-        console.warn("Failed to create client calendar event:", await clientEventResponse.text());
+        const errorData = await clientEventResponse.json().catch(() => null);
+        const errorMessage = errorData?.message || `Failed to create client calendar event (${clientEventResponse.status})`;
+        console.warn(`⚠️ [CLIENT] Calendar error:`, errorData);
+        
+        // Client calendar failures are non-critical - log but don't throw
+        if (errorData?.error === 'calendar_not_connected') {
+          console.log("ℹ️ [CLIENT] Client's Google Calendar is not connected - skipping client calendar event");
+        } else if (errorData?.error === 'calendar_auth_expired') {
+          console.log("ℹ️ [CLIENT] Client's Google Calendar authentication expired - skipping client calendar event");
+        }
       }
     } catch (error) {
-      console.warn("Failed to create client calendar event:", error);
+      console.warn("⚠️ [CLIENT] Failed to create client calendar event:", error);
+      // Client calendar errors are non-critical - continue without throwing
     }
 
     // Update the session with calendar event IDs if they were created successfully
@@ -1519,13 +1688,15 @@ export default function TrainerSchedulePage() {
         await supabase
           .from("sessions")
           .update(updateData)
-          .eq("id", session.id);
+          .eq("id", dbSession.id);
 
-        console.log(`📝 [UPDATE] Session ${session.id} updated with calendar event IDs`);
+        console.log(`📝 [UPDATE] Session ${dbSession.id} updated with calendar event IDs`);
       } catch (error) {
         console.error("Error updating session with Google Calendar event IDs:", error);
       }
     }
+
+    return { trainerEventId, clientEventId };
   };
 
   // Helper function to calculate maximum weeks for additional sessions
@@ -2252,8 +2423,8 @@ export default function TrainerSchedulePage() {
               <div
                 key={index}
                 className={`bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[120px] border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-y-auto ${isToday(day)
-                    ? "bg-red-50 hover:bg-red-100 ring-2 ring-red-500 ring-opacity-50"
-                    : ""
+                  ? "bg-red-50 hover:bg-red-100 ring-2 ring-red-500 ring-opacity-50"
+                  : ""
                   }`}
               >
                 {day && (
@@ -2659,24 +2830,24 @@ export default function TrainerSchedulePage() {
                 <div
                   key={date.toISOString()}
                   className={`border rounded-lg p-3 ${isToday(date.getDate())
-                      ? "bg-red-50 border-red-200"
-                      : "bg-white border-gray-200"
+                    ? "bg-red-50 border-red-200"
+                    : "bg-white border-gray-200"
                     }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div
                         className={`font-medium text-sm ${isToday(date.getDate())
-                            ? "text-red-900"
-                            : "text-gray-900"
+                          ? "text-red-900"
+                          : "text-gray-900"
                           }`}
                       >
                         {daysOfWeek[index]}
                       </div>
                       <div
                         className={`text-lg font-bold ${isToday(date.getDate())
-                            ? "text-red-600"
-                            : "text-gray-700"
+                          ? "text-red-600"
+                          : "text-gray-700"
                           }`}
                       >
                         {date.getDate()}
@@ -2804,18 +2975,18 @@ export default function TrainerSchedulePage() {
                 <div
                   key={`day-${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
                   className={`relative p-1 sm:p-2 min-h-[100px] sm:min-h-[120px] ${!day
-                      ? "bg-gray-50 dark:bg-gray-900/40"
-                      : isToday(day)
-                        ? "bg-red-50 dark:bg-red-900/20 ring-1 ring-red-500/70 dark:ring-red-700 ring-inset"
-                        : "bg-white dark:bg-gray-900"
+                    ? "bg-gray-50 dark:bg-gray-900/40"
+                    : isToday(day)
+                      ? "bg-red-50 dark:bg-red-900/20 ring-1 ring-red-500/70 dark:ring-red-700 ring-inset"
+                      : "bg-white dark:bg-gray-900"
                     }`}
                 >
                   {day && (
                     <>
                       <div
                         className={`font-medium text-xs mb-1 sticky top-0 z-10 ${isToday(day)
-                            ? "text-red-900 dark:text-red-300 font-bold"
-                            : "dark:text-gray-100"
+                          ? "text-red-900 dark:text-red-300 font-bold"
+                          : "dark:text-gray-100"
                           }`}
                       >
                         {day}
@@ -2982,8 +3153,8 @@ export default function TrainerSchedulePage() {
                 <div key={dateString} className="border rounded-lg">
                   <div
                     className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${isToday(dateString)
-                        ? "bg-red-50 border-red-200"
-                        : "bg-gray-50"
+                      ? "bg-red-50 border-red-200"
+                      : "bg-gray-50"
                       }`}
                     onClick={() => {
                       const newExpanded = new Set(expandedDates);
@@ -3628,7 +3799,7 @@ export default function TrainerSchedulePage() {
                     onClick={() => {
                       // Add current session to the recurring sessions array
                       const newSession = {
-                        dayOfWeek: new Date(selectedDateForSession).getDay(),
+                        dayOfWeek: new Date(selectedDateForSession + 'T00:00:00').getDay(),
                         time: selectedTimeForSession,
                         weeks: recurringWeeks,
                         startDate: selectedDateForSession,
@@ -3683,7 +3854,7 @@ export default function TrainerSchedulePage() {
                     onClick={() => {
                       // Add current session to the recurring sessions array
                       const newSession = {
-                        dayOfWeek: new Date(selectedDateForSession).getDay(),
+                        dayOfWeek: new Date(selectedDateForSession + 'T00:00:00').getDay(),
                         time: selectedTimeForSession,
                         weeks: recurringWeeks,
                         startDate: selectedDateForSession,
@@ -3813,7 +3984,7 @@ export default function TrainerSchedulePage() {
                         </h5>
                         <div className="space-y-1">
                           {Array.from({ length: recurringWeeks }, (_, index) => {
-                            const sessionDate = new Date(selectedDateForSession);
+                            const sessionDate = new Date(selectedDateForSession + 'T00:00:00');
                             sessionDate.setDate(
                               sessionDate.getDate() + index * 7
                             );

@@ -42,9 +42,14 @@ export async function POST(request: Request) {
           error: trainerError,
           trainerId,
         });
-        return new NextResponse("Failed to fetch trainer data", {
-          status: 500,
-        });
+        return NextResponse.json(
+          { 
+            error: "database_error",
+            message: "Failed to fetch trainer data from database",
+            details: trainerError.message 
+          },
+          { status: 500 }
+        );
       }
 
       console.log("Trainer data retrieved:", {
@@ -62,9 +67,17 @@ export async function POST(request: Request) {
           hasRefreshToken: !!trainerData?.google_refresh_token,
           hasCalendarId: !!trainerData?.google_calendar_id,
         });
-        return new NextResponse("Trainer Google Calendar not connected", {
-          status: 400,
-        });
+        return NextResponse.json(
+          { 
+            error: "calendar_not_connected",
+            message: "Trainer Google Calendar not connected. Please connect your Google Calendar in settings.",
+            details: {
+              hasRefreshToken: !!trainerData?.google_refresh_token,
+              hasCalendarId: !!trainerData?.google_calendar_id,
+            }
+          },
+          { status: 400 }
+        );
       }
 
       console.log("Creating trainer calendar client with refresh token");
@@ -87,7 +100,39 @@ export async function POST(request: Request) {
           calendarId: trainerData.google_calendar_id,
           eventDetails,
         });
-        throw error;
+        
+        // Parse Google API errors for better user messages
+        const errorData = (error as any)?.response?.data;
+        const errorMessage = (error as any)?.message || String(error);
+        
+        if (errorMessage.includes('invalid_grant') || errorMessage.includes('invalid_token')) {
+          return NextResponse.json(
+            { 
+              error: "calendar_auth_expired",
+              message: "Google Calendar authentication has expired. Please reconnect your calendar.",
+              details: errorMessage
+            },
+            { status: 401 }
+          );
+        } else if (errorData?.error?.message?.includes('rate limit')) {
+          return NextResponse.json(
+            { 
+              error: "rate_limit",
+              message: "Too many calendar requests. Please wait a moment and try again.",
+              details: errorMessage
+            },
+            { status: 429 }
+          );
+        } else {
+          return NextResponse.json(
+            { 
+              error: "calendar_api_error",
+              message: "Failed to create calendar event in Google Calendar",
+              details: errorMessage
+            },
+            { status: 500 }
+          );
+        }
       }
     }
 
@@ -101,14 +146,29 @@ export async function POST(request: Request) {
 
     if (userError) {
       console.error("User data fetch error:", userError);
-      return new NextResponse("Failed to fetch user data", { status: 500 });
+      return NextResponse.json(
+        { 
+          error: "database_error",
+          message: "Failed to fetch user data from database",
+          details: userError.message 
+        },
+        { status: 500 }
+      );
     }
 
     if (!userData?.google_refresh_token || !userData?.google_calendar_id) {
       console.log("No client Google calendar found");
-      return new NextResponse("Client Google Calendar not connected", {
-        status: 400,
-      });
+      return NextResponse.json(
+        { 
+          error: "calendar_not_connected",
+          message: "Your Google Calendar is not connected. Please connect your calendar in settings.",
+          details: {
+            hasRefreshToken: !!userData?.google_refresh_token,
+            hasCalendarId: !!userData?.google_calendar_id,
+          }
+        },
+        { status: 400 }
+      );
     }
 
     console.log("Creating client calendar client");
@@ -131,14 +191,37 @@ export async function POST(request: Request) {
         calendarId: userData.google_calendar_id,
         eventDetails,
       });
-      throw error;
+      
+      const errorMessage = (error as any)?.message || String(error);
+      
+      if (errorMessage.includes('invalid_grant') || errorMessage.includes('invalid_token')) {
+        return NextResponse.json(
+          { 
+            error: "calendar_auth_expired",
+            message: "Google Calendar authentication has expired. Please reconnect your calendar.",
+            details: errorMessage
+          },
+          { status: 401 }
+        );
+      } else {
+        return NextResponse.json(
+          { 
+            error: "calendar_api_error",
+            message: "Failed to create calendar event",
+            details: errorMessage
+          },
+          { status: 500 }
+        );
+      }
     }
   } catch (error) {
     console.error("Calendar event creation error:", error);
-    return new NextResponse(
-      `Failed to create calendar event: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`,
+    return NextResponse.json(
+      {
+        error: "server_error",
+        message: "Failed to create calendar event",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }

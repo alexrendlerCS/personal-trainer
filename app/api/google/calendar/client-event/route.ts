@@ -46,9 +46,14 @@ export async function POST(request: Request) {
         error: clientError,
         clientId,
       });
-      return new NextResponse("Failed to fetch client data", {
-        status: 500,
-      });
+      return NextResponse.json(
+        { 
+          error: "database_error",
+          message: "Failed to fetch client data from database",
+          details: clientError.message 
+        },
+        { status: 500 }
+      );
     }
 
     console.log("Client data retrieved:", {
@@ -63,9 +68,17 @@ export async function POST(request: Request) {
         hasRefreshToken: !!clientData?.google_refresh_token,
         hasCalendarId: !!clientData?.google_calendar_id,
       });
-      return new NextResponse("Client Google Calendar not connected", {
-        status: 400,
-      });
+      return NextResponse.json(
+        { 
+          error: "calendar_not_connected",
+          message: "Client Google Calendar not connected",
+          details: {
+            hasRefreshToken: !!clientData?.google_refresh_token,
+            hasCalendarId: !!clientData?.google_calendar_id,
+          }
+        },
+        { status: 400 }
+      );
     }
 
     console.log("Creating client calendar client with refresh token");
@@ -89,7 +102,28 @@ export async function POST(request: Request) {
           calendarId: clientData.google_calendar_id,
           eventDetails,
         });
-        throw calendarError;
+        
+        const errorMessage = (calendarError as any)?.message || String(calendarError);
+        
+        if (errorMessage.includes('invalid_grant') || errorMessage.includes('invalid_token')) {
+          return NextResponse.json(
+            { 
+              error: "calendar_auth_expired",
+              message: "Client's Google Calendar authentication has expired",
+              details: errorMessage
+            },
+            { status: 401 }
+          );
+        } else {
+          return NextResponse.json(
+            { 
+              error: "calendar_api_error",
+              message: "Failed to create event in client's Google Calendar",
+              details: errorMessage
+            },
+            { status: 500 }
+          );
+        }
       }
     } catch (authError) {
       // Handle authentication errors gracefully
@@ -115,9 +149,12 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Client calendar event creation error:", error);
-    return new NextResponse(
-      `Failed to create client calendar event: ${error instanceof Error ? error.message : "Unknown error"
-      }`,
+    return NextResponse.json(
+      {
+        error: "server_error",
+        message: "Failed to create client calendar event",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }
