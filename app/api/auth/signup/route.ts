@@ -1,5 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { Resend } from "resend";
+
+// Initialize Resend client
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
@@ -92,6 +96,81 @@ export async function POST(req: Request) {
         if (packageError) {
           console.error("Failed to create free in-person package:", packageError);
           // Not fatal, but you may want to notify admin or log this
+        }
+
+        // Send notification email to Haley about new client sign-up
+        try {
+          const formattedSignupDate = new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          });
+
+          await resend.emails.send({
+            from: "Coach Kilday <no-reply@coachkilday.com>",
+            to: ["haley@coachkilday.com"],
+            subject: `New Client Sign-Up - ${full_name}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #d32f2f; margin-bottom: 20px;">🎉 New Client Sign-Up!</h2>
+                
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                  <h3 style="margin: 0 0 15px 0; color: #333;">Client Information</h3>
+                  
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding: 8px 0; font-weight: bold; color: #666; width: 40%;">Name:</td>
+                      <td style="padding: 8px 0;">${full_name}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; font-weight: bold; color: #666;">Email:</td>
+                      <td style="padding: 8px 0;">${email}</td>
+                    </tr>
+                    ${phone ? `
+                    <tr>
+                      <td style="padding: 8px 0; font-weight: bold; color: #666;">Phone:</td>
+                      <td style="padding: 8px 0;">${phone}</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                      <td style="padding: 8px 0; font-weight: bold; color: #666;">Sign-Up Date:</td>
+                      <td style="padding: 8px 0;">${formattedSignupDate}</td>
+                    </tr>
+                  </table>
+                </div>
+                
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                  <p style="margin: 0; color: #2e7d32; font-weight: bold;">✓ Free Session Package Created</p>
+                  <p style="margin: 5px 0 0 0; color: #558b2f; font-size: 14px;">
+                    The client has been automatically assigned 1 complimentary In-Person Training session.
+                  </p>
+                </div>
+                
+                <p style="color: #666; margin: 20px 0;">
+                  A new client has successfully registered for Coach Kilday's training platform. 
+                  They now have access to the client dashboard and can view their free session package.
+                </p>
+                
+                <p style="color: #666; margin: 0;">
+                  <strong>Next steps:</strong>
+                </p>
+                <ul style="color: #666; margin: 10px 0;">
+                  <li>Client will need to sign the training agreement before booking sessions</li>
+                  <li>You can reach out to welcome them and discuss their fitness goals</li>
+                  <li>They can book their first free session once the contract is signed</li>
+                </ul>
+              </div>
+            `,
+          });
+
+          console.log("New client sign-up notification email sent to Haley");
+        } catch (emailError) {
+          console.error("Failed to send new client notification email to Haley:", emailError);
+          // Don't fail the signup process if email fails
         }
       }
     }
