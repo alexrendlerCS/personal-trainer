@@ -716,7 +716,7 @@ export default function LoginPage() {
               {statusMessage.type === "success" && isLogin
                 ? "Welcome Back!"
                 : statusMessage.type === "success"
-                    ? `Welcome${formData.full_name ? `, ${formData.full_name.split(" ")[0]}!` : "!"}`
+                    ? `Welcome${formData.first_name ? `, ${formData.first_name}!` : "!"}`
                   : "Error"}
             </DialogTitle>
               <DialogDescription>
