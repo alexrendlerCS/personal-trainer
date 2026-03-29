@@ -53,6 +53,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { DatePicker } from "@/components/DatePicker";
 import { useRouter } from "next/navigation";
@@ -749,6 +764,7 @@ function AddSessionsModal({
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [clientComboboxOpen, setClientComboboxOpen] = useState(false);
   const supabase = createClient();
   const { toast } = useToast();
 
@@ -852,21 +868,57 @@ function AddSessionsModal({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <div>
-            <Label>Client</Label>
-            <select
-              className="w-full border rounded p-2 mt-1"
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              disabled={loading}
-            >
-              <option value="">Select a client...</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.full_name} ({c.email})
-                </option>
-              ))}
-            </select>
+          <div className="space-y-2">
+            <Label htmlFor="client">Client</Label>
+            <Popover open={clientComboboxOpen} onOpenChange={setClientComboboxOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={clientComboboxOpen}
+                  className="w-full justify-between"
+                  disabled={loading}
+                >
+                  {selectedUserId
+                    ? clients.find((client) => client.id === selectedUserId)?.full_name
+                    : "Select a client..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search clients..." />
+                  <CommandList className="max-h-[300px] overflow-y-auto">
+                    <CommandEmpty>No client found.</CommandEmpty>
+                    <CommandGroup>
+                      {clients.map((client) => (
+                        <CommandItem
+                          key={client.id}
+                          value={client.full_name}
+                          onSelect={() => {
+                            setSelectedUserId(client.id);
+                            setClientComboboxOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedUserId === client.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span>{client.full_name}</span>
+                            <span className="text-xs text-muted-foreground">{client.email}</span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div>
             <Label>Session Type</Label>
@@ -1003,6 +1055,7 @@ function CustomPaymentModal({
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [clientComboboxOpen, setClientComboboxOpen] = useState(false);
   const supabase = createClient();
   const { toast } = useToast();
 
@@ -1130,21 +1183,57 @@ function CustomPaymentModal({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <div>
-            <Label>Client</Label>
-            <select
-              className="w-full border rounded p-2 mt-1"
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              disabled={loading}
-            >
-              <option value="">Select a client...</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.full_name} ({c.email})
-                </option>
-              ))}
-            </select>
+          <div className="space-y-2">
+            <Label htmlFor="client">Client</Label>
+            <Popover open={clientComboboxOpen} onOpenChange={setClientComboboxOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={clientComboboxOpen}
+                  className="w-full justify-between"
+                  disabled={loading}
+                >
+                  {selectedUserId
+                    ? clients.find((client) => client.id === selectedUserId)?.full_name
+                    : "Select a client..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search clients..." />
+                  <CommandList className="max-h-[300px] overflow-y-auto">
+                    <CommandEmpty>No client found.</CommandEmpty>
+                    <CommandGroup>
+                      {clients.map((client) => (
+                        <CommandItem
+                          key={client.id}
+                          value={client.full_name}
+                          onSelect={() => {
+                            setSelectedUserId(client.id);
+                            setClientComboboxOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedUserId === client.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span>{client.full_name}</span>
+                            <span className="text-xs text-muted-foreground">{client.email}</span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div>
             <Label>Package Type</Label>
