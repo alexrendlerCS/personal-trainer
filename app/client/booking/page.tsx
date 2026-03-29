@@ -112,6 +112,12 @@ const sessionTypes = [
     duration: "60 min",
     description: "Virtual posing coaching and competition preparation sessions",
   },
+  {
+    id: "Intro to VT Sessions",
+    name: "Intro to VT Sessions",
+    duration: "30 min",
+    description: "Introductory virtual training coaching calls",
+  },
 ];
 
 interface Trainer {
@@ -168,7 +174,8 @@ type PackageType =
   | "In-Person Training"
   | "Virtual Training"
   | "Partner Training"
-  | "Posing Package";
+  | "Posing Package"
+  | "Intro to VT Sessions";
 
 type PackageTypeCounts = {
   [K in PackageType]: PackageTypeCount;
@@ -394,7 +401,8 @@ const generateTimeSlots = (
   startTime: string,
   endTime: string,
   unavailablePeriods: Array<{ start_time: string; end_time: string }> = [],
-  existingSessions: Array<{ start_time: string; end_time: string }> = []
+  existingSessions: Array<{ start_time: string; end_time: string }> = [],
+  sessionDurationMinutes: number = 60 // New parameter with default of 60 minutes
 ): TimeSlot[] => {
   const slots: TimeSlot[] = [];
 
@@ -417,11 +425,11 @@ const generateTimeSlots = (
 
   // Generate slots in 30-minute increments
   while (current < end) {
-    // Calculate the start and end times for this 60-minute session
+    // Calculate the start and end times for this session (30 or 60 minutes)
     const slotStartTime = format(current, "HH:mm:ss");
-    const sessionEnd = new Date(current.getTime() + 60 * 60000); // 60 minutes later
+    const sessionEnd = new Date(current.getTime() + sessionDurationMinutes * 60000);
 
-    // Only add the slot if the full 60-minute session fits within the availability window
+    // Only add the slot if the full session fits within the availability window
     if (sessionEnd <= end) {
       const slotEndTime = format(sessionEnd, "HH:mm:ss");
 
@@ -616,6 +624,10 @@ export default function BookingPage() {
         // Handle multiple availability windows for the same day
         let allSlots: TimeSlot[] = [];
 
+        // Determine session duration based on selected type
+        const selectedSessionType = sessionTypes.find(t => t.id === selectedType);
+        const sessionDurationMinutes = selectedSessionType?.duration === "30 min" ? 30 : 60;
+
         // Sort availability windows by start time
         const sortedAvailability = availabilityData.sort((a, b) =>
           a.start_time.localeCompare(b.start_time)
@@ -627,7 +639,8 @@ export default function BookingPage() {
             availability.start_time,
             availability.end_time,
             unavailabilityData || [],
-            sessionData || []
+            sessionData || [],
+            sessionDurationMinutes
           );
           allSlots = [...allSlots, ...windowSlots];
         }
@@ -698,6 +711,11 @@ export default function BookingPage() {
 
         // Generate time slots for each availability window
         let allSlots: TimeSlot[] = [];
+        
+        // Determine session duration based on selected type
+        const selectedSessionType = sessionTypes.find(t => t.id === selectedType);
+        const sessionDurationMinutes = selectedSessionType?.duration === "30 min" ? 30 : 60;
+        
         const sortedAvailability = availabilityData.sort((a, b) =>
           a.start_time.localeCompare(b.start_time)
         );
@@ -708,7 +726,8 @@ export default function BookingPage() {
             availability.start_time,
             availability.end_time,
             unavailabilityData || [],
-            sessionData || []
+            sessionData || [],
+            sessionDurationMinutes
           );
           allSlots = [...allSlots, ...windowSlots];
         }
@@ -898,6 +917,11 @@ export default function BookingPage() {
           },
           "Posing Package": {
             type: "Posing Package",
+            remaining: 0,
+            total: 0,
+          },
+          "Intro to VT Sessions": {
+            type: "Intro to VT Sessions",
             remaining: 0,
             total: 0,
           },

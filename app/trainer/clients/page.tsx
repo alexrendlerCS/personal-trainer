@@ -1172,6 +1172,8 @@ export default function TrainerClientsPage() {
                   <SelectItem value="In-Person Training">In-Person Training</SelectItem>
                   <SelectItem value="Virtual Training">Virtual Training</SelectItem>
                   <SelectItem value="Partner Training">Partner Training</SelectItem>
+                  <SelectItem value="Posing Package">Posing Package</SelectItem>
+                  <SelectItem value="Intro to VT Sessions">Intro to VT Sessions (30 min)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

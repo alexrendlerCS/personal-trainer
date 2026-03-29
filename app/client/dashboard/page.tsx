@@ -531,6 +531,11 @@ export default function ClientDashboard() {
             remaining: 0,
             total: 0,
           },
+          "Intro to VT Sessions": {
+            type: "Intro to VT Sessions",
+            remaining: 0,
+            total: 0,
+          },
         };
 
         let totalUsed = 0;

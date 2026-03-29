@@ -95,7 +95,7 @@ export interface Database {
           start_time: string;
           end_time: string | null;
           duration_minutes: number | null;
-          type: "In-Person Training" | "Virtual Training" | "Partner Training";
+          type: "In-Person Training" | "Virtual Training" | "Partner Training" | "Posing Package" | "Intro to VT Sessions";
           status: string;
           notes: string | null;
           is_recurring: boolean;
@@ -123,7 +123,7 @@ export interface Database {
           start_time: string;
           end_time?: string | null;
           duration_minutes?: number | null;
-          type: "In-Person Training" | "Virtual Training" | "Partner Training";
+          type: "In-Person Training" | "Virtual Training" | "Partner Training" | "Posing Package" | "Intro to VT Sessions";
           status?: string;
           notes?: string | null;
           is_recurring?: boolean;
@@ -151,7 +151,7 @@ export interface Database {
           start_time?: string;
           end_time?: string | null;
           duration_minutes?: number | null;
-          type?: "In-Person Training" | "Virtual Training" | "Partner Training";
+          type?: "In-Person Training" | "Virtual Training" | "Partner Training" | "Posing Package" | "Intro to VT Sessions";
           status?: string;
           notes?: string | null;
           is_recurring?: boolean;
@@ -179,7 +179,9 @@ export interface Database {
           package_type:
             | "In-Person Training"
             | "Virtual Training"
-            | "Partner Training";
+            | "Partner Training"
+            | "Posing Package"
+            | "Intro to VT Sessions";
           sessions_included: number;
           sessions_used: number;
           price: number | null;
@@ -196,7 +198,9 @@ export interface Database {
           package_type:
             | "In-Person Training"
             | "Virtual Training"
-            | "Partner Training";
+            | "Partner Training"
+            | "Posing Package"
+            | "Intro to VT Sessions";
           sessions_included: number;
           sessions_used?: number;
           price?: number | null;
@@ -213,7 +217,9 @@ export interface Database {
           package_type?:
             | "In-Person Training"
             | "Virtual Training"
-            | "Partner Training";
+            | "Partner Training"
+            | "Posing Package"
+            | "Intro to VT Sessions";
           sessions_included?: number;
           sessions_used?: number;
           price?: number | null;

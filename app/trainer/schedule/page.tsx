@@ -239,6 +239,12 @@ const sessionTypes = [
     duration: "60 min",
     description: "Virtual posing coaching and competition preparation sessions",
   },
+  {
+    id: "Intro to VT Sessions",
+    name: "Intro to VT Sessions",
+    duration: "30 min",
+    description: "Introductory virtual training coaching calls",
+  },
 ];
 
 export default function TrainerSchedulePage() {

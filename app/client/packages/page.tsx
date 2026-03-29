@@ -62,7 +62,8 @@ type PackageType =
   | "In-Person Training"
   | "Virtual Training"
   | "Partner Training"
-  | "Posing Package";
+  | "Posing Package"
+  | "Intro to VT Sessions";
 
 type PackageTypeCounts = {
   [K in PackageType]: PackageTypeCount;
@@ -492,6 +493,11 @@ function PackagesContent() {
         },
         "Posing Package": {
           type: "Posing Package",
+          remaining: 0,
+          total: 0,
+        },
+        "Intro to VT Sessions": {
+          type: "Intro to VT Sessions",
           remaining: 0,
           total: 0,
         },
