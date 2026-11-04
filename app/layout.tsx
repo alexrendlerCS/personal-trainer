@@ -86,7 +86,7 @@ export default function RootLayout({
               description:
                 "Personal training and fitness coaching in Thornton, Colorado",
               url: "https://www.coachkilday.com",
-              telephone: "+1-720-979-2808",
+              telephone: "+1-720-441-3308",
               address: {
                 "@type": "PostalAddress",
                 streetAddress: "397 W 148th Ave",
@@ -140,7 +140,7 @@ export default function RootLayout({
                   },
                 ],
               },
-              sameAs: ["https://www.instagram.com/coachkilday"],
+              sameAs: ["https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"],
             }),
           }}
         />

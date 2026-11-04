@@ -8,7 +8,7 @@ import { AnimatedHero } from "@/components/animated-hero";
 export const metadata = {
   title: "Contact Coach Kilday | Personal Trainer Thornton, CO",
   description:
-    "Contact Coach Kilday for personal training in Thornton, Colorado. Located at Life Time Thornton. Call (720) 979-2808 or book online.",
+    "Contact Coach Kilday for personal training in Thornton, Colorado. Located at Life Time Thornton. Call (720) 441-3308 or book online.",
   keywords:
     "contact Coach Kilday, personal trainer Thornton, fitness coach contact, Life Time Thornton, personal training Colorado",
 };
@@ -89,7 +89,7 @@ export default function ContactPage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-lg font-semibold dark:text-gray-100">
-                        (720) 979-2808
+                        (720) 441-3308
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                         Call or text for immediate assistance
@@ -126,12 +126,12 @@ export default function ContactPage() {
                     </CardHeader>
                     <CardContent>
                       <a
-                        href="https://www.instagram.com/coachkilday"
+                        href="https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-red-600 hover:text-red-700 font-semibold"
                       >
-                        @coachkilday
+                        @coach.kilday
                       </a>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                         Follow for fitness tips and motivation
@@ -265,7 +265,7 @@ export default function ContactPage() {
                   <p className="text-gray-700 dark:text-gray-300">
                     You can book your first session online through our booking
                     system, or call/text Coach Kilday directly at (720)
-                    979-2808.
+                    441-3308.
                   </p>
                 </CardContent>
               </Card>

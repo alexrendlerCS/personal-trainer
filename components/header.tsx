@@ -111,12 +111,12 @@ export default function Header() {
             Contact
           </Link>
           <Link
-            href="/rebalance"
+            href="/app"
             className={`font-medium hover:text-red-600 transition-colors ${
               isScrolled ? "text-gray-800" : "text-white"
             }`}
           >
-            Rebalance
+            App
           </Link>
           <Button
             onClick={handleLoginSignup}
@@ -171,11 +171,11 @@ export default function Header() {
               Contact
             </Link>
             <Link
-              href="/rebalance"
+              href="/app"
               className="font-medium py-2 text-gray-800 hover:text-red-600 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Rebalance
+              App
             </Link>
             <Button
               onClick={() => {

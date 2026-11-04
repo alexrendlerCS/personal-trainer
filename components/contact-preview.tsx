@@ -38,7 +38,7 @@ export default function ContactPreview() {
               <CardTitle className="dark:text-gray-100">Phone</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 dark:text-gray-300">(720) 979-2808</p>
+              <p className="text-gray-600 dark:text-gray-300">(720) 441-3308</p>
             </CardContent>
           </Card>
 
@@ -59,12 +59,12 @@ export default function ContactPreview() {
             </CardHeader>
             <CardContent>
               <a
-                href="https://www.instagram.com/coachkilday"
+                href="https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-red-600 hover:text-red-700 font-semibold"
               >
-                @coachkilday
+                @coach.kilday
               </a>
             </CardContent>
           </Card>

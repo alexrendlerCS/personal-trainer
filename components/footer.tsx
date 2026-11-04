@@ -15,7 +15,7 @@ export default function Footer() {
             </p>
             <div className="flex space-x-4">
               <Link
-                href="https://www.instagram.com/coachkilday"
+                href="https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-red-500 transition-colors"
@@ -118,10 +118,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="tel:+17209792808"
+                  href="tel:+17204413308"
                   className="text-gray-400 hover:text-white text-sm transition-colors"
                 >
-                  (720) 979-2808
+                  (720) 441-3308
                 </Link>
               </li>
             </ul>

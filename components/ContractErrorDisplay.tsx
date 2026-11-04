@@ -176,8 +176,8 @@ export function ContractErrorDisplay({
               haley@coachkilday.com
             </a>{" "}
             or call{" "}
-            <a href="tel:+1234567890" className="underline">
-              (123) 456-7890
+            <a href="tel:+17204413308" className="underline">
+              (720) 441-3308
             </a>
           </p>
         </div>

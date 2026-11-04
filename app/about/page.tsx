@@ -195,7 +195,7 @@ export default function AboutPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 dark:text-gray-300">
-                    (720) 979-2808
+                    (720) 441-3308
                   </p>
                 </CardContent>
               </Card>
@@ -217,12 +217,12 @@ export default function AboutPage() {
                 </CardHeader>
                 <CardContent>
                   <a
-                    href="https://www.instagram.com/coachkilday"
+                    href="https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-red-600 hover:text-red-700"
                   >
-                    @coachkilday
+                    @coach.kilday
                   </a>
                 </CardContent>
               </Card>
