@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense, useRef } from "react";
+import { useState, useEffect, useCallback, Suspense, useRef, type WheelEvent } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 import {
@@ -888,34 +888,47 @@ function AddSessionsModal({
               <PopoverContent className="w-full p-0" align="start">
                 <Command>
                   <CommandInput placeholder="Search clients..." />
-                  <CommandList className="max-h-[300px] overflow-y-auto">
-                    <CommandEmpty>No client found.</CommandEmpty>
-                    <CommandGroup>
-                      {clients.map((client) => (
-                        <CommandItem
-                          key={client.id}
-                          value={client.full_name}
-                          onSelect={() => {
-                            setSelectedUserId(client.id);
-                            setClientComboboxOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedUserId === client.id
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          <div className="flex flex-col">
-                            <span>{client.full_name}</span>
-                            <span className="text-xs text-muted-foreground">{client.email}</span>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
+                  <div
+                    className="max-h-[300px] overflow-y-auto"
+                    ref={(el) => {
+                      // attach to ref if needed elsewhere
+                    }}
+                    onWheel={(e: WheelEvent<HTMLDivElement>) => {
+                      // Always perform a smooth scroll when mouse wheel moves
+                      const target = e.currentTarget;
+                      // Scroll by the wheel delta (invert for natural scroll)
+                      target.scrollBy({ top: e.deltaY, behavior: "smooth" });
+                      // prevent default to avoid parent scroll if necessary
+                      e.preventDefault();
+                    }}
+                  >
+                    <CommandList>
+                      <CommandEmpty>No client found.</CommandEmpty>
+                      <CommandGroup>
+                        {clients.map((client) => (
+                          <CommandItem
+                            key={client.id}
+                            value={client.full_name}
+                            onSelect={() => {
+                              setSelectedUserId(client.id);
+                              setClientComboboxOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedUserId === client.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span>{client.full_name}</span>
+                              <span className="text-xs text-muted-foreground">{client.email}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </div>
                 </Command>
               </PopoverContent>
             </Popover>
@@ -1203,34 +1216,41 @@ function CustomPaymentModal({
               <PopoverContent className="w-full p-0" align="start">
                 <Command>
                   <CommandInput placeholder="Search clients..." />
-                  <CommandList className="max-h-[300px] overflow-y-auto">
-                    <CommandEmpty>No client found.</CommandEmpty>
-                    <CommandGroup>
-                      {clients.map((client) => (
-                        <CommandItem
-                          key={client.id}
-                          value={client.full_name}
-                          onSelect={() => {
-                            setSelectedUserId(client.id);
-                            setClientComboboxOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedUserId === client.id
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          <div className="flex flex-col">
-                            <span>{client.full_name}</span>
-                            <span className="text-xs text-muted-foreground">{client.email}</span>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
+                  <div
+                    className="max-h-[300px] overflow-y-auto"
+                    onWheel={(e: WheelEvent<HTMLDivElement>) => {
+                      const target = e.currentTarget;
+                      target.scrollBy({ top: e.deltaY, behavior: "smooth" });
+                      e.preventDefault();
+                    }}
+                  >
+                    <CommandList>
+                      <CommandEmpty>No client found.</CommandEmpty>
+                      <CommandGroup>
+                        {clients.map((client) => (
+                          <CommandItem
+                            key={client.id}
+                            value={client.full_name}
+                            onSelect={() => {
+                              setSelectedUserId(client.id);
+                              setClientComboboxOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedUserId === client.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span>{client.full_name}</span>
+                              <span className="text-xs text-muted-foreground">{client.email}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </div>
                 </Command>
               </PopoverContent>
             </Popover>
