@@ -1,23 +1,8 @@
 import Header from "@/components/header";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  Dumbbell,
-  Heart,
-  Target,
-  Users,
-  Video,
-  Utensils,
-} from "lucide-react";
 import Link from "next/link";
-import { AnimatedHero } from "@/components/animated-hero";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Check, Dumbbell, MapPin, Users, Utensils, Video } from "lucide-react";
+import PageHero, { heroPrimaryButton } from "@/components/page-hero";
 
 export const metadata = {
   title: "Personal Training Services | Coach Kilday - Thornton, CO",
@@ -27,201 +12,198 @@ export const metadata = {
     "personal training services, fitness coaching, strength training, weight loss, muscle building, nutrition coaching, Thornton Colorado, Coach Kilday",
 };
 
-export default function ServicesPage() {
-  const services = [
-    {
-      title: "In-Person Training",
-      description:
-        "One-on-one personal training sessions at Life Time Thornton with hands-on coaching and real-time feedback.",
-      icon: Dumbbell,
-      features: [
-        "Customized workout programs",
-        "Form correction and technique",
-        "Progress tracking and assessment",
-        "Motivation and accountability",
-      ],
-    },
-    {
-      title: "Virtual Training",
-      description:
-        "Remote coaching sessions via video call with personalized workout plans and ongoing support from anywhere.",
-      icon: Video,
-      features: [
-        "Live video coaching sessions",
-        "Personalized workout plans",
-        "Progress tracking and assessment",
-        "Flexible scheduling options",
-      ],
-    },
-    {
-      title: "Partner Training",
-      description:
-        "Small group sessions with a partner for motivation, accountability, and shared fitness goals.",
-      icon: Users,
-      features: [
-        "Small group sizes (2-4 people)",
-        "Shared motivation and accountability",
-        "Cost-effective training option",
-        "Community building",
-      ],
-    },
-    {
-      title: "Diet Recommendations",
-      description:
-        "Personalized nutrition guidance and meal planning to complement your fitness journey.",
-      icon: Utensils,
-      features: [
-        "Personalized nutrition plans",
-        "Meal planning and prep guidance",
-        "Supplement recommendations",
-        "Lifestyle habit coaching",
-      ],
-    },
-  ];
+const services = [
+  {
+    title: "In-Person Training",
+    description:
+      "One-on-one personal training sessions at Life Time Thornton with hands-on coaching and real-time feedback.",
+    icon: Dumbbell,
+    features: [
+      "Customized workout programs",
+      "Form correction and technique",
+      "Progress tracking and assessment",
+      "Motivation and accountability",
+    ],
+  },
+  {
+    title: "Virtual Training",
+    description:
+      "Remote coaching sessions via video call with personalized workout plans and ongoing support from anywhere.",
+    icon: Video,
+    features: [
+      "Live video coaching sessions",
+      "Personalized workout plans",
+      "Progress tracking and assessment",
+      "Flexible scheduling options",
+    ],
+  },
+  {
+    title: "Partner Training",
+    description:
+      "Small group sessions with a partner for motivation, accountability, and shared fitness goals.",
+    icon: Users,
+    features: [
+      "Small group sizes (2-4 people)",
+      "Shared motivation and accountability",
+      "Cost-effective training option",
+      "Community building",
+    ],
+  },
+  {
+    title: "Diet Recommendations",
+    description:
+      "Personalized nutrition guidance and meal planning to complement your fitness journey.",
+    icon: Utensils,
+    features: [
+      "Personalized nutrition plans",
+      "Meal planning and prep guidance",
+      "Supplement recommendations",
+      "Lifestyle habit coaching",
+    ],
+  },
+];
 
+const locationPerks = [
+  {
+    title: "Convenient Location",
+    description: "Easy access from Thornton, Broomfield, and surrounding areas",
+  },
+  {
+    title: "Premium Facility",
+    description: "State-of-the-art equipment and amenities at Life Time",
+  },
+  {
+    title: "Flexible Scheduling",
+    description: "Morning, afternoon, and evening sessions available",
+  },
+];
+
+const MAPS_URL =
+  "https://www.google.com/maps/search/?api=1&query=Life+Time+Thornton+397+W+148th+Ave+Thornton+CO+80023";
+
+export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header />
       <main>
-        {/* Hero Section */}
-        <section className="relative h-screen flex items-center justify-center overflow-hidden">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url(/deadlift.JPG)" }}
-          >
-            <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-          </div>
+        <PageHero
+          image="/curl.JPG"
+          imageAlt="Coach Haley Kilday doing dumbbell curls"
+          imagePosition="50% 22%"
+          title={
+            <>
+              Personal <span className="text-red-600">Training Services</span>
+            </>
+          }
+          subtitle="Transform your fitness journey with Coach Kilday's comprehensive personal training services in Thornton, Colorado"
+        >
+          <Button asChild className={heroPrimaryButton}>
+            <Link href="/login">
+              View Packages <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </Button>
+        </PageHero>
 
-          {/* Content */}
-          <div className="container mx-auto px-4 z-10 text-center">
-            <AnimatedHero delay={0.2}>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
-                PERSONAL <span className="text-red-600">TRAINING SERVICES</span>
-              </h1>
-            </AnimatedHero>
-
-            <AnimatedHero delay={0.4}>
-              <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
-                Transform your fitness journey with Coach Kilday's comprehensive
-                personal training services in Thornton, Colorado
-              </p>
-            </AnimatedHero>
-
-            <AnimatedHero delay={0.6}>
-              <Link href="/login">
-                <Button
-                  size="lg"
-                  className="bg-red-600 hover:bg-red-700 text-white text-lg rounded-full px-8 py-6"
-                >
-                  View Packages <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </AnimatedHero>
-          </div>
-        </section>
-
-        {/* Services Grid */}
-        <section className="py-20">
+        {/* Services */}
+        <section className="py-24 lg:py-32">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 dark:text-gray-100">
+            <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-gray-100 md:text-5xl">
               Training Services
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {services.map((service, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <service.icon className="h-8 w-8 text-red-600" />
-                      <CardTitle className="text-2xl dark:text-gray-100">
-                        {service.title}
-                      </CardTitle>
-                    </div>
-                    <CardDescription className="text-lg dark:text-gray-400">
-                      {service.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 dark:text-gray-300">
-                      {service.features.map((feature, featureIndex) => (
-                        <li
-                          key={featureIndex}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* Location Section */}
-        <section className="py-20 bg-gray-50 dark:bg-gray-900">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 dark:text-gray-100">
-              Located at Life Time Thornton
-            </h2>
-            <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-              397 W 148th Ave, Thornton, CO 80023
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow">
-                <h3 className="text-xl font-bold mb-2 dark:text-gray-100">
-                  Convenient Location
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Easy access from Thornton, Broomfield, and surrounding areas
-                </p>
-              </div>
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow">
-                <h3 className="text-xl font-bold mb-2 dark:text-gray-100">
-                  Premium Facility
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  State-of-the-art equipment and amenities at Life Time
-                </p>
-              </div>
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow">
-                <h3 className="text-xl font-bold mb-2 dark:text-gray-100">
-                  Flexible Scheduling
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Morning, afternoon, and evening sessions available
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-red-600 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Start Your Transformation?
-            </h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Book your first session with Coach Kilday and take the first step
-              towards your fitness goals
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/login">
-                <Button size="lg" variant="secondary">
-                  View Training Packages
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button
-                  size="lg"
-                  className="bg-white text-red-600 hover:bg-gray-100"
+            <ul className="mt-14 border-t border-gray-200 dark:border-gray-800">
+              {services.map(({ icon: Icon, title, description, features }) => (
+                <li
+                  key={title}
+                  className="grid gap-6 border-b border-gray-200 py-12 dark:border-gray-800 lg:grid-cols-[1fr_1fr] lg:gap-16"
                 >
-                  Book a Session
-                </Button>
-              </Link>
+                  <div className="flex gap-6">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-900/20">
+                      <Icon className="h-7 w-7" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 md:text-3xl">
+                        {title}
+                      </h3>
+                      <p className="mt-3 max-w-md text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                        {description}
+                      </p>
+                    </div>
+                  </div>
+                  <ul className="grid content-start gap-x-8 gap-y-3 pl-20 sm:grid-cols-2 lg:pl-0 lg:pt-2">
+                    {features.map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
+                      >
+                        <Check className="mt-0.5 h-5 w-5 shrink-0 text-red-600" aria-hidden="true" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* Location */}
+        <section className="bg-gray-900 py-24 text-white dark:bg-gray-950 lg:py-32">
+          <div className="container mx-auto grid gap-12 px-4 lg:grid-cols-[1fr_1.2fr] lg:gap-24">
+            <div>
+              <h2 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
+                Located at Life Time Thornton
+              </h2>
+              <a
+                href={MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-8 inline-flex items-start gap-3 text-xl text-gray-300 transition-colors hover:text-white"
+              >
+                <MapPin className="mt-1 h-5 w-5 shrink-0 text-red-500" aria-hidden="true" />
+                <span className="underline decoration-white/30 underline-offset-4">
+                  397 W 148th Ave, Thornton, CO 80023
+                </span>
+              </a>
+            </div>
+
+            <ul className="divide-y divide-white/15 border-y border-white/15">
+              {locationPerks.map((perk) => (
+                <li key={perk.title} className="py-8">
+                  <h3 className="text-xl font-bold">{perk.title}</h3>
+                  <p className="mt-2 leading-relaxed text-gray-400">{perk.description}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="bg-red-600 py-20 text-white lg:py-24">
+          <div className="container mx-auto flex flex-col gap-10 px-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <h2 className="text-4xl font-extrabold leading-[0.95] tracking-tight md:text-5xl">
+                Ready to Start Your Transformation?
+              </h2>
+              <p className="mt-6 text-lg leading-relaxed text-red-50 md:text-xl">
+                Book your first session with Coach Kilday and take the first
+                step towards your fitness goals
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                asChild
+                className="rounded-full bg-white px-8 py-6 text-base font-semibold text-red-600 hover:bg-gray-100"
+              >
+                <Link href="/login">Book a Session</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-full border-white/50 bg-transparent px-8 py-6 text-base text-white hover:bg-white hover:text-red-600"
+              >
+                <Link href="/login">View Training Packages</Link>
+              </Button>
             </div>
           </div>
         </section>

@@ -1,82 +1,76 @@
-"use client";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Calendar, Instagram } from "lucide-react";
 import Link from "next/link";
+import { Calendar, Instagram, MapPin, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const INSTAGRAM_URL =
+  "https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr";
 
 export default function ContactPreview() {
+  const items = [
+    { icon: MapPin, label: "Location", value: "Life Time Thornton" },
+    {
+      icon: Phone,
+      label: "Phone",
+      value: "(720) 441-3308",
+      href: "tel:+17204413308",
+    },
+    { icon: Calendar, label: "Hours", value: "By Appointment" },
+    {
+      icon: Instagram,
+      label: "Social",
+      value: "@coach.kilday",
+      href: INSTAGRAM_URL,
+      external: true,
+    },
+  ];
+
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-gray-100">
-            GET IN <span className="text-red-600">TOUCH</span>
+    <section className="py-24 lg:py-32">
+      <div className="container mx-auto grid gap-12 px-4 lg:grid-cols-[1fr_1.4fr] lg:gap-24">
+        <div>
+          <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-gray-100 md:text-5xl">
+            Get In Touch
           </h2>
-          <p className="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="mt-6 max-w-sm text-lg leading-relaxed text-gray-600 dark:text-gray-300">
             Ready to start your fitness transformation? Contact Coach Kilday for
             personal training in Thornton, Colorado.
           </p>
+          <Button
+            asChild
+            className="mt-10 rounded-full bg-red-600 px-8 py-6 text-base text-white hover:bg-red-700"
+          >
+            <Link href="/contact">Contact Coach Kilday</Link>
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto mb-12">
-          <Card className="text-center">
-            <CardHeader>
-              <MapPin className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <CardTitle className="dark:text-gray-100">Location</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 dark:text-gray-300">
-                Life Time Thornton
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardHeader>
-              <Phone className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <CardTitle className="dark:text-gray-100">Phone</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 dark:text-gray-300">(720) 441-3308</p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardHeader>
-              <Calendar className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <CardTitle className="dark:text-gray-100">Hours</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 dark:text-gray-300">By Appointment</p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardHeader>
-              <Instagram className="h-8 w-8 text-red-600 mx-auto mb-2" />
-              <CardTitle className="dark:text-gray-100">Social</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <a
-                href="https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-red-600 hover:text-red-700 font-semibold"
-              >
-                @coach.kilday
-              </a>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="text-center">
-          <Link href="/contact">
-            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 py-6 text-lg">
-              Contact Coach Kilday
-            </Button>
-          </Link>
-        </div>
+        <dl className="grid self-center border-t border-gray-200 dark:border-gray-800 sm:grid-cols-2">
+          {items.map(({ icon: Icon, label, value, href, external }) => (
+            <div
+              key={label}
+              className="flex gap-4 border-b border-gray-200 py-7 dark:border-gray-800"
+            >
+              <Icon className="mt-0.5 h-5 w-5 shrink-0 text-red-600" aria-hidden="true" />
+              <div>
+                <dt className="text-sm text-gray-500 dark:text-gray-400">{label}</dt>
+                <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {href ? (
+                    <a
+                      href={href}
+                      {...(external
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                      className="transition-colors hover:text-red-600"
+                    >
+                      {value}
+                    </a>
+                  ) : (
+                    value
+                  )}
+                </dd>
+              </div>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );

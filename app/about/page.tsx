@@ -1,10 +1,12 @@
 import Header from "@/components/header";
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Award, Calendar, MapPin, Phone, Mail, Instagram } from "lucide-react";
 import Link from "next/link";
-import { AnimatedHero } from "@/components/animated-hero";
+import { Button } from "@/components/ui/button";
+import { Calendar, Check, Instagram, MapPin, Phone } from "lucide-react";
+import PageHero, {
+  heroPrimaryButton,
+  heroSecondaryButton,
+} from "@/components/page-hero";
 
 export const metadata = {
   title: "About Coach Haley Kilday | Personal Trainer Thornton, CO",
@@ -14,109 +16,120 @@ export const metadata = {
     "Coach Haley Kilday, personal trainer Thornton, fitness coach Colorado, strength training specialist, certified personal trainer",
 };
 
-export default function AboutPage() {
-  const certifications = [
-    "Certified Strength & Conditioning Specialist (CSCS)",
-    "NASM Certified Personal Trainer",
-    "Precision Nutrition Level 1 Coach",
-    "First Aid & CPR Certified",
-    "Olympic Weightlifting Coach",
-  ];
+const INSTAGRAM_URL =
+  "https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr";
 
-  const achievements = [
-    "10+ Years of Professional Experience",
-    "500+ Clients Successfully Trained",
-    "Former Professional Athlete",
-    "Olympic Athlete Coach",
-    "Specialist in Strength & Conditioning",
+const certifications = [
+  "Certified Strength & Conditioning Specialist (CSCS)",
+  "NASM Certified Personal Trainer",
+  "Precision Nutrition Level 1 Coach",
+  "First Aid & CPR Certified",
+  "Olympic Weightlifting Coach",
+];
+
+const achievements = [
+  "10+ Years of Professional Experience",
+  "500+ Clients Successfully Trained",
+  "Former Professional Athlete",
+  "Olympic Athlete Coach",
+  "Specialist in Strength & Conditioning",
+];
+
+function CredentialList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div>
+      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h3>
+      <ul className="mt-6 divide-y divide-gray-200 border-y border-gray-200 dark:divide-gray-800 dark:border-gray-800">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="flex items-start gap-4 py-5 text-lg text-gray-700 dark:text-gray-300"
+          >
+            <Check className="mt-1 h-5 w-5 shrink-0 text-red-600" aria-hidden="true" />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default function AboutPage() {
+  const contact = [
+    { icon: MapPin, label: "Location", value: "Life Time Thornton" },
+    { icon: Phone, label: "Phone", value: "(720) 441-3308", href: "tel:+17204413308" },
+    { icon: Calendar, label: "Hours", value: "By Appointment" },
+    {
+      icon: Instagram,
+      label: "Social",
+      value: "@coach.kilday",
+      href: INSTAGRAM_URL,
+      external: true,
+    },
   ];
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header />
       <main>
-        {/* Hero Section */}
-        <section className="relative h-screen flex items-center justify-center overflow-hidden">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url(/deadlift.JPG)" }}
+        <PageHero
+          image="/armsup.JPG"
+          imageAlt="Coach Haley Kilday in the gym"
+          imagePosition="50% 18%"
+          title={
+            <>
+              About <span className="text-red-600">Coach Kilday</span>
+            </>
+          }
+          subtitle="Certified Personal Trainer in Thornton, Colorado"
+        >
+          <Button asChild className={heroPrimaryButton}>
+            <Link href="/services">View Training Packages</Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className={heroSecondaryButton}
           >
-            <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-          </div>
+            <Link href="/login">Book a Session</Link>
+          </Button>
+        </PageHero>
 
-          {/* Content */}
-          <div className="container mx-auto px-4 z-10 text-center">
-            <AnimatedHero delay={0.2}>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
-                ABOUT <span className="text-red-600">COACH KILDAY</span>
-              </h1>
-            </AnimatedHero>
-
-            <AnimatedHero delay={0.4}>
-              <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl mx-auto">
-                Certified Personal Trainer in Thornton, Colorado
+        {/* Story */}
+        <section className="py-24 lg:py-32">
+          <div className="container mx-auto grid items-center gap-12 px-4 lg:grid-cols-2 lg:gap-24">
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-3xl bg-gray-900 lg:order-last lg:max-w-none">
+              <Image
+                src="/action.JPG"
+                alt="Coach Haley Kilday training with dumbbells"
+                fill
+                sizes="(min-width: 1024px) 45vw, 90vw"
+                className="object-cover object-[50%_25%]"
+              />
+            </div>
+            <div>
+              <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-gray-100 md:text-5xl">
+                My Journey
+              </h2>
+              <p className="mt-8 max-w-prose text-xl font-medium leading-relaxed text-gray-900 dark:text-gray-100 md:text-2xl md:leading-snug">
+                After competing professionally and coaching Olympic athletes, I
+                developed a unique training methodology that combines strength
+                training, mobility work, and personalized nutrition guidance.
               </p>
-            </AnimatedHero>
-
-            <AnimatedHero delay={0.6}>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/services">
-                  <Button
-                    size="lg"
-                    className="bg-red-600 hover:bg-red-700 text-white text-lg rounded-full px-8 py-6"
-                  >
-                    View Training Packages
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-red-600 text-lg rounded-full px-8 py-6"
-                  >
-                    Book a Session
-                  </Button>
-                </Link>
-              </div>
-            </AnimatedHero>
-          </div>
-        </section>
-
-        {/* Story Section */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-              <div className="relative h-[600px] rounded-2xl overflow-hidden">
-                <Image
-                  src="/deadlift.JPG"
-                  alt="Coach Haley Kilday training"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="space-y-6">
-                <h2 className="text-3xl md:text-4xl font-bold dark:text-gray-100">
-                  My Journey
-                </h2>
-                <p className="text-lg text-gray-700 dark:text-gray-300">
-                  After competing professionally and coaching Olympic athletes,
-                  I developed a unique training methodology that combines
-                  strength training, mobility work, and personalized nutrition
-                  guidance.
-                </p>
-                <p className="text-lg text-gray-700 dark:text-gray-300">
+              <div className="mt-6 max-w-prose space-y-5 text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                <p>
                   My approach isn't about quick fixes—it's about sustainable
                   results through science-backed methods and unwavering
                   accountability. Located at Life Time Thornton, I provide
                   personal training services to help you achieve your fitness
                   goals.
                 </p>
-                <p className="text-lg text-gray-700 dark:text-gray-300">
+                <p>
                   I believe that everyone deserves to feel confident in their
                   body and capable of achieving their fitness goals. Whether
                   you're just starting your fitness journey or looking to break
-                  through plateaus, I'm here to guide you every step of the way.
+                  through plateaus, I'm here to guide you every step of the
+                  way.
                 </p>
               </div>
             </div>
@@ -124,130 +137,69 @@ export default function AboutPage() {
         </section>
 
         {/* Certifications & Achievements */}
-        <section className="py-20 bg-gray-50 dark:bg-gray-900">
+        <section className="bg-gray-50 py-24 dark:bg-gray-950 lg:py-32">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 dark:text-gray-100">
-              Certifications & Achievements
+            <h2 className="max-w-xl text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-gray-100 md:text-5xl">
+              Certifications &amp; Achievements
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 dark:text-gray-100">
-                    <Award className="h-6 w-6 text-red-600" />
-                    Certifications
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3 dark:text-gray-300">
-                    {certifications.map((cert, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                        {cert}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 dark:text-gray-100">
-                    <Award className="h-6 w-6 text-red-600" />
-                    Key Achievements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3 dark:text-gray-300">
-                    {achievements.map((achievement, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                        {achievement}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+            <div className="mt-14 grid gap-14 md:grid-cols-2 md:gap-16">
+              <CredentialList title="Certifications" items={certifications} />
+              <CredentialList title="Key Achievements" items={achievements} />
             </div>
           </div>
         </section>
 
-        {/* Contact Information */}
-        <section className="py-20">
+        {/* Contact */}
+        <section className="py-24 lg:py-32">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 dark:text-gray-100">
+            <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-gray-100 md:text-5xl">
               Get In Touch
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
-              <Card className="text-center">
-                <CardHeader>
-                  <MapPin className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                  <CardTitle className="dark:text-gray-100">Location</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Life Time Thornton
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardHeader>
-                  <Phone className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                  <CardTitle className="dark:text-gray-100">Phone</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    (720) 441-3308
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardHeader>
-                  <Calendar className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                  <CardTitle className="dark:text-gray-100">Hours</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    By Appointment
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardHeader>
-                  <Instagram className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                  <CardTitle className="dark:text-gray-100">Social</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <a
-                    href="https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    @coach.kilday
-                  </a>
-                </CardContent>
-              </Card>
-            </div>
+            <dl className="mt-12 grid border-t border-gray-200 dark:border-gray-800 sm:grid-cols-2 lg:grid-cols-4">
+              {contact.map(({ icon: Icon, label, value, href, external }) => (
+                <div
+                  key={label}
+                  className="border-b border-gray-200 py-8 dark:border-gray-800 lg:border-b-0 lg:border-r lg:px-8 lg:first:pl-0 lg:last:border-r-0"
+                >
+                  <Icon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                  <dt className="mt-5 text-sm text-gray-500 dark:text-gray-400">{label}</dt>
+                  <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {href ? (
+                      <a
+                        href={href}
+                        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="transition-colors hover:text-red-600"
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      value
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 bg-red-600 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Start Your Transformation?
-            </h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Book your first session with Coach Kilday and take the first step
-              towards your fitness goals
-            </p>
-            <Link href="/login">
-              <Button
-                size="lg"
-                className="bg-white text-red-600 hover:bg-gray-100"
-              >
-                Book Your First Session
-              </Button>
-            </Link>
+        {/* CTA */}
+        <section className="bg-red-600 py-20 text-white lg:py-24">
+          <div className="container mx-auto flex flex-col gap-10 px-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <h2 className="text-4xl font-extrabold leading-[0.95] tracking-tight md:text-5xl">
+                Ready to Start Your Transformation?
+              </h2>
+              <p className="mt-6 text-lg leading-relaxed text-red-50 md:text-xl">
+                Book your first session with Coach Kilday and take the first
+                step towards your fitness goals
+              </p>
+            </div>
+            <Button
+              asChild
+              className="self-start rounded-full bg-white px-8 py-6 text-base font-semibold text-red-600 hover:bg-gray-100 lg:self-auto"
+            >
+              <Link href="/login">Book Your First Session</Link>
+            </Button>
           </div>
         </section>
       </main>

@@ -3,10 +3,11 @@
 import type React from "react";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, CheckCircle, Gift, Newspaper } from "lucide-react";
+import { ArrowRight, CheckCircle, Check } from "lucide-react";
 import { createClient } from "@/lib/supabaseClient";
 
 export default function CtaSection() {
@@ -14,7 +15,6 @@ export default function CtaSection() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
   const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,123 +50,115 @@ export default function CtaSection() {
     }
   };
 
-  const handleSignUp = () => {
-    router.push("/login");
-  };
-
   return (
-    <section className="py-20 bg-red-600 text-white relative overflow-hidden">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url(/back.JPG)" }}
-      >
-        <div className="absolute inset-0 bg-red-600/80"></div>
-      </div>
+    <section className="relative isolate overflow-hidden bg-gray-900 py-24 text-white lg:py-32">
+      <Image
+        src="/back.JPG"
+        alt=""
+        fill
+        sizes="100vw"
+        className="-z-10 object-cover object-[50%_30%] opacity-40"
+      />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-900/60 via-gray-900/80 to-gray-900" />
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            READY TO TRANSFORM YOUR FITNESS?
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl">
+          <h2 className="text-4xl font-extrabold leading-[0.95] tracking-tight md:text-6xl">
+            Ready to transform your fitness?
           </h2>
-          <p className="text-xl mb-8 text-white/90">
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-300 md:text-xl">
             Take the first step toward your strongest self. Get your first
             session free when you sign up today, or join Coach Haley's
             newsletter for tips and advice.
           </p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <div className="bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-80 p-8 rounded-2xl backdrop-blur-sm">
-              <div className="flex items-center justify-center mb-4">
-                <Gift className="h-8 w-8 mr-3 text-red-600" />
-                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                  Book First Session
-                </h3>
-              </div>
-              <div className="bg-red-600 text-white font-bold text-sm px-3 py-1 rounded-full inline-block mb-4">
-                FREE WITH SIGNUP
-              </div>
-              <p className="mb-6 text-gray-700 dark:text-gray-300">
-                Sign up today and get your first training session absolutely
-                free! Choose from virtual, in-person, or partner training.
-              </p>
-              <Button
-                onClick={handleSignUp}
-                className="bg-white text-red-600 hover:bg-gray-100 rounded-full px-6 py-6 text-lg w-full"
-              >
+        <div className="mt-14 grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+          {/* Primary offer */}
+          <div className="flex flex-col rounded-3xl bg-red-600 p-8 shadow-2xl shadow-red-950/40 md:p-10">
+            <span className="self-start rounded-full bg-white px-3 py-1 text-sm font-bold text-red-600">
+              Free with signup
+            </span>
+            <h3 className="mt-6 text-3xl font-extrabold tracking-tight md:text-4xl">
+              Book First Session
+            </h3>
+            <p className="mt-4 max-w-md text-lg leading-relaxed text-red-50">
+              Sign up today and get your first training session absolutely
+              free! Choose from virtual, in-person, or partner training.
+            </p>
+            <Button
+              asChild
+              className="mt-8 self-start rounded-full bg-white px-8 py-6 text-base font-semibold text-red-600 hover:bg-gray-100 lg:mt-auto"
+            >
+              <Link href="/login">
                 Sign Up Now <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-
-            <div className="bg-white bg-opacity-90 dark:bg-gray-900 dark:bg-opacity-80 p-8 rounded-2xl backdrop-blur-sm">
-              <div className="flex items-center justify-center mb-4">
-                <Newspaper className="h-8 w-8 mr-3 text-red-600" />
-                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                  Join the Newsletter
-                </h3>
-              </div>
-              <p className="mb-6 text-gray-700 dark:text-gray-300">
-                Get weekly training tips, nutrition advice, and exclusive
-                offers.
-              </p>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                  type="email"
-                  placeholder="Your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="bg-gray-100 dark:bg-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-700 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-gray-800 py-6"
-                />
-                {error && (
-                  <p className="text-red-600 dark:text-red-400 text-sm">
-                    {error}
-                  </p>
-                )}
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className={`rounded-full px-6 py-6 text-lg w-full disabled:opacity-50 disabled:cursor-not-allowed ${
-                    submitted
-                      ? "bg-green-600 hover:bg-green-700 text-white"
-                      : "bg-white text-red-600 hover:bg-gray-100"
-                  }`}
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600 mr-2"></div>
-                      Subscribing...
-                    </>
-                  ) : submitted ? (
-                    <>
-                      <CheckCircle className="mr-2 h-5 w-5" /> Subscribed!
-                    </>
-                  ) : (
-                    <>
-                      Subscribe Now <ArrowRight className="ml-2 h-5 w-5" />
-                    </>
-                  )}
-                </Button>
-              </form>
-            </div>
+              </Link>
+            </Button>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2 text-white" />
-              <span>First Session Free</span>
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2 text-white" />
-              <span>Personalized Approach</span>
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2 text-white" />
-              <span>Results Guaranteed</span>
-            </div>
+          {/* Newsletter */}
+          <div className="rounded-3xl bg-white/10 p-8 ring-1 ring-white/15 backdrop-blur-md md:p-10">
+            <h3 className="text-2xl font-bold">Join the Newsletter</h3>
+            <p className="mt-3 leading-relaxed text-gray-300">
+              Get weekly training tips, nutrition advice, and exclusive offers.
+            </p>
+            <form onSubmit={handleSubmit} className="mt-8 space-y-3">
+              <label htmlFor="newsletter-email" className="sr-only">
+                Email address
+              </label>
+              <Input
+                id="newsletter-email"
+                type="email"
+                placeholder="Your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                aria-invalid={!!error}
+                aria-describedby={error ? "newsletter-error" : undefined}
+                className="h-12 rounded-full border-white/20 bg-white/10 px-5 text-base text-white placeholder:text-gray-400 focus-visible:ring-white"
+              />
+              {error && (
+                <p id="newsletter-error" role="alert" className="px-2 text-sm text-red-300">
+                  {error}
+                </p>
+              )}
+              <Button
+                type="submit"
+                disabled={loading}
+                className={`h-12 w-full rounded-full text-base disabled:cursor-not-allowed disabled:opacity-60 ${
+                  submitted
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-white text-gray-900 hover:bg-gray-100"
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <span className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+                    Subscribing...
+                  </>
+                ) : submitted ? (
+                  <>
+                    <CheckCircle className="mr-2 h-5 w-5" /> Subscribed!
+                  </>
+                ) : (
+                  "Subscribe Now"
+                )}
+              </Button>
+            </form>
           </div>
         </div>
+
+        <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-gray-300">
+          {["First Session Free", "Personalized Approach", "Results Guaranteed"].map(
+            (item) => (
+              <li key={item} className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-red-500" aria-hidden="true" />
+                {item}
+              </li>
+            )
+          )}
+        </ul>
       </div>
     </section>
   );

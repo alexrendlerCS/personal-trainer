@@ -1,26 +1,23 @@
 import Header from "@/components/header";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
-  CalendarCheck,
-  Package,
-  MessageSquare,
-  RefreshCw,
-  FileSignature,
-  Gift,
-  Home,
-  CalendarDays,
-  MapPin,
+  LayoutDashboard,
+  Salad,
+  UtensilsCrossed,
+  Dumbbell,
   Phone,
   Instagram,
 } from "lucide-react";
 import { AnimatedHero } from "@/components/animated-hero";
 import AppSupportForm from "@/components/app-support-form";
+import { heroPrimaryButton, heroSecondaryButton } from "@/components/page-hero";
 
 export const metadata = {
-  title: "The Coach Kilday App | Book, Train & Stay Connected",
+  title: "The Coach Kilday App | Workouts, Nutrition & AI Coaching",
   description:
-    "Book sessions, manage training packages, message Coach Kilday, and sync your schedule — all in one place. Get app support or share feedback.",
+    "A personalized fitness coaching app that combines customized workouts, nutrition planning, progress tracking, and AI-powered coaching into one seamless mobile experience.",
 };
 
 const INSTAGRAM_URL =
@@ -28,122 +25,64 @@ const INSTAGRAM_URL =
 
 const features = [
   {
-    icon: CalendarCheck,
-    title: "Book sessions",
+    icon: LayoutDashboard,
+    title: "Personalized daily dashboard",
     description:
-      "See real-time availability and book, reschedule, or cancel your training sessions in a few taps.",
+      "Access your scheduled workouts, nutrition goals, and meal plans tailored to your individual fitness objectives.",
   },
   {
-    icon: Package,
-    title: "Manage packages",
+    icon: Salad,
+    title: "Structured nutrition guidance",
     description:
-      "Purchase training packages, track your remaining sessions, and handle payments securely.",
+      "Recommended foods, serving sizes, calorie targets, and macronutrient breakdowns.",
   },
   {
-    icon: MessageSquare,
-    title: "Message your coach",
+    icon: UtensilsCrossed,
+    title: "Flexible meal logging",
     description:
-      "Ask questions, share updates, and stay accountable with direct messaging between sessions.",
+      "Easily log meals, adjust portions, substitute foods, and track your daily nutritional intake while staying aligned with your personalized fitness plan.",
   },
   {
-    icon: RefreshCw,
-    title: "Calendar sync",
+    icon: Dumbbell,
+    title: "Customized workouts",
     description:
-      "Connect Google Calendar so every session shows up automatically alongside the rest of your week.",
-  },
-  {
-    icon: FileSignature,
-    title: "Simple onboarding",
-    description:
-      "Sign up, review and sign your training agreement, and claim your first session — all online.",
-  },
-  {
-    icon: Gift,
-    title: "Referral rewards",
-    description:
-      "Share your referral link with friends and earn rewards when they start training.",
+      "Structured workout programming and progress tracking to help you stay informed, accountable, and supported throughout your fitness journey.",
   },
 ];
 
-/** A code-drawn phone showing a representative app screen. Decorative. */
+const aiFacts = [
+  { value: "24/7", label: "Available any time" },
+  { value: "Haley's approach", label: "Trained on her coaching style and knowledge" },
+  { value: "Fitness + nutrition", label: "Personalized guidance and answers" },
+];
+
+/** Real app screenshot in a device frame. */
 function PhoneMockup() {
   return (
-    <div aria-hidden="true" className="relative mx-auto w-[280px] sm:w-[300px]">
-      {/* Glow */}
-      <div className="absolute -inset-10 rounded-full bg-red-600/25 blur-3xl" />
+    <div className="relative mx-auto w-[270px] sm:w-[300px]">
+      {/* Warm glow, picks up the app's gold tones */}
+      <div
+        aria-hidden="true"
+        className="absolute -inset-12 rounded-full bg-amber-500/20 blur-3xl"
+      />
 
-      {/* Device */}
-      <div className="relative rounded-[2.75rem] bg-gray-950 p-3 shadow-2xl ring-1 ring-white/10 lg:rotate-[4deg]">
-        <div className="relative overflow-hidden rounded-[2.1rem] bg-gray-50">
-          {/* Notch */}
-          <div className="absolute left-1/2 top-2 z-10 h-6 w-24 -translate-x-1/2 rounded-full bg-gray-950" />
-
-          {/* Status bar */}
-          <div className="flex items-center justify-between px-7 pb-2 pt-3 text-[11px] font-semibold text-gray-900">
-            <span className="tabular-nums">6:12</span>
-            <span className="flex items-center gap-1">
-              <span className="h-2 w-3 rounded-[2px] bg-gray-900" />
-            </span>
-          </div>
-
-          <div className="space-y-3 px-4 pb-4 pt-5">
-            <div className="px-1">
-              <p className="text-xs text-gray-500">Good morning,</p>
-              <p className="text-lg font-bold leading-tight text-gray-900">Jordan</p>
-            </div>
-
-            {/* Next session */}
-            <div className="rounded-2xl bg-red-600 p-4 text-white shadow-lg shadow-red-600/30">
-              <p className="text-xs font-medium text-red-100">Next session</p>
-              <p className="mt-1 text-xl font-extrabold leading-tight">Tuesday, Nov 11</p>
-              <p className="text-sm font-medium tabular-nums text-red-50">6:00 – 7:00 AM</p>
-              <p className="mt-3 flex items-center gap-1.5 text-xs text-red-100">
-                <MapPin className="h-3.5 w-3.5" />
-                Life Time Thornton
-              </p>
-              <div className="mt-3 flex gap-2">
-                <span className="whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-semibold text-red-600">
-                  Reschedule
-                </span>
-                <span className="whitespace-nowrap rounded-full bg-red-700/60 px-3 py-1 text-xs font-semibold">
-                  Directions
-                </span>
-              </div>
-            </div>
-
-            {/* Package progress */}
-            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200">
-              <div className="flex items-baseline justify-between">
-                <p className="text-sm font-semibold text-gray-900">Strength 10-pack</p>
-                <p className="text-xs tabular-nums text-gray-500">6 of 10</p>
-              </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
-                <div className="h-full w-[60%] rounded-full bg-red-600" />
-              </div>
-              <p className="mt-2 text-xs text-gray-500">4 sessions left</p>
-            </div>
-
-            {/* Message */}
-            <div className="flex gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-bold text-white">
-                H
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900">Coach Haley</p>
-                <p className="text-xs leading-snug text-gray-600">
-                  Strong deadlifts today. Add 5 lb next week and keep that brace.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Tab bar */}
-          <div className="flex items-center justify-around border-t border-gray-200 bg-white px-4 pb-5 pt-3 text-gray-400">
-            <Home className="h-5 w-5 text-red-600" />
-            <CalendarDays className="h-5 w-5" />
-            <MessageSquare className="h-5 w-5" />
-            <Package className="h-5 w-5" />
-          </div>
+      <div className="relative rounded-[2.75rem] bg-gray-950 p-2.5 shadow-2xl ring-1 ring-white/10 lg:rotate-[4deg]">
+        {/* Modern phone proportions (9:18). The 16:9 screenshot is cropped
+            slightly at the sides to fill it. */}
+        <div className="relative aspect-[9/18] overflow-hidden rounded-[2.2rem] bg-black">
+          <Image
+            src="/App.png"
+            alt="The Coach Kilday app home screen with the daily check-in, quick actions for Dashboard, Log food, and Check in, and a message box for the AI coach"
+            fill
+            priority
+            sizes="300px"
+            className="object-cover object-center"
+          />
+          {/* Dynamic island */}
+          <div
+            aria-hidden="true"
+            className="absolute left-1/2 top-3 h-6 w-24 -translate-x-1/2 rounded-full bg-black"
+          />
         </div>
       </div>
     </div>
@@ -164,30 +103,27 @@ export default function AppPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/90 to-gray-900/40" />
 
           <div className="container relative mx-auto grid min-h-screen items-center gap-16 px-4 pb-20 pt-32 lg:grid-cols-2 lg:pt-24">
-            <div className="mx-auto flex max-w-xl flex-col items-center text-center">
+            <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
               <AnimatedHero delay={0.1}>
-                <h1 className="text-5xl font-extrabold leading-[0.95] tracking-tight text-white sm:text-6xl lg:text-7xl">
-                  Your training,
-                  <br />
-                  in your pocket.
+                <h1 className="text-5xl font-extrabold uppercase leading-[0.95] tracking-tight text-white sm:text-6xl xl:text-7xl">
+                  Your training,{" "}
+                  <span className="text-red-600">in your pocket.</span>
                 </h1>
               </AnimatedHero>
               <AnimatedHero delay={0.25}>
-                <p className="mx-auto mt-6 max-w-md text-lg leading-relaxed text-gray-300">
-                  Book sessions, track your packages, and stay connected with
-                  Coach Kilday between workouts — all in one place.
+                <p className="mx-auto mt-8 max-w-md text-lg leading-relaxed text-white/90 md:text-xl">
+                  A personalized fitness coaching app that combines customized
+                  workouts, nutrition planning, progress tracking, and
+                  AI-powered coaching into one seamless mobile experience.
                 </p>
-                <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-                  <Button
-                    asChild
-                    className="rounded-full bg-red-600 px-8 py-6 text-base text-white hover:bg-red-700"
-                  >
+                <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                  <Button asChild className={heroPrimaryButton}>
                     <Link href="/login">Get started</Link>
                   </Button>
                   <Button
                     asChild
                     variant="outline"
-                    className="rounded-full border-white/30 bg-transparent px-8 py-6 text-base text-white hover:bg-white hover:text-gray-900"
+                    className={heroSecondaryButton}
                   >
                     <a href="#support">Get help with the app</a>
                   </Button>
@@ -206,13 +142,15 @@ export default function AppPage() {
           <div className="container mx-auto grid gap-12 px-4 lg:grid-cols-[1fr_1.4fr] lg:gap-24">
             <div className="lg:sticky lg:top-28 lg:self-start">
               <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-gray-100 md:text-5xl">
-                Less scheduling.
+                Workouts and nutrition,
                 <br />
-                More training.
+                built around you.
               </h2>
-              <p className="mt-6 max-w-sm text-lg leading-relaxed text-gray-600 dark:text-gray-300">
-                Everything you need to work with Coach Kilday, without the
-                back-and-forth texts.
+              <p className="mt-6 max-w-md text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                By combining professional fitness coaching with intelligent AI
+                assistance, structured workout programming, and flexible
+                nutrition tracking, Coach Kilday delivers a more accessible,
+                personalized, and engaging fitness experience.
               </p>
               <div className="mt-8 h-1 w-16 rounded-full bg-red-600" />
             </div>
@@ -221,7 +159,7 @@ export default function AppPage() {
               {features.map(({ icon: Icon, title, description }) => (
                 <li key={title} className="flex gap-6 py-8">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-900/20">
-                    <Icon className="h-6 w-6" />
+                    <Icon className="h-6 w-6" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -234,6 +172,46 @@ export default function AppPage() {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+
+        {/* Coach Kilday AI */}
+        <section className="relative isolate overflow-hidden bg-gray-900 py-24 text-white dark:bg-gray-950 lg:py-32">
+          <div
+            aria-hidden="true"
+            className="absolute -right-40 top-1/2 -z-10 h-[36rem] w-[36rem] -translate-y-1/2 rounded-full bg-amber-500/10 blur-3xl"
+          />
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl">
+              <h2 className="text-5xl font-extrabold leading-[0.95] tracking-tight md:text-7xl">
+                Coach Kilday AI
+              </h2>
+              <p className="mt-8 text-xl leading-relaxed text-gray-200 md:text-2xl md:leading-snug">
+                A virtual coaching assistant trained to reflect Haley Kilday's
+                coaching style, knowledge, and approach.
+              </p>
+              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-400">
+                Available 24/7, it provides personalized fitness and nutrition
+                guidance, answers questions, and helps clients navigate their
+                programs even when Haley isn't available. This gives users
+                continuous access to coaching support that feels consistent
+                with Haley's personal approach.
+              </p>
+            </div>
+
+            <dl className="mt-16 grid border-t border-white/15 sm:grid-cols-3 sm:divide-x sm:divide-white/15">
+              {aiFacts.map((fact) => (
+                <div
+                  key={fact.label}
+                  className="border-b border-white/15 py-8 sm:border-b-0 sm:px-8 sm:first:pl-0"
+                >
+                  <dt className="text-2xl font-extrabold tracking-tight text-amber-300 md:text-3xl">
+                    {fact.value}
+                  </dt>
+                  <dd className="mt-2 text-gray-400">{fact.label}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
@@ -257,33 +235,31 @@ export default function AppPage() {
             </div>
 
             <div className="mt-14 text-center">
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-gray-100">
-                  Prefer to talk?
-                </p>
-                <ul className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-8">
-                  <li>
-                    <a
-                      href="tel:+17204413308"
-                      className="inline-flex items-center gap-3 text-gray-600 transition-colors hover:text-red-600 dark:text-gray-300"
-                    >
-                      <Phone className="h-5 w-5 text-red-600" />
-                      Call or text (720) 441-3308
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href={INSTAGRAM_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-3 text-gray-600 transition-colors hover:text-red-600 dark:text-gray-300"
-                    >
-                      <Instagram className="h-5 w-5 text-red-600" />
-                      @coach.kilday
-                    </a>
-                  </li>
-                </ul>
-              </div>
+              <p className="font-semibold text-gray-900 dark:text-gray-100">
+                Prefer to talk?
+              </p>
+              <ul className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-8">
+                <li>
+                  <a
+                    href="tel:+17204413308"
+                    className="inline-flex items-center gap-3 text-gray-600 transition-colors hover:text-red-600 dark:text-gray-300"
+                  >
+                    <Phone className="h-5 w-5 text-red-600" aria-hidden="true" />
+                    Call or text (720) 441-3308
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-3 text-gray-600 transition-colors hover:text-red-600 dark:text-gray-300"
+                  >
+                    <Instagram className="h-5 w-5 text-red-600" aria-hidden="true" />
+                    @coach.kilday
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
         </section>
