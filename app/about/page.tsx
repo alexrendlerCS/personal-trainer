@@ -17,7 +17,7 @@ export const metadata = {
 };
 
 const INSTAGRAM_URL =
-  "https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr";
+  "https://www.instagram.com/coachkilday?obrf=MTliYm80eHJmNXp5aQ%3D%3D&utm_source=qr";
 
 const certifications = [
   "Certified Strength & Conditioning Specialist (CSCS)",
@@ -62,7 +62,7 @@ export default function AboutPage() {
     {
       icon: Instagram,
       label: "Social",
-      value: "@coach.kilday",
+      value: "@coachkilday",
       href: INSTAGRAM_URL,
       external: true,
     },

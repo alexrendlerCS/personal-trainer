@@ -10,7 +10,7 @@ export function Footer() {
           {/* Social Links - Mobile */}
           <div className="flex flex-col space-y-4">
             <Link
-              href="https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"
+              href="https://www.instagram.com/coachkilday?obrf=MTliYm80eHJmNXp5aQ%3D%3D&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600 text-white transition-all duration-300 shadow-lg text-center"
@@ -75,7 +75,7 @@ export function Footer() {
           {/* Center - Social Links */}
           <div className="flex items-center space-x-3 md:space-x-4 lg:space-x-6 flex-wrap justify-center gap-y-2">
             <Link
-              href="https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"
+              href="https://www.instagram.com/coachkilday?obrf=MTliYm80eHJmNXp5aQ%3D%3D&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2 rounded-lg bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600 text-white transition-all duration-300 hover:scale-105 shadow-lg whitespace-nowrap"

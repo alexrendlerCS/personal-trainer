@@ -21,7 +21,7 @@ export const metadata = {
 };
 
 const INSTAGRAM_URL =
-  "https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr";
+  "https://www.instagram.com/coachkilday?obrf=MTliYm80eHJmNXp5aQ%3D%3D&utm_source=qr";
 
 const features = [
   {
@@ -256,7 +256,7 @@ export default function AppPage() {
                     className="inline-flex items-center gap-3 text-gray-600 transition-colors hover:text-red-600 dark:text-gray-300"
                   >
                     <Instagram className="h-5 w-5 text-red-600" aria-hidden="true" />
-                    @coach.kilday
+                    @coachkilday
                   </a>
                 </li>
               </ul>

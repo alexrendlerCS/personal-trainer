@@ -19,7 +19,7 @@ export const metadata = {
 };
 
 const INSTAGRAM_URL =
-  "https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr";
+  "https://www.instagram.com/coachkilday?obrf=MTliYm80eHJmNXp5aQ%3D%3D&utm_source=qr";
 const MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=Life+Time+Thornton+397+W+148th+Ave+Thornton+CO+80023";
 
@@ -165,7 +165,7 @@ export default function ContactPage() {
                         rel="noopener noreferrer"
                         className={`text-xl font-semibold text-gray-900 dark:text-gray-100 ${linkClass}`}
                       >
-                        @coach.kilday
+                        @coachkilday
                       </a>
                       <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
                         Follow for fitness tips and motivation

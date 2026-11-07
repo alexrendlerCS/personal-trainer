@@ -140,7 +140,7 @@ export default function RootLayout({
                   },
                 ],
               },
-              sameAs: ["https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr"],
+              sameAs: ["https://www.instagram.com/coachkilday?obrf=MTliYm80eHJmNXp5aQ%3D%3D&utm_source=qr"],
             }),
           }}
         />

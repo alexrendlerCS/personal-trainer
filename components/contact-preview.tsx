@@ -3,7 +3,7 @@ import { Calendar, Instagram, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const INSTAGRAM_URL =
-  "https://www.instagram.com/coach.kilday?exln=MWV5eWZnNHduemFzaQ%3D%3D&utm_source=qr";
+  "https://www.instagram.com/coachkilday?obrf=MTliYm80eHJmNXp5aQ%3D%3D&utm_source=qr";
 
 export default function ContactPreview() {
   const items = [
@@ -18,7 +18,7 @@ export default function ContactPreview() {
     {
       icon: Instagram,
       label: "Social",
-      value: "@coach.kilday",
+      value: "@coachkilday",
       href: INSTAGRAM_URL,
       external: true,
     },
