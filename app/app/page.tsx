@@ -1,6 +1,5 @@
 import Header from "@/components/header";
 import Image from "next/image";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -22,6 +21,8 @@ export const metadata = {
 
 const INSTAGRAM_URL =
   "https://www.instagram.com/coachkilday?obrf=MTliYm80eHJmNXp5aQ%3D%3D&utm_source=qr";
+
+const WAITLIST_URL = "https://app.coachkilday.com/p/coachkildayllc";
 
 const features = [
   {
@@ -105,6 +106,12 @@ export default function AppPage() {
           <div className="container relative mx-auto grid min-h-screen items-center gap-16 px-4 pb-20 pt-32 lg:grid-cols-2 lg:pt-24">
             <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
               <AnimatedHero delay={0.1}>
+                {/* TODO (Dec 2026): remove once the app is live in the App Store. */}
+                <p className="mb-8 flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-[0.3em] text-white/70 sm:text-sm">
+                  <span aria-hidden="true" className="h-px w-10 bg-red-600" />
+                  Coming soon to the App Store
+                  <span aria-hidden="true" className="h-px w-10 bg-red-600" />
+                </p>
                 <h1 className="text-5xl font-extrabold uppercase leading-[0.95] tracking-tight text-white sm:text-6xl xl:text-7xl">
                   Your training,{" "}
                   <span className="text-red-600">in your pocket.</span>
@@ -118,7 +125,14 @@ export default function AppPage() {
                 </p>
                 <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                   <Button asChild className={heroPrimaryButton}>
-                    <Link href="/login">Get started</Link>
+                    {/* TODO (Dec 2026): change to "Get started" linking to the App Store. */}
+                    <a
+                      href={WAITLIST_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Join the waitlist
+                    </a>
                   </Button>
                   <Button
                     asChild
